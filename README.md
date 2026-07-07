@@ -15,14 +15,14 @@
 
 ### 在线访问
 
-**GitHub Pages**: [https://your-username.github.io/26h-architect/](https://your-username.github.io/26h-architect/)
+**GitHub Pages**: [https://fearless6677.github.io/26h-architect/](https://fearless6677.github.io/26h-architect/)
 
 ### 本地运行
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/system-architect-book.git
-cd system-architect-book/dist
+git clone https://github.com/fearless6677/26h-architect.git
+cd 26h-architect
 
 # 启动本地服务器
 python -m http.server 8000
@@ -101,4 +101,4 @@ npx serve
 
 ## 👤 作者
 
-YOUR_NAME - [GitHub](https://github.com/your-username)
+fearless6677 - [GitHub](https://github.com/fearless6677)
