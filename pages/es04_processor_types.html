@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式微处理器五大分类（MPU/MCU/DSP/GPU/SoC） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Processor cards grid */
+.proc-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 680px; margin: 0 auto; }
+@media (max-width: 600px) { .proc-grid { grid-template-columns: repeat(3, 1fr); } }
+.proc-card { display: flex; flex-direction: column; align-items: center; padding: 14px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; text-align: center; transition: all 0.35s ease; cursor: default; position: relative; }
+.proc-card .abbr { font-size: 20px; margin-bottom: 4px; }
+.proc-card .name { font-size: 11px; font-weight: 400; opacity: 0.85; margin-bottom: 6px; }
+.proc-card .icon { font-size: 22px; margin-bottom: 6px; }
+.proc-card .detail { font-size: 10px; font-weight: 400; line-height: 1.5; opacity: 0.75; }
+
+.proc-card.mpu { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.proc-card.mcu { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.proc-card.dsp { background: #fdf4ff; border: 2px solid #a855f7; color: #7e22ce; }
+.proc-card.gpu { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.proc-card.soc { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+
+.proc-card.active { transform: scale(1.1); box-shadow: 0 0 20px rgba(37,99,235,0.35); z-index: 2; }
+.proc-card.mcu.active { box-shadow: 0 0 20px rgba(34,197,94,0.4); }
+.proc-card.dsp.active { box-shadow: 0 0 20px rgba(168,85,247,0.4); }
+.proc-card.gpu.active { box-shadow: 0 0 20px rgba(249,115,22,0.4); }
+.proc-card.soc.active { box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+
+/* Integration bar */
+.integrate-bar { display: flex; align-items: center; gap: 0; max-width: 680px; margin: 16px auto 0; height: 28px; border-radius: 6px; overflow: hidden; font-size: 11px; font-weight: 600; color: #fff; }
+.integrate-bar .seg { flex: 1; display: flex; align-items: center; justify-content: center; height: 100%; transition: flex 0.5s ease; position: relative; overflow: hidden; }
+.integrate-bar .seg .shine { position: absolute; top: 0; left: -30%; width: 30%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); animation: barShine 2.5s ease-in-out infinite; }
+@keyframes barShine { 0% { left: -30%; } 100% { left: 130%; } }
+.seg.s-mpu { background: #3b82f6; }
+.seg.s-mcu { background: #22c55e; }
+.seg.s-dsp { background: #a855f7; }
+.seg.s-gpu { background: #f97316; }
+.seg.s-soc { background: #ef4444; }
+
+.arrow-label { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 6px; letter-spacing: 1px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Tooltip */
+.proc-card::after { content: attr(data-tip); position: absolute; bottom: -32px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; font-size: 10px; font-weight: 400; padding: 4px 8px; border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 5; }
+.proc-card:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 嵌入式微处理器五大分类</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <h1>嵌入式微处理器五大分类（MPU/MCU/DSP/GPU/SoC）</h1>
+  <p class="one-liner">嵌入式处理器分MPU、MCU(单片机)、DSP、GPU、SoC五类</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'explain')">📖 详解</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="proc-grid">
+      <div class="proc-card mpu" id="pc1" data-tip="需外部电路板">
+        <div class="icon">🔲</div>
+        <div class="abbr">MPU</div>
+        <div class="name">微处理器</div>
+        <div class="detail">ARM / PowerPC / MIPS</div>
+      </div>
+      <div class="proc-card mcu" id="pc2" data-tip="片内集成存储+外设">
+        <div class="icon">🔌</div>
+        <div class="abbr">MCU</div>
+        <div class="name">单片机</div>
+        <div class="detail">STM32 / 8051</div>
+      </div>
+      <div class="proc-card dsp" id="pc3" data-tip="哈佛结构·大数据运算">
+        <div class="icon">📊</div>
+        <div class="abbr">DSP</div>
+        <div class="name">数字信号处理器</div>
+        <div class="detail">TMS320系列</div>
+      </div>
+      <div class="proc-card gpu" id="pc4" data-tip="浮点+多核并行">
+        <div class="icon">🎮</div>
+        <div class="abbr">GPU</div>
+        <div class="name">图形处理器</div>
+        <div class="detail">AI深度学习</div>
+      </div>
+      <div class="proc-card soc" id="pc5" data-tip="多IC集成·最高集成度">
+        <div class="icon">🧩</div>
+        <div class="abbr">SoC</div>
+        <div class="name">片上系统</div>
+        <div class="detail">CPU+GPU+基带+IP核</div>
+      </div>
+    </div>
+
+    <div class="integrate-bar" id="intBar">
+      <div class="seg s-mpu" style="flex:1"><span class="shine" style="animation-delay:0s"></span>MPU</div>
+      <div class="seg s-mcu" style="flex:1.5"><span class="shine" style="animation-delay:.3s"></span>MCU</div>
+      <div class="seg s-dsp" style="flex:2"><span class="shine" style="animation-delay:.6s"></span>DSP</div>
+      <div class="seg s-gpu" style="flex:2.5"><span class="shine" style="animation-delay:.9s"></span>GPU</div>
+      <div class="seg s-soc" style="flex:3"><span class="shine" style="animation-delay:1.2s"></span>SoC</div>
+    </div>
+    <div class="arrow-label">集成度：低 ───────────────────────────── 高 →</div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 嵌入式处理器五大分类</span>
+<span class="kw">MPU</span>: 微处理器 → 需外部电路板, 如<span class="st">ARM/PowerPC/MIPS</span>
+<span class="kw">MCU</span>: 微控制器(单片机) → 片内集成存储+外设, 如<span class="st">STM32/8051</span>
+<span class="kw">DSP</span>: 数字信号处理器 → <span class="fn">哈佛结构</span>, 适合大数据运算, 如<span class="st">TMS320</span>
+<span class="kw">GPU</span>: 图形处理器 → <span class="fn">浮点+多核并行</span>, 用于AI深度学习
+<span class="kw">SoC</span>: 片上系统 → 多IC集成, 含处理器+IP核+存储+软件
+
+<span class="cm">// 集成度对比</span>
+集成度排序: <span class="fn">MPU</span> &lt; <span class="fn">MCU</span> &lt; <span class="fn">DSP</span> &lt; <span class="fn">GPU</span> &lt; <span class="fn">SoC</span>
+
+<span class="cm">// 存储速度（嵌入式常考）</span>
+速度: 寄存器组 &gt; Cache(SRAM) &gt; 内存(DRAM) &gt; Flash &gt; ROM</pre>
+</div>
+
+<div id="explain" class="tab-content">
+  <div class="explain" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;">
+    <strong>📖 核心讲解：</strong><br>
+    嵌入式微处理器分五类：<br>
+    <span class="hl">(1) MPU</span>——需专门电路板，集成度低但可靠性高，如ARM、PowerPC；<br>
+    <span class="hl">(2) MCU（单片机）</span>——将核心存储器和外设封装片内，单片化、体积小、功耗低，如8051、STM32；<br>
+    <span class="hl">(3) DSP</span>——采用哈佛结构，对指令特殊优化，适合大量数据处理，如TMS320系列；<br>
+    <span class="hl">(4) GPU</span>——大幅加强浮点和多核并行计算能力，常用于AI深度学习；<br>
+    <span class="hl">(5) SoC</span>——多个IC组合在一芯片上，含完整硬件系统和嵌入式软件，是最高集成度方案。
+  </div>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏭 MPU：工业控制主板使用ARM处理器</span>
+  <span class="tag-item">🚁 MCU：STM32F4用于无人机飞控</span>
+  <span class="tag-item">🎵 DSP：TMS320C6000用于音频信号处理</span>
+  <span class="tag-item">📱 SoC：高通骁龙集成CPU+GPU+基带</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>各有所长，适用不同场景</li>
+      <li>MCU单片化体积小、功耗低、成本低，适合嵌入式场景</li>
+      <li>SoC集成度最高，整体性能最优</li>
+      <li>DSP对数字信号处理效率远超通用CPU</li>
+      <li>GPU大规模并行加速AI训练/推理</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 局限</h4>
+    <ul>
+      <li>MPU集成度低，需外围电路设计，开发周期长</li>
+      <li>MCU运算能力有限，不适合复杂算法</li>
+      <li>DSP功耗较大，不适合电池供电场景</li>
+      <li>SoC设计成本高，流片一次数百万</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">MPU微处理器</span>
+    <span class="keyword">MCU单片机</span>
+    <span class="keyword">DSP哈佛结构</span>
+    <span class="keyword">GPU浮点并行</span>
+    <span class="keyword">SoC片上系统</span>
+    <span class="keyword">IP核</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="./es06_memory.html" style="color:#2563eb;text-decoration:none">嵌入式存储器体系（es06）</a> —— 寄存器/Cache/DRAM/Flash的速度层级</li>
+    <li><a href="./es03_architecture.html" style="color:#2563eb;text-decoration:none">嵌入式体系结构（es03）</a> —— 冯·诺依曼 vs 哈佛结构</li>
+    <li><a href="./embedded_software_layers.html" style="color:#2563eb;text-decoration:none">嵌入式软件五层架构</a> —— BSP / HAL / OS / 中间件 / 应用</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  const ids = ['pc1','pc2','pc3','pc4','pc5'];
+  // Clear previous
+  if (animTimer) { clearInterval(animTimer); }
+  // First pass: sequential highlight
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 450);
+    }, i * 350);
+  });
+  // Then: integration bar fill animation
+  setTimeout(() => {
+    const segs = document.querySelectorAll('#intBar .seg');
+    segs.forEach((s, i) => {
+      s.style.flex = '0';
+      setTimeout(() => {
+        s.style.flex = ['1','1.5','2','2.5','3'][i];
+      }, i * 200 + 100);
+    });
+  }, ids.length * 350);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

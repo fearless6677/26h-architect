@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中间件分类（8类常见中间件） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Middleware specific styles */
+.arch-diagram { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 16px 0; }
+.arch-layer { width: 100%; max-width: 520px; padding: 14px 20px; text-align: center; font-size: 14px; font-weight: 600; border-radius: 8px; transition: all 0.3s; }
+.arch-layer.app { background: #dbeafe; border: 2px solid #3b82f6; color: #1d4ed8; }
+.arch-layer.mw { background: linear-gradient(90deg, #ede9fe, #e0f2fe, #ede9fe); border: 2px solid #8b5cf6; color: #6d28d9; }
+.arch-layer.os { background: #d1fae5; border: 2px solid #10b981; color: #065f46; }
+.arch-layer.hw { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.arch-arrow { font-size: 20px; color: #94a3b8; line-height: 1; margin: 2px 0; }
+.arch-layer.highlight { transform: scale(1.04); box-shadow: 0 0 20px rgba(139,92,246,0.35); }
+
+.mw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+.mw-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; transition: all 0.35s; cursor: default; }
+.mw-card:hover { border-color: #8b5cf6; box-shadow: 0 2px 12px rgba(139,92,246,0.13); transform: translateY(-2px); }
+.mw-card .mw-num { display: inline-block; background: #8b5cf6; color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 11px; font-weight: 700; margin-right: 6px; }
+.mw-card h5 { font-size: 13px; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; }
+.mw-card p { font-size: 12px; color: #64748b; margin: 0; line-height: 1.6; }
+.mw-card .mw-example { font-size: 11px; color: #8b5cf6; margin-top: 4px; font-style: italic; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 软件工程 › 中间件分类（8类常见中间件）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">软件工程</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <h1>中间件分类（8类常见中间件）</h1>
+  <p class="one-liner">中间件是应用与OS之间的标准化接口，分为通信（MQSeries）、事务（Tuxedo）、Web容器（Tomcat/JBOSS）等8类。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 速查代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <!-- 架构分层图 -->
+    <div class="arch-diagram">
+      <div class="arch-layer app" id="layer-app">📱 应用软件（业务逻辑）</div>
+      <div class="arch-arrow">⬇</div>
+      <div class="arch-layer mw" id="layer-mw">🔧 中间件（标准化接口 &amp; 协议）</div>
+      <div class="arch-arrow">⬇</div>
+      <div class="arch-layer os" id="layer-os">💻 操作系统（Windows / Linux）</div>
+      <div class="arch-arrow">⬇</div>
+      <div class="arch-layer hw" id="layer-hw">🖥️ 硬件 / 网络</div>
+    </div>
+
+    <!-- 8类中间件卡片 -->
+    <div class="mw-grid">
+      <div class="mw-card" id="mw1">
+        <h5><span class="mw-num">1</span>通信处理中间件</h5>
+        <p>跨平台通信，保证消息可靠传递</p>
+        <div class="mw-example">📌 MQSeries</div>
+      </div>
+      <div class="mw-card" id="mw2">
+        <h5><span class="mw-num">2</span>事务处理中间件</h5>
+        <p>协调/调度/负载均衡，保证事务一致性</p>
+        <div class="mw-example">📌 Tuxedo</div>
+      </div>
+      <div class="mw-card" id="mw3">
+        <h5><span class="mw-num">3</span>数据存取中间件</h5>
+        <p>统一数据读写 / 加解密接口</p>
+        <div class="mw-example">📌 JDBC / ODBC</div>
+      </div>
+      <div class="mw-card" id="mw4">
+        <h5><span class="mw-num">4</span>Web服务器中间件</h5>
+        <p>运行时容器，托管Web应用</p>
+        <div class="mw-example">📌 Tomcat / JBOSS</div>
+      </div>
+      <div class="mw-card" id="mw5">
+        <h5><span class="mw-num">5</span>安全中间件</h5>
+        <p>屏蔽OS缺陷，提升系统安全性</p>
+        <div class="mw-example">📌 身份认证 / 加密网关</div>
+      </div>
+      <div class="mw-card" id="mw6">
+        <h5><span class="mw-num">6</span>跨平台中间件</h5>
+        <p>开发大型跨操作系统应用</p>
+        <div class="mw-example">📌 CORBA / RPC</div>
+      </div>
+      <div class="mw-card" id="mw7">
+        <h5><span class="mw-num">7</span>专用平台中间件</h5>
+        <p>特定领域构件库，垂直场景复用</p>
+        <div class="mw-example">📌 行业专用平台</div>
+      </div>
+      <div class="mw-card" id="mw8">
+        <h5><span class="mw-num">8</span>网络中间件</h5>
+        <p>网管/接入工具，管理网络资源</p>
+        <div class="mw-example">📌 网管系统 / 接入平台</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 中间件分类速查</span>
+<span class="st">通信处理中间件</span>  → 跨平台通信（<span class="fn">MQSeries</span>）
+<span class="st">事务处理中间件</span>  → 协调/调度/负载均衡（<span class="fn">Tuxedo</span>）
+<span class="st">数据存取中间件</span>  → 统一数据读写/加解密接口
+<span class="st">Web服务器中间件</span> → 运行时容器（<span class="fn">Tomcat</span>, <span class="fn">JBOSS</span>）
+<span class="st">安全中间件</span>      → 屏蔽OS缺陷，提升安全
+<span class="st">跨平台中间件</span>    → 开发大型应用
+<span class="st">专用平台中间件</span>  → 特定领域构件库
+<span class="st">网络中间件</span>      → 网管/接入工具
+
+<span class="cm">// 🧠 记忆口诀：通事数Web，安跨专网</span>
+<span class="cm">// 通信 → 事务 → 数据 → Web → 安全 → 跨平台 → 专用 → 网络</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>中间件是应用软件与操作系统之间的<span class="hl">标准化编程接口和协议</span>，属于可复用基础软件。
+  常见8类：①<span class="hl">通信处理中间件</span>（如MQSeries，保证跨平台通信）；
+  ②<span class="hl">事务处理中间件</span>（如Tuxedo，协调处理/负载均衡）；
+  ③数据存取中间件；④<span class="hl">Web服务器中间件</span>（如Tomcat、JBOSS）；
+  ⑤安全中间件；⑥跨平台中间件；⑦专用平台中间件；⑧网络中间件。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📨 MQSeries — 企业消息队列通信</span>
+  <span class="tag-item">🏦 Tuxedo — 银行交易系统事务处理</span>
+  <span class="tag-item">🐳 Tomcat — Java Web运行时容器</span>
+  <span class="tag-item">🔐 安全中间件 — 屏蔽OS缺陷</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>屏蔽底层差异，简化分布式开发</li>
+      <li>提供公共服务，提高开发效率</li>
+      <li>标准化接口，支持异构系统集成</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>增加系统复杂度和部署成本</li>
+      <li>中间件本身可能成为性能瓶颈</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">中间件</span>
+    <span class="keyword">MQSeries</span>
+    <span class="keyword">Tuxedo</span>
+    <span class="keyword">Tomcat</span>
+    <span class="keyword">JBOSS</span>
+    <span class="keyword">通信中间件</span>
+    <span class="keyword">事务中间件</span>
+    <span class="keyword">Web服务器中间件</span>
+    <span class="keyword">标准化接口</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>软件构件（software_component）</strong> = 中间件是大型可复用构件的典型代表</li>
+    <li><strong>分布式数据库（distributed_db）</strong> = 中间件为分布式DB提供通信与事务支持</li>
+    <li><strong>SOA / 微服务</strong> = 中间件是服务治理的基础设施（ESB → 消息中间件）</li>
+    <li><strong>vs 操作系统</strong>：OS管理硬件资源；中间件管理应用间通信与公共服务</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // 1) Highlight the architecture layers one by one
+  const layers = ['layer-app', 'layer-mw', 'layer-os', 'layer-hw'];
+  layers.forEach((lid, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(lid);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 600);
+    }, i * 350);
+  });
+
+  // 2) Highlight middleware cards sequentially
+  const cards = document.querySelectorAll('.mw-card');
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.style.borderColor = '#8b5cf6';
+      card.style.boxShadow = '0 0 14px rgba(139,92,246,0.25)';
+      card.style.transform = 'translateY(-3px)';
+      setTimeout(() => {
+        card.style.borderColor = '';
+        card.style.boxShadow = '';
+        card.style.transform = '';
+      }, 500);
+    }, layers.length * 350 + i * 250);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

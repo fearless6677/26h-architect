@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UML四种关系（依赖/关联/泛化/实现） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Animation: relation diagram */
+.relation-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; transition: all 0.4s ease; opacity: 0; transform: translateX(-20px); }
+.relation-card.visible { opacity: 1; transform: translateX(0); }
+.relation-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.relation-icon { flex-shrink: 0; width: 64px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.relation-info { flex: 1; }
+.relation-info h3 { font-size: 15px; margin-bottom: 2px; }
+.relation-info p { font-size: 13px; color: #64748b; }
+.strength-bar { height: 6px; border-radius: 3px; margin-top: 6px; transition: width 0.8s ease; }
+
+/* Dependency line */
+.dep-line { position: relative; width: 54px; height: 2px; }
+.dep-line::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; border-top: 2px dashed #94a3b8; }
+.dep-line::after { content: ''; position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 8px solid #94a3b8; }
+
+/* Association line */
+.assoc-line { position: relative; width: 54px; height: 2px; background: #3b82f6; }
+.assoc-line::after { content: ''; position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 8px solid #3b82f6; }
+
+/* Aggregation line */
+.agg-line { position: relative; width: 54px; height: 2px; background: #22c55e; }
+.agg-diamond { width: 14px; height: 10px; border: 2px solid #22c55e; transform: rotate(45deg); background: #fff; flex-shrink: 0; margin-right: -2px; }
+
+/* Composition line */
+.comp-line { position: relative; width: 54px; height: 2px; background: #f59e0b; }
+.comp-diamond { width: 14px; height: 10px; background: #f59e0b; transform: rotate(45deg); flex-shrink: 0; margin-right: -2px; }
+
+/* Generalization line */
+.gen-line { position: relative; width: 54px; height: 2px; background: #8b5cf6; }
+.gen-tri { position: absolute; right: -1px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 8px solid #fff; }
+.gen-tri::after { content: ''; position: absolute; left: -10px; top: -4px; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 8px solid #8b5cf6; }
+.gen-line-inner { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: #8b5cf6; }
+
+/* Realization line */
+.real-line { position: relative; width: 54px; height: 2px; }
+.real-line::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; border-top: 2px dashed #ef4444; }
+.real-tri { position: absolute; right: -1px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 8px solid #fff; }
+.real-tri::after { content: ''; position: absolute; left: -10px; top: -4px; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 8px solid #ef4444; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+.examples-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.examples-box h4 { color: #15803d; margin-bottom: 10px; }
+.examples-box li { font-size: 13px; color: #475569; margin: 6px 0; list-style: '💡 '; }
+
+.sub-relations { margin-left: 20px; margin-top: 8px; }
+.sub-badge { display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› UML建模 › UML四种关系</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">UML建模</span>
+  <span class="exam-tag">🔥 必考</span>
+  <h1>UML四种关系（依赖/关联/泛化/实现）</h1>
+  <p class="one-liner">UML有4种关系：依赖（使用）、关联（拥有，含聚合/组合）、泛化（继承）、实现（接口实现），强度递增。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 代码速记</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <!-- 1. Dependency -->
+    <div class="relation-card" id="r1">
+      <div class="relation-icon">
+        <div class="dep-line"></div>
+      </div>
+      <div class="relation-info">
+        <h3 style="color:#64748b">① 依赖 Dependency <span style="font-size:12px;color:#94a3b8">虚线箭头 → 最弱</span></h3>
+        <p>一个变化影响另一个，是<strong>使用关系</strong>（松耦合）</p>
+        <div class="strength-bar" style="background:#94a3b8; width:0" data-width="25%"></div>
+      </div>
+    </div>
+
+    <!-- 2. Association -->
+    <div class="relation-card" id="r2">
+      <div class="relation-icon">
+        <div class="assoc-line"></div>
+      </div>
+      <div class="relation-info">
+        <h3 style="color:#3b82f6">② 关联 Association <span style="font-size:12px;color:#94a3b8">实线箭头 → 连接实例</span></h3>
+        <p><strong>拥有</strong>的关系，将多个类的实例连接在一起</p>
+        <div class="strength-bar" style="background:#3b82f6; width:0" data-width="50%"></div>
+        <div class="sub-relations">
+          <div style="display:flex; align-items:center; gap:8px; margin:6px 0;">
+            <div class="agg-diamond"></div><div style="flex:1;height:2px;background:#22c55e"></div>
+            <span><span class="sub-badge">聚合 Aggregation</span><span style="font-size:12px;color:#64748b">整体-部分，生命周期独立</span></span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin:6px 0;">
+            <div class="comp-diamond"></div><div style="flex:1;height:2px;background:#f59e0b"></div>
+            <span><span class="sub-badge" style="background:#fef3c7;color:#92400e">组合 Composition</span><span style="font-size:12px;color:#64748b">整体-部分，生命周期相同（更强）</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Generalization -->
+    <div class="relation-card" id="r3">
+      <div class="relation-icon">
+        <div class="gen-line"><div class="gen-line-inner"></div><div class="gen-tri"></div></div>
+      </div>
+      <div class="relation-info">
+        <h3 style="color:#8b5cf6">③ 泛化 Generalization <span style="font-size:12px;color:#94a3b8">空心三角 → 继承</span></h3>
+        <p>继承关系，子类可替代父类（is-a）</p>
+        <div class="strength-bar" style="background:#8b5cf6; width:0" data-width="75%"></div>
+      </div>
+    </div>
+
+    <!-- 4. Realization -->
+    <div class="relation-card" id="r4">
+      <div class="relation-icon">
+        <div class="real-line"><div class="real-tri"></div></div>
+      </div>
+      <div class="relation-info">
+        <h3 style="color:#ef4444">④ 实现 Realization <span style="font-size:12px;color:#94a3b8">虚线三角 → 最强</span></h3>
+        <p>接口与实现类之间，定义行为的契约</p>
+        <div class="strength-bar" style="background:#ef4444; width:0" data-width="100%"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// UML 4种关系（强弱排序）</span>
+<span class="kw">依赖</span>(Dependency)    <span class="st">- - -></span>  一个变化影响另一个（最弱，使用关系）
+<span class="kw">关联</span>(Association)   <span class="st">─────></span>  拥有的关系，连接对象实例
+  ├─ <span class="fn">聚合</span>(Aggregation)  <span class="st">◇──></span> 整体-部分，生命周期可不同
+  └─ <span class="fn">组合</span>(Composition)  <span class="st">◆──></span> 整体-部分，生命周期相同（更强）
+<span class="kw">泛化</span>(Generalization)<span class="st"> ─|></span>  继承，子类替代父类
+<span class="kw">实现</span>(Realization)   <span class="st">──|></span>  接口与实现类之间（最强）</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>UML定义了4种关系：①<span class="hl">依赖</span>（虚线箭头）：一个事物变化会影响另一个，是使用关系，最弱；②<span class="hl">关联</span>（实线箭头）：拥有的关系，将多个类的实例连接在一起，特例有聚合（整体-部分，生命周期不同）和组合（整体-部分，生命周期相同）；③<span class="hl">泛化</span>（空心三角箭头）：继承关系，子类可替代父类；④<span class="hl">实现</span>（虚线三角箭头）：接口与实现类之间，最强。
+</div>
+
+<div class="examples-box">
+  <h4>💡 举例理解</h4>
+  <ul>
+    <li><strong>聚合</strong>：班级与学生 — 学生可属于多个班级，生命周期独立</li>
+    <li><strong>组合</strong>：公司与部门 — 部门随公司创建而创建，消亡而消亡</li>
+    <li><strong>泛化</strong>：猫 → 动物 — 猫是动物的一种（is-a）</li>
+    <li><strong>实现</strong>：类实现接口的方法 — 接口定义契约，类提供具体实现</li>
+  </ul>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📐 类图核心关系</span>
+  <span class="tag-item">🔗 依赖 = 虚线箭头</span>
+  <span class="tag-item">🔗 关联 = 实线箭头</span>
+  <span class="tag-item">🔗 泛化 = 空心三角实线</span>
+  <span class="tag-item">🔗 实现 = 空心三角虚线</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>依赖：表达松耦合关系，降低系统复杂度</li>
+      <li>聚合/组合：清晰表达整体-部分语义</li>
+      <li>泛化：支持面向对象继承机制，代码复用</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 易混淆点</h4>
+    <ul>
+      <li>依赖 vs 关联：依赖是"使用"，关联是"拥有"</li>
+      <li>聚合 vs 组合：关键看生命周期是否一致</li>
+      <li>泛化 vs 实现：泛化是类-类继承，实现是接口-类</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">依赖</span>
+    <span class="keyword">关联</span>
+    <span class="keyword">泛化</span>
+    <span class="keyword">实现</span>
+    <span class="keyword">聚合</span>
+    <span class="keyword">组合</span>
+    <span class="keyword">生命周期</span>
+    <span class="keyword">虚线</span>
+    <span class="keyword">实线</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>用例图关系</strong>（uml_usecase_relations）— 用例图有自己的包含/扩展关系</li>
+    <li><strong>类图</strong>（uml_class_diagram）— 四种关系主要在类图中体现</li>
+    <li><strong>设计原则</strong>：依赖倒置原则 → 依赖抽象而非具体实现</li>
+    <li><strong>SOLID</strong>：理解关系强弱是掌握面向对象设计原则的基础</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const cards = document.querySelectorAll('.relation-card');
+  const bars = document.querySelectorAll('.strength-bar');
+  // Reset
+  cards.forEach(c => c.classList.remove('visible'));
+  bars.forEach(b => b.style.width = '0');
+
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.classList.add('visible');
+      // Animate strength bar
+      const bar = card.querySelector('.strength-bar');
+      if (bar) {
+        setTimeout(() => { bar.style.width = bar.dataset.width; }, 150);
+      }
+    }, i * 350);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 400));
+</script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAAM软件架构分析方法 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.exam-box .example-text { font-size: 13px; color: #78350f; margin-top: 10px; line-height: 1.7; }
+
+/* SAAM specific styles */
+.flow-col { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 12px 0; }
+.step-box { display: flex; align-items: center; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 220px; justify-content: center; }
+.step-box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.step-box.purple { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.step-box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.step-box.amber { background: #fffbeb; border: 2px solid #f59e0b; color: #b45309; }
+.step-box.processing { transform: scale(1.06); box-shadow: 0 0 16px rgba(37,99,235,0.35); }
+.arrow-down { width: 4px; height: 24px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.arrow-down .flow-v { position: absolute; top: -20px; left: 0; width: 4px; height: 20px; background: linear-gradient(180deg, transparent, #3b82f6, transparent); animation: flowDown 1.5s linear infinite; }
+@keyframes flowDown { 0% { top: -20px; } 100% { top: 24px; } }
+
+.input-group { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.input-box { background: #fff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px 16px; font-size: 12px; color: #475569; text-align: center; transition: all 0.3s; }
+.input-box.highlight { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+.info-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.info-card h4 { color: #1e293b; margin-bottom: 8px; font-size: 14px; }
+.info-card .meta { font-size: 13px; color: #64748b; margin: 4px 0; }
+.info-card .meta strong { color: #334155; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› SAAM方法 › SAAM软件架构分析方法</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">SAAM方法</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hour-tag">🕐 第10小时</span>
+  <h1>SAAM 软件架构分析方法</h1>
+  <p class="one-liner">SAAM是最早形成文档并广泛应用的架构分析方法，主要分析可修改性</p>
+</div>
+
+<div class="info-card">
+  <h4>📖 基本信息</h4>
+  <p class="meta"><strong>全称：</strong>Software Architecture Analysis Method</p>
+  <p class="meta"><strong>提出：</strong>卡耐基梅隆大学SEI · Kazman等人 · 1983年</p>
+  <p class="meta"><strong>特点：</strong>最早形成文档并广泛应用的软件架构分析方法</p>
+  <p class="meta"><strong>主要分析内容：</strong>可修改性</p>
+  <p class="meta"><strong>评估技术：</strong>场景技术</p>
+  <p class="meta"><strong>架构描述：</strong>围绕功能、结构和分配描述</p>
+  <p class="meta"><strong>知识库可复用性：</strong>不涉及</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放分析流程</button>
+
+    <div class="input-group" id="inputs">
+      <div class="input-box" id="in1">📄 问题描述</div>
+      <div class="input-box" id="in2">📋 需求说明</div>
+      <div class="input-box" id="in3">🏗️ 架构描述</div>
+    </div>
+
+    <div class="flow-col">
+      <div class="step-box blue" id="s1">① 场景开发</div>
+      <div class="arrow-down"><div class="flow-v"></div></div>
+      <div class="step-box blue" id="s2">② 架构描述</div>
+      <div class="arrow-down"><div class="flow-v" style="animation-delay:.3s"></div></div>
+      <div class="step-box purple" id="s3">③ 单个场景评估</div>
+      <div class="arrow-down"><div class="flow-v" style="animation-delay:.6s"></div></div>
+      <div class="step-box purple" id="s4">④ 场景交互</div>
+      <div class="arrow-down"><div class="flow-v" style="animation-delay:.9s"></div></div>
+      <div class="step-box green" id="s5">⑤ 总体评估</div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// SAAM —— 最早形成文档的架构分析方法 (Kazman, 1983)</span>
+
+<span class="kw">输入</span>: [问题描述, 需求说明, 架构描述]
+
+<span class="kw">function</span> <span class="fn">SAAM分析</span>(架构, 场景集) {
+    <span class="cm">// 第1步: 场景开发 —— 构造测试场景</span>
+    场景集 = <span class="fn">开发场景</span>(需求说明)
+
+    <span class="cm">// 第2步: 架构描述 —— 功能/结构/分配</span>
+    架构描述 = <span class="fn">描述架构</span>(架构, {功能, 结构, 分配})
+
+    <span class="cm">// 第3步: 单个场景评估 —— 逐一验证</span>
+    <span class="kw">for</span> (场景 <span class="kw">of</span> 场景集) {
+        <span class="fn">评估场景</span>(架构描述, 场景)  <span class="cm">// 检查能否支持</span>
+    }
+
+    <span class="cm">// 第4步: 场景交互 —— 发现场景间冲突</span>
+    <span class="fn">分析交互</span>(场景集)  <span class="cm">// 多个场景是否矛盾</span>
+
+    <span class="cm">// 第5步: 总体评估 —— 汇总结论</span>
+    <span class="kw">return</span> <span class="fn">总体评估</span>(结果)  <span class="cm">// 关注: 可修改性</span>
+}
+
+<span class="cm">// 核心: 通过<span class="st">场景技术</span>评估架构的<span class="st">可修改性</span></span>
+<span class="cm">// 知识库: <span class="st">不可复用</span>（每次分析独立构建）</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>SAAM通过<span class="hl">场景技术</span>评估架构，用构造的场景测试架构是否满足需求。
+  主要关注<span class="hl">可修改性</span>，即架构能否方便地进行修改。分析过程五步：
+  场景开发 → 架构描述 → 单个评估 → 场景交互 → 总体评估。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📡 空中交通管制系统</span>
+  <span class="tag-item">🎵 嵌入式音频系统</span>
+  <span class="tag-item">🔧 修正控制系统</span>
+  <span class="tag-item">🔍 场景驱动评估</span>
+  <span class="tag-item">📊 聚焦可修改性</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>最早形成文档的架构分析方法，成熟度高</li>
+      <li>可用于评价单系统或进行多系统比较</li>
+      <li>场景驱动，直观易懂</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>主要关注可修改性，分析维度有限</li>
+      <li>知识库不可复用，每次需重新构建</li>
+      <li>场景开发依赖分析人员经验</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">SAAM</span>
+    <span class="keyword">Software Architecture Analysis Method</span>
+    <span class="keyword">卡耐基梅隆</span>
+    <span class="keyword">Kazman</span>
+    <span class="keyword">1983年</span>
+    <span class="keyword">最早形成文档</span>
+    <span class="keyword">场景开发</span>
+    <span class="keyword">架构描述</span>
+    <span class="keyword">单个场景评估</span>
+    <span class="keyword">场景交互</span>
+    <span class="keyword">总体评估</span>
+    <span class="keyword">可修改性</span>
+  </div>
+  <div class="example-text">
+    💡 <strong>典型例题：</strong><br>
+    · SAAM应用领域：空中交通管制系统、嵌入式音频系统、修正控制系统<br>
+    · SAAM通过场景技术验证架构，注重发现潜在问题，可用于评价单系统或进行多系统比较
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>架构评估概念</strong> — SAAM是架构评估的基础方法之一</li>
+    <li><strong>ATAM评估方法</strong> — SAAM的进化版，增加了质量属性和效用树</li>
+    <li><strong>场景技术</strong> — SAAM的核心评估手段，通过场景验证架构</li>
+    <li><strong>vs ATAM</strong>：SAAM聚焦可修改性，ATAM覆盖多种质量属性（性能、安全性等）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // Highlight inputs first
+  const inputs = ['in1', 'in2', 'in3'];
+  inputs.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('highlight');
+      setTimeout(() => document.getElementById(id).classList.remove('highlight'), 600);
+    }, i * 250);
+  });
+
+  // Animate steps
+  const steps = ['s1', 's2', 's3', 's4', 's5'];
+  const delay = inputs.length * 250 + 200;
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('processing');
+      setTimeout(() => el.classList.remove('processing'), 600);
+    }, delay + i * 500);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

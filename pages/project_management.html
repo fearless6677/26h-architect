@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件项目管理 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 软件项目管理 › 软件项目管理</span></nav>
+<div class="ct">
+<div><span class="tag c">软件项目管理</span><span class="tag e">高频</span>
+<h1>软件项目管理</h1><p class="ol">项目管理就是管进度(按时做完)、质量(做好)、风险(别出意外)的一套方法。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>软件项目管理包括进度管理、配置管理、质量管理和风险管理。进度管理6过程：活动定义→排序→资源估计→历时估计→制定计划→控制。WBS以可交付成果为导向逐层分解。任务活动图(甘特图)是项目管理的基础工具。风险管理目标：预防风险并应对已发生风险。Boehm分为风险估计(辨识/分析/排序)和风险控制(计划/处理/监督)；Charette分为分析(辨识/估计/评价)和管理(计划/控制/监督)。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// 进度管理6过程
+活动定义 → 活动排序 → 活动资源估计
+   → 活动历时估计 → 制定进度计划 → 进度控制
+
+// 甘特图(Gantt Chart)
+任务A: ████████░░░░  (第1-4周)
+任务B: ░░░░████████░  (第3-6周)
+任务C: ░░░░░░░░█████  (第5-8周)
+
+// 风险管理两大模型
+Boehm: 风险估计(辨识+分析+排序) + 风险控制(计划+处理+监督)
+Charette: 风险分析(辨识+估计+评价) + 风险管理(计划+控制+监督)</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>WBS分解：开发电商系统→前端模块→登录页面→UI设计任务→分配给小王</li><li>甘特图直观展示各任务的时间安排和并行关系</li><li>风险管理：识别'核心开发人员离职'风险→分析影响→制定应对计划</li><li>进度管理：先确定要做的活动，再排序，估算资源和时间，最后制定计划</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>系统化管理降低项目失败风险</li><li>WBS使任务分配清晰明确</li><li>风险管理防患于未然</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>风险管理需要持续投入</li><li>进度估计容易不准确</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">进度管理</span><span class="k">WBS</span><span class="k">甘特图</span><span class="k">风险管理</span><span class="k">Boehm</span><span class="k">Charette</span><span class="k">风险估计</span><span class="k">风险控制</span><span class="k">活动定义</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="scm_quality.html">软件配置与质量管理</a></li><li><a href="cmmi_maturity.html">CMM/CMMI成熟度模型</a></li><li><a href="requirements_engineering.html">需求工程</a></li></ul></div>
+</div></body></html>

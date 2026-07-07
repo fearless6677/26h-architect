@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoS/DDoS攻击与欺骗攻击 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 安全攻击与防御 › DoS/DDoS攻击与欺骗攻击</span></nav>
+<div class="ct">
+<div><span class="tag c">安全攻击与防御</span><span class="tag e">高频</span>
+<h1>DoS/DDoS攻击与欺骗攻击</h1><p class="ol">DoS/DDoS是让系统瘫痪不能用(破坏可用性)；欺骗攻击是假冒身份骗过系统——ARP骗MAC、DNS骗域名、IP骗地址。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>DoS(Denial of Service)攻击使系统不可访问，侵犯系统的可用性要素。当前常见的是DDoS攻击，采用Client-Handler-Agent三级结构。防御方法有特征识别、防火墙、通信数据统计和修正漏洞4种。欺骗攻击包括：ARP欺骗（解析IP为MAC地址时造假，防范用固化ARP表、双向绑定等）、DNS欺骗（域名解析为错误IP，检测有被动监听、虚假探测和交叉检查3种方法）、IP欺骗（伪造源IP获取信任，用防火墙防范）。此外还有SYN Flooding（攻击TCP三次握手）、ICMP攻击和SNMP攻击等。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">DoS攻击(破坏可用性):
+ 传统4种模式: 消耗资源/破坏配置/物理破坏/利用处理错误
+ DDoS(当前主流): Client→Handler→Agent 三级结构
+ 防御: 特征识别/防火墙/流量统计/修正漏洞
+
+欺骗攻击:
+ ARP欺骗: IP→MAC解析欺骗 → 防范: 固化ARP表/ARP服务器/双向绑定
+ DNS欺骗: 域名→IP解析欺骗 → 检测: 被动监听/虚假探测/交叉检查
+ IP欺骗: 伪造源IP获取信任 → 防范: 防火墙
+
+TCP/IP攻击:
+ SYN Flooding: 三次握手耗尽资源 → 减少超时
+ ICMP攻击(Ping of Death) → 打补丁
+ SNMP攻击(V1缺认证) → 升级V2+</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>DDoS：黑客控制上万台肉鸡(Agent)同时向目标服务器发请求，导致服务器瘫痪</li><li>ARP欺骗：在局域网中伪装网关MAC地址，截获所有用户的网络流量</li><li>SYN Flooding：发送大量SYN包但不完成三次握手，耗尽服务器的连接队列</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>了解攻击方式有助于针对性防御</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>DDoS攻击难以完全防御</li><li>欺骗攻击在协议层面难以根除</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">DoS</span><span class="k">DDoS</span><span class="k">可用性</span><span class="k">Client-Handler-Agent</span><span class="k">ARP欺骗</span><span class="k">DNS欺骗</span><span class="k">IP欺骗</span><span class="k">SYN Flooding</span><span class="k">三次握手</span><span class="k">ICMP</span><span class="k">Ping of Death</span><span class="k">SNMP</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="SEC-01.html">SEC-01</a></li><li><a href="SEC-09.html">SEC-09</a></li><li><a href="SEC-10.html">SEC-10</a></li></ul></div>
+</div></body></html>

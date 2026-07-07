@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文不及格情形与常见问题 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.fail-box { background: #fef2f2; border: 1px solid #fca5a5; flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.fail-box h4 { color: #b91c1c; margin-bottom: 8px; }
+.fail-box li { font-size: 13px; color: #475569; margin: 4px 0; }
+.common-box { background: #fffbeb; border: 1px solid #fcd34d; flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.common-box h4 { color: #b45309; margin-bottom: 8px; }
+.common-box li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 论文结构图 */
+.paper-flow { display: flex; align-items: stretch; justify-content: center; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+.paper-section { display: flex; flex-direction: column; align-items: center; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 100px; position: relative; }
+.paper-section .section-title { margin-bottom: 4px; font-size: 13px; }
+.paper-section .section-issue { font-size: 11px; font-weight: 400; color: #b91c1c; margin-top: 4px; }
+.paper-section.danger { background: #fef2f2; border: 2px solid #ef4444; color: #991b1b; }
+.paper-section.warn { background: #fffbeb; border: 2px solid #f59e0b; color: #92400e; }
+.paper-section.ok { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.arrow { display: flex; align-items: center; font-size: 20px; color: #94a3b8; padding: 0 4px; }
+.paper-section.pulse { animation: pulse 0.6s ease; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); box-shadow: 0 0 16px rgba(239,68,68,0.4); } 100% { transform: scale(1); } }
+
+.fail-number { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #ef4444; color: #fff; border-radius: 50%; font-size: 14px; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
+.fail-item { display: flex; align-items: flex-start; margin: 8px 0; font-size: 13px; color: #475569; }
+.fail-item strong { color: #b91c1c; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+.weight-badge { display: inline-block; background: #fef3c7; color: #92400e; font-size: 11px; padding: 1px 8px; border-radius: 8px; border: 1px solid #fcd34d; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 论文写作 › 论文不及格情形与常见问题</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">论文写作</span>
+  <span class="exam-tag">⚠️ 不及格红线</span>
+  <span class="hour-tag">📖 第26小时</span>
+  <h1>论文不及格情形与常见问题</h1>
+  <p class="one-liner">六种论文不及格情况：虚构情节、纯理论无实践、内容陈旧、不切题意、篇幅过短、文理不通。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 论文结构图</div>
+  <div class="tab" onclick="switchTab(this,'detail')">📋 六大不及格情形</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 自检清单</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放检查</button>
+    <p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:12px;">论文各部分常见问题可视化 —— <span style="color:#ef4444;">红色</span> = 致命问题，<span style="color:#f59e0b;">橙色</span> = 高频扣分</p>
+
+    <div class="paper-flow">
+      <div class="paper-section danger" id="s1">
+        <span class="section-title">📝 摘要</span>
+        <span class="section-issue">缺背景/功能/理论</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="paper-section danger" id="s2">
+        <span class="section-title">📖 项目背景</span>
+        <span class="section-issue">非软件项目/太陈旧</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="paper-section warn" id="s3">
+        <span class="section-title">📚 理论部分</span>
+        <span class="section-issue">超700字或缺失</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="paper-section danger" id="s4">
+        <span class="section-title">🔨 实践部分</span>
+        <span class="section-issue">篇幅短/纯理论空谈</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="paper-section warn" id="s5">
+        <span class="section-title">🏁 结尾</span>
+        <span class="section-issue">未呼应论点/矛盾</span>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;text-align:center;">
+      <div class="paper-section ok" id="s0" style="display:inline-flex;">
+        <span class="section-title">✅ 及格论文</span>
+        <span style="font-size:11px;font-weight:400;color:#15803d;">真实项目 + 理论适度 + 实践详实 + 首尾呼应</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="detail" class="tab-content">
+  <div style="padding:16px;">
+    <h3 style="color:#b91c1c;margin-bottom:16px;">🚫 六种不及格情形</h3>
+
+    <div class="fail-item"><span class="fail-number">1</span><div><strong>虚构情节、不真实内容</strong> —— 编造不存在的项目、数据或经验，一旦查出直接不及格。</div></div>
+    <div class="fail-item"><span class="fail-number">2</span><div><strong>没有项目开发实际经验，通篇纯理论</strong> —— 论文必须有真实项目实践支撑，不能只谈理论。</div></div>
+    <div class="fail-item"><span class="fail-number">3</span><div><strong>内容方法过于陈旧或项目水准低下</strong> —<strong>选择的项目或技术不能太过时，需体现一定技术水准。</strong></div></div>
+    <div class="fail-item"><span class="fail-number">4</span><div><strong>内容不切题意或空泛</strong> —— 论述与题目无关或泛泛而谈，没有实质性内容。</div></div>
+    <div class="fail-item"><span class="fail-number">5</span><div><strong>正文与摘要篇幅过于短小</strong> —— 字数严重不足，无法展现完整的项目经验和分析能力。</div></div>
+    <div class="fail-item"><span class="fail-number">6</span><div><strong>文理不通、错别字多、条理不清、字迹潦草</strong> —— 基本写作质量不达标，影响阅读和理解。</div></div>
+
+    <h3 style="color:#b45309;margin:20px 0 12px;">📋 各部分常见问题</h3>
+    <div class="pros-cons">
+      <div class="fail-box">
+        <h4>❌ 摘要</h4>
+        <ul>
+          <li>缺少项目背景介绍</li>
+          <li>缺少系统功能概述</li>
+          <li>缺少所用理论/方法介绍</li>
+        </ul>
+      </div>
+      <div class="fail-box">
+        <h4>❌ 项目背景</h4>
+        <ul>
+          <li>选择非软件类项目</li>
+          <li>项目太陈旧（缺乏时代感）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="common-box">
+        <h4>⚠️ 理论部分</h4>
+        <ul>
+          <li>理论描述超过700字（过多）</li>
+          <li>完全没有理论部分</li>
+        </ul>
+      </div>
+      <div class="fail-box">
+        <h4>❌ 实践部分</h4>
+        <ul>
+          <li>篇幅过短、一笔带过</li>
+          <li>纯理论空谈无实际做法</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="common-box">
+        <h4>⚠️ 结尾</h4>
+        <ul>
+          <li>未呼应开头论点</li>
+          <li>前后内容自相矛盾</li>
+        </ul>
+      </div>
+      <div class="fail-box">
+        <h4>❌ 常见致命问题总结</h4>
+        <ul>
+          <li>虚构项目</li>
+          <li>通篇纯理论</li>
+          <li>内容不切题意</li>
+          <li>篇幅严重不足</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 论文自检清单 —— 提交前逐项检查</span>
+
+<span class="kw">const</span> <span class="fn">论文自检</span> = {
+  <span class="st">"真实性"</span>: {
+    <span class="cm">// ✅ 项目是否真实？是否有实际开发经验？</span>
+    检查项: [<span class="st">"项目真实存在"</span>, <span class="st">"本人参与开发"</span>, <span class="st">"数据可追溯"</span>],
+    红线: <span class="st">"虚构情节 → 直接不及格"</span>
+  },
+  <span class="st">"实践性"</span>: {
+    <span class="cm">// ✅ 是否有足够的实践内容？不能纯理论</span>
+    检查项: [<span class="st">"有具体实现过程"</span>, <span class="st">"有技术方案细节"</span>, <span class="st">"有问题解决案例"</span>],
+    红线: <span class="st">"通篇纯理论 → 不及格"</span>
+  },
+  <span class="st">"篇幅"</span>: {
+    <span class="cm">// ✅ 摘要和正文是否达到字数要求？</span>
+    摘要: <span class="st">"300-400字"</span>,
+    正文: <span class="st">"5000字以上"</span>,
+    红线: <span class="st">"篇幅严重不足 → 不及格"</span>
+  },
+  <span class="st">"结构完整"</span>: {
+    检查项: [
+      <span class="st">"摘要含背景+功能+理论"</span>,
+      <span class="st">"理论部分300-700字"</span>,
+      <span class="st">"实践部分为全文重点"</span>,
+      <span class="st">"结尾呼应开头论点"</span>
+    ]
+  },
+  <span class="st">"写作质量"</span>: {
+    检查项: [<span class="st">"无错别字"</span>, <span class="st">"条理清晰"</span>, <span class="st">"字迹工整"</span>, <span class="st">"切题不空泛"</span>]
+  }
+};</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>论文及格有<span class="hl">六条红线</span>，任何一条触碰都直接不及格。
+  最关键的三点：<span class="hl">项目必须真实</span>、<span class="hl">必须有实践内容</span>、<span class="hl">篇幅必须达标</span>。
+  各部分也有高频扣分点，写完论文务必逐项自检。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🎯 真实性第一原则</span>
+  <span class="tag-item">📝 摘要=项目名片</span>
+  <span class="tag-item">📚 理论适度300-700字</span>
+  <span class="tag-item">🔨 实践是论文核心</span>
+  <span class="tag-item">🏁 首尾必须呼应</span>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词 <span class="weight-badge">权重：中</span></h4>
+  <div>
+    <span class="keyword">虚构情节不及格</span>
+    <span class="keyword">纯理论不及格</span>
+    <span class="keyword">篇幅过短不及格</span>
+    <span class="keyword">文理不通不及格</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>L26-01</strong> = 论文写作基础要求与格式规范</li>
+    <li><strong>L26-02</strong> = 论文各部分写作要点详解</li>
+    <li><strong>L26-03</strong> = 论文评分标准与等级划分</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const sections = ['s1','s2','s3','s4','s5'];
+  sections.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('pulse');
+      setTimeout(() => el.classList.remove('pulse'), 600);
+    }, i * 500);
+  });
+  // 最后点亮及格
+  setTimeout(() => {
+    const ok = document.getElementById('s0');
+    ok.classList.add('pulse');
+    setTimeout(() => ok.classList.remove('pulse'), 600);
+  }, sections.length * 500 + 200);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

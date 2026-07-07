@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nonfunctional Requirements 非功能需求四大类型 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 四宫格动画 */
+.nfr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .nfr-grid { grid-template-columns: 1fr; } }
+.nfr-card { border-radius: 10px; padding: 18px; transition: all 0.4s; cursor: default; position: relative; overflow: hidden; }
+.nfr-card .card-icon { font-size: 26px; margin-bottom: 6px; }
+.nfr-card .card-en { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
+.nfr-card .card-zh { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.nfr-card .card-desc { font-size: 12px; line-height: 1.7; color: #475569; }
+.nfr-card .card-example { margin-top: 8px; font-size: 11px; color: #64748b; background: rgba(255,255,255,0.7); border-radius: 6px; padding: 6px 10px; }
+.nfr-card.op { background: linear-gradient(135deg, #dbeafe, #eff6ff); border: 2px solid #60a5fa; color: #1e40af; }
+.nfr-card.pf { background: linear-gradient(135deg, #dcfce7, #f0fdf4); border: 2px solid #4ade80; color: #166534; }
+.nfr-card.sc { background: linear-gradient(135deg, #fee2e2, #fef2f2); border: 2px solid #f87171; color: #991b1b; }
+.nfr-card.cp { background: linear-gradient(135deg, #fae8ff, #fdf4ff); border: 2px solid #c084fc; color: #6b21a8; }
+.nfr-card.active-card { transform: scale(1.04); box-shadow: 0 6px 24px rgba(0,0,0,0.12); z-index: 2; }
+.nfr-card::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transition: left 0.6s; }
+.nfr-card.active-card::after { left: 100%; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 3; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* 层级决策 */
+.tier-decision { background: #f8fafc; border: 1px dashed #94a3b8; border-radius: 8px; padding: 16px; margin-top: 16px; text-align: center; }
+.tier-decision h5 { color: #475569; font-size: 13px; margin-bottom: 12px; }
+.tier-row { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.tier-box { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.tier-box.t2 { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.tier-box.t3 { background: #e0e7ff; border: 2px solid #6366f1; color: #3730a3; }
+.tier-box.tn { background: #fce7f3; border: 2px solid #ec4899; color: #9d174d; }
+.tier-box.tier-active { transform: scale(1.1); box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 架构设计基础 › Nonfunctional Requirements 非功能需求四大类型</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">非功能需求（英文）</span>
+  <span class="exam-tag">⭐ 1-2分</span>
+  <h1>Nonfunctional Requirements 非功能需求四大类型</h1>
+  <p class="one-liner">四种非功能需求类型（英文）：operational（操作环境）、performance（响应时间/容量/可靠性）、security（防破坏/防数据丢失）、cultural and political（国家政策）。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'tier')">🏗️ 层级决策</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="nfr-grid">
+      <div class="nfr-card op" id="card1">
+        <div class="card-icon">⚙️</div>
+        <div class="card-en">Operational Requirements</div>
+        <div class="card-zh">操作需求</div>
+        <div class="card-desc">指定系统必须运行的<strong>操作环境</strong>及如何随时间变化</div>
+        <div class="card-example">📌 operating environment(s)</div>
+      </div>
+      <div class="nfr-card pf" id="card2">
+        <div class="card-icon">📈</div>
+        <div class="card-en">Performance Requirements</div>
+        <div class="card-zh">性能需求</div>
+        <div class="card-desc">关注<strong>响应时间、容量、可靠性</strong>等量化指标</div>
+        <div class="card-example">📌 response time · capacity · reliability</div>
+      </div>
+      <div class="nfr-card sc" id="card3">
+        <div class="card-icon">🛡️</div>
+        <div class="card-en">Security Requirements</div>
+        <div class="card-zh">安全需求</div>
+        <div class="card-desc">保护信息系统免受<strong>故意破坏和数据丢失</strong></div>
+        <div class="card-example">📌 protect from disruption &amp; data loss</div>
+      </div>
+      <div class="nfr-card cp" id="card4">
+        <div class="card-icon">🌍</div>
+        <div class="card-en">Cultural &amp; Political Requirements</div>
+        <div class="card-zh">文化和政治需求</div>
+        <div class="card-desc">针对系统使用<strong>国家的特定要求</strong>（法规、语言、习惯）</div>
+        <div class="card-example">📌 specific to the countries</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// Nonfunctional Requirements — 四大类型速记</span>
+<span class="kw">class</span> <span class="fn">NonfunctionalRequirements</span> {
+
+  <span class="cm">// ① 操作需求：系统在什么环境下跑？怎么变化？</span>
+  <span class="st">operational</span>  → { operating_env: <span class="st">"Linux/Cloud/On-prem"</span> }
+
+  <span class="cm">// ② 性能需求：快不快？扛不扛得住？稳不稳？</span>
+  <span class="st">performance</span>  → { response_time: <span class="st">"&lt;200ms"</span>,
+                    capacity:      <span class="st">"10k QPS"</span>,
+                    reliability:   <span class="st">"99.99%"</span> }
+
+  <span class="cm">// ③ 安全需求：防攻击、防泄漏、防丢失</span>
+  <span class="st">security</span>     → { protect: [<span class="st">"disruption"</span>, <span class="st">"data_loss"</span>] }
+
+  <span class="cm">// ④ 文化和政治需求：到了哪个国家就得守哪国的规矩</span>
+  <span class="st">cultural</span>     → { locale_rules: <span class="st">"GDPR / 等保 / 语言"</span> }
+}
+
+<span class="cm">// 记忆口诀：O-P-S-C  → "Ops, Perf, Sec, Cul"</span>
+<span class="cm">// 架构第一步：把 NFR 拆成这四类，再逐步细化</span></pre>
+</div>
+
+<div id="tier" class="tab-content">
+  <div class="anim-area">
+    <div class="explain" style="margin-bottom:12px;">
+      <strong>架构延伸：</strong>在基于客户端的架构中，还需决定使用几层架构 ↓
+    </div>
+    <div class="tier-decision">
+      <h5>客户端架构层数选择</h5>
+      <div class="tier-row">
+        <div class="tier-box t2" onclick="selectTier(this)"><strong>2 层</strong><br><span style="font-size:11px;font-weight:400;">Client ↔ Server</span></div>
+        <div class="tier-box t3" onclick="selectTier(this)"><strong>3 层</strong><br><span style="font-size:11px;font-weight:400;">Client / App / DB</span></div>
+        <div class="tier-box tn" onclick="selectTier(this)"><strong>N 层</strong><br><span style="font-size:11px;font-weight:400;">多个独立服务层</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心思路：</strong>架构设计的<span class="hl">第一步</span>是将非功能需求细化为四类：
+  <span class="hl">Operational</span>（操作环境）→
+  <span class="hl">Performance</span>（响应时间/容量/可靠性）→
+  <span class="hl">Security</span>（防破坏/防数据丢失）→
+  <span class="hl">Cultural &amp; Political</span>（国家政策）。
+  记忆口诀 <strong>OPSC</strong>，四类分清，考试不丢分。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">⚙️ Operational → 操作环境</span>
+  <span class="tag-item">📈 Performance → 响应时间/容量/可靠性</span>
+  <span class="tag-item">🛡️ Security → 防破坏 &amp; 数据丢失</span>
+  <span class="tag-item">🌍 Cultural &amp; Political → 各国特定要求</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>四类需求分类清晰，有规律可循</li>
+      <li>与中文部分质量属性知识相呼应</li>
+      <li>OPSC 口诀便于快速记忆</li>
+      <li>每类对应明确考点，易拿分</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 难点</h4>
+    <ul>
+      <li>四种类型的英文名称需准确记忆</li>
+      <li>容易混淆各类的具体含义</li>
+      <li>需区分 performance 与 quality attributes 的边界</li>
+      <li>cultural &amp; political 较生僻，容易被忽略</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">nonfunctional requirements</span>
+    <span class="keyword">operational requirements</span>
+    <span class="keyword">performance requirements</span>
+    <span class="keyword">security requirements</span>
+    <span class="keyword">cultural and political requirements</span>
+    <span class="keyword">response time</span>
+    <span class="keyword">reliability</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>第5小时 — 质量属性与非功能需求</strong>：中文部分的对应知识，质量属性 = 非功能需求的具体化</li>
+    <li><strong>h25-kp04</strong>：紧接着的下一个知识点，进一步展开架构设计细节</li>
+    <li><strong>架构风格选型</strong>：NFR 分类完成后，才能选择合适的架构风格（管道-过滤器、微服务等）</li>
+    <li><strong>层级架构</strong>：基于客户端的架构中，还需决定 2 层 / 3 层 / N 层 → 切到「🏗️ 层级决策」标签</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const cards = [
+    document.getElementById('card1'),
+    document.getElementById('card2'),
+    document.getElementById('card3'),
+    document.getElementById('card4')
+  ];
+  cards.forEach((c, i) => {
+    setTimeout(() => {
+      c.classList.add('active-card');
+      setTimeout(() => c.classList.remove('active-card'), 800);
+    }, i * 500);
+  });
+}
+
+function selectTier(el) {
+  document.querySelectorAll('.tier-box').forEach(b => b.classList.remove('tier-active'));
+  el.classList.add('tier-active');
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

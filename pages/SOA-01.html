@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOA定义与核心概念 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.exam-box .exam-meta { font-size: 13px; color: #92400e; margin-top: 8px; }
+
+/* Animation styles */
+.soa-diagram { display: flex; flex-direction: column; align-items: center; gap: 16px; margin: 12px 0; }
+.soa-top { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+.svc-box { display: inline-flex; flex-direction: column; align-items: center; padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; cursor: default; position: relative; }
+.svc-box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.svc-box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.svc-box.purple { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.svc-box.amber { background: #fffbeb; border: 2px solid #f59e0b; color: #b45309; }
+.svc-box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.svc-box .sub { font-size: 11px; font-weight: 400; color: #64748b; margin-top: 4px; }
+.esb-bar { width: 80%; max-width: 600px; height: 40px; background: linear-gradient(90deg, #dbeafe, #bfdbfe, #dbeafe); border: 2px solid #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #1d4ed8; position: relative; overflow: hidden; }
+.esb-bar .pulse { position: absolute; top: 0; left: -40px; width: 40px; height: 100%; background: linear-gradient(90deg, transparent, rgba(59,130,246,0.3), transparent); animation: esbPulse 2s linear infinite; }
+@keyframes esbPulse { 0% { left: -40px; } 100% { left: 100%; } }
+.connector { width: 2px; height: 20px; background: #94a3b8; margin: 0 auto; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.principle-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+.principle-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; font-size: 12px; color: #475569; transition: all 0.3s; }
+.principle-card:hover { border-color: #3b82f6; box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
+.principle-card .icon { font-size: 20px; margin-bottom: 4px; }
+.principle-card strong { display: block; color: #1e40af; font-size: 13px; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› SOA基础概念 › SOA定义与核心概念</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">SOA基础概念</span>
+  <span class="exam-tag">⭐ 单选2~3分+案例可涉及</span>
+  <span class="hour-tag">📖 第18小时(6711-7076)</span>
+  <h1>SOA定义与核心概念</h1>
+  <p class="one-liner">SOA是通过中立接口和契约将应用功能单元（服务）联系起来的组件模型</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'principles')">📐 设计原则</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 协议详解</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="soa-diagram">
+      <div class="soa-top">
+        <div class="svc-box blue" id="s1">
+          💼 财务系统
+          <span class="sub">服务提供者</span>
+        </div>
+        <div class="svc-box green" id="s2">
+          🛒 订单系统
+          <span class="sub">服务提供者</span>
+        </div>
+        <div class="svc-box purple" id="s3">
+          👤 用户系统
+          <span class="sub">服务提供者</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:60px;">
+        <div class="connector"></div>
+        <div class="connector"></div>
+        <div class="connector"></div>
+      </div>
+      <div class="esb-bar">
+        <div class="pulse"></div>
+        🔗 企业服务总线（ESB）—— 中立接口 &amp; 契约
+      </div>
+      <div style="display:flex;gap:60px;">
+        <div class="connector"></div>
+        <div class="connector"></div>
+      </div>
+      <div class="soa-top">
+        <div class="svc-box amber" id="s4">
+          📊 报表系统
+          <span class="sub">服务消费者</span>
+        </div>
+        <div class="svc-box amber" id="s5">
+          📱 移动应用
+          <span class="sub">服务消费者</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="principles" class="tab-content">
+  <div class="anim-area">
+    <p class="explain" style="margin-bottom:12px;"><strong>SOA的7大设计原则：</strong>每个服务遵循这些原则，确保松耦合与高复用。</p>
+    <div class="principle-grid">
+      <div class="principle-card"><div class="icon">🔁</div><strong>无状态</strong>服务不保存上下文</div>
+      <div class="principle-card"><div class="icon">☝️</div><strong>单一实例</strong>每个服务只有一个逻辑实现</div>
+      <div class="principle-card"><div class="icon">📏</div><strong>明确定义接口</strong>契约清晰、无歧义</div>
+      <div class="principle-card"><div class="icon">📦</div><strong>自包含 &amp; 模块化</strong>服务独立部署与维护</div>
+      <div class="principle-card"><div class="icon">🔭</div><strong>粗粒度</strong>服务功能范围较大</div>
+      <div class="principle-card"><div class="icon">🪢</div><strong>松耦合</strong>服务间依赖最小化</div>
+      <div class="principle-card"><div class="icon">🔄</div><strong>互操作性</strong>跨平台、跨语言协作</div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// SOA 核心协议三剑客</span>
+
+<span class="cm">// 1. UDDI —— 服务发现（像"黄页电话簿"）</span>
+<span class="kw">UDDI</span> Registry {
+    <span class="st">"查找服务"</span>: <span class="fn">查询</span>(<span class="st">"财务服务"</span>) → <span class="st">"地址: esb.finance.com/ws"</span>
+}
+
+<span class="cm">// 2. WSDL —— 服务描述（像"菜单"）</span>
+<span class="kw">WSDL</span> 描述服务的 <span class="hl">3个属性</span>：
+    <span class="fn">做什么</span>    → 接口操作（如：转账、查询余额）
+    <span class="fn">如何访问</span>  → 协议绑定（SOAP over HTTP）
+    <span class="fn">位于何处</span>  → 端点地址（URL）
+
+<span class="cm">// 3. SOAP —— 消息交换（像"信封"）</span>
+<span class="kw">SOAP</span> Envelope {
+    Header: { <span class="st">认证信息</span>, <span class="st">事务ID</span> }
+    Body:   {
+        &lt;SOAP-ENV:Envelope&gt;
+          &lt;SOAP-ENV:Body&gt;
+            &lt;Finance:Transfer&gt;
+              &lt;From&gt;A001&lt;/From&gt;
+              &lt;To&gt;B002&lt;/To&gt;
+              &lt;Amount&gt;1000&lt;/Amount&gt;
+            &lt;/Finance:Transfer&gt;
+          &lt;/SOAP-ENV:Body&gt;
+        &lt;/SOAP-ENV:Envelope&gt;
+    }
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>SOA是一个<span class="hl">组件模型</span>，将应用程序的不同功能单元（称为<span class="hl">服务</span>）通过定义良好的<span class="hl">接口和契约</span>联系起来。接口采用<span class="hl">中立方式</span>定义，独立于硬件平台、操作系统和编程语言。
+</div>
+
+<div class="explain">
+  <strong>📌 例子：</strong>财务系统通过开放接口向企业提供财务处理服务；WSDL描述服务的3个属性：<span class="hl">做什么、如何访问、位于何处</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📒 UDDI = 服务发现（黄页）</span>
+  <span class="tag-item">📄 WSDL = 服务描述（菜单）</span>
+  <span class="tag-item">📨 SOAP = 消息交换（信封）</span>
+  <span class="tag-item">🔗 ESB = 服务总线（中间人）</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>打破信息孤岛，实现资源共享</li>
+      <li>平台/语言无关的互操作性</li>
+      <li>服务可复用、松耦合</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>XML消息格式较冗余，性能开销大</li>
+      <li>相比微服务，粒度较粗，灵活性不足</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">SOA定义</span>
+    <span class="keyword">WSDL</span>
+    <span class="keyword">SOAP</span>
+    <span class="keyword">UDDI</span>
+    <span class="keyword">松耦合</span>
+    <span class="keyword">粗粒度</span>
+    <span class="keyword">无状态</span>
+  </div>
+  <div class="exam-meta">📊 分值：单选2~3分 + 案例可涉及</div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><span style="color:#94a3b8;font-size:12px">[微服务]</span> = SOA的细粒度演进，去中心化</li>
+    <li><span style="color:#94a3b8;font-size:12px">[Web服务]</span> = SOA的一种主流实现技术（SOAP/WSDL/UDDI）</li>
+    <li><span style="color:#94a3b8;font-size:12px">[ESB]</span> = SOA的核心基础设施，负责消息路由与转换</li>
+    <li><span style="color:#94a3b8;font-size:12px">[BPEL]</span> = SOA中用于服务编排（Orchestration）的语言</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const ids = ['s1','s2','s3','s4','s5'];
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('processing');
+      setTimeout(() => el.classList.remove('processing'), 600);
+    }, i * 350);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

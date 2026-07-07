@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>质量属性识别与架构评估方法 · 系统架构设计师</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}.nav .bc{color:#64748b;font-size:13px;margin-left:12px}.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}li{font-size:13px;color:#475569;margin:4px 0}.kw{display:flex;gap:8px;flex-wrap:wrap}.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}</style>
+</head><body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 真题高频考点 › 质量属性识别与架构评估方法</span></nav>
+<div class="ct">
+<div><span class="tag c">真题高频考点</span><span class="tag e">真题必考</span>
+<h1>质量属性识别与架构评估方法</h1><p class="ol">每年选择题和案例题均考，需掌握六大质量属性及其架构策略，以及ATAM/SAAM评估方法。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>六大核心质量属性：(1)性能(Performance)——响应时间、吞吐量，策略包括引入并发、资源调度、资源仲裁；(2)可用性(Availability)——故障恢复能力，策略包括主动冗余、心跳、Ping/Echo；(3)安全性(Security)——抵御攻击能力，策略包括追踪审计、检测攻击、权限控制；(4)可修改性(Modifiability)——包含可维护性、可扩展性、结构重组、可移植性；(5)易用性(Usability)——用户操作体验；(6)可测试性(Testability)。架构评估方法：ATAM（架构权衡分析方法，9个步骤，效用树工具）和SAAM（场景分析方法，6个步骤）。效用树结构：树根→质量属性→属性分类→质量属性场景。敏感点、权衡点、风险点的识别。</p></div>
+
+<div class="s"><h3>📌 真题举例</h3><ul><li>【2025】对用户认证数据加密存储属于安全性质量属性场景；【2024】系统故障时提供操作日志便于追踪审计属于安全性；【2020】主站断电10秒切换备用站点属于可用性，采用主动冗余策略；【2019】案例题要求填写效用树中(1)安全性(2)可修改性及对应场景；【2018】双机热备监测对方状态属于可用性-心跳策略。改变加密级别是权衡点（同时影响安全性和性能）。</li></ul></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">质量属性</span><span class="k">性能</span><span class="k">可用性</span><span class="k">安全性</span><span class="k">可修改性</span><span class="k">ATAM</span><span class="k">SAAM</span><span class="k">效用树</span><span class="k">敏感点</span><span class="k">权衡点</span></div></div>
+</div></body></html>

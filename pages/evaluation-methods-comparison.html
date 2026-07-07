@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>架构评估方法对比与CBAM · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 评估方法对比与CBAM › 架构评估方法对比与CBAM</span></nav>
+<div class="ct">
+<div><span class="tag c">评估方法对比与CBAM</span><span class="tag e">常考</span>
+<h1>架构评估方法对比与CBAM</h1><p class="ol">SAAM侧重可修改性场景评估，ATAM侧重多质量属性折中，CBAM从经济角度评估架构ROI</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>SAAM和ATAM是两种主要架构评估方法。SAAM通过场景技术验证架构，注重发现潜在问题，主要关注可修改性；ATAM采用场景加启发式分析，关注多质量属性折中。ATAM有基于属性的体系模型，知识库可复用。CBAM(成本效益分析法)从经济角度评估架构决策，核心步骤包括整理场景、分配效用、计算ROI(投资回报率)，根据受成本限制的ROI选择最优架构策略。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">评估方法对比:
+  SAAM vs ATAM:
+    特定目标:
+      SAAM: 通过文档验证体系结构,发现潜在问题,可评价单系统或多系统比较
+      ATAM: 确定多个质量属性之间折中的必要性
+    评估技术:
+      SAAM: 场景技术
+      ATAM: 场景技术+启发式分析方法
+    质量属性:
+      SAAM: 可修改性为主
+      ATAM: 性能/可用性/安全性/可修改性
+    架构描述:
+      SAAM: 围绕功能、结构和分配
+      ATAM: 五个基本结构及其映射关系
+    知识库可复用性:
+      SAAM: 不涉及
+      ATAM: 有基于属性的体系模型,可复用
+  CBAM(成本效益分析法)步骤:
+    1. 整理场景
+    2. 对场景进行求精
+    3. 确定场景优先级
+    4. 分配效用
+    5. 确定架构策略涉及的质量属性及响应级别
+    6. 使用内插法确定期望质量属性响应级别的效用
+    7. 计算各架构策略的总收益
+    8. 根据受成本限制的ROI选择架构策略</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>CBAM通过计算ROI(投资回报率)来选择架构策略，体现了技术决策的经济视角</li><li>ATAM比SAAM多了启发式分析方法，能处理多质量属性间的折中问题</li><li>SAAM适用于空中交通管制系统等场景，ATAM仍处于研究验证中</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>对比清晰，有助于选择适合的评估方法</li><li>CBAM补充了经济视角的架构评估</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">SAAM</span><span class="k">ATAM</span><span class="k">CBAM</span><span class="k">成本效益分析</span><span class="k">ROI</span><span class="k">投资回报率</span><span class="k">场景技术</span><span class="k">启发式分析</span><span class="k">可修改性</span><span class="k">折中</span><span class="k">知识库可复用</span><span class="k">效用</span><span class="k">内插法</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="saam-method.html">saam-method</a></li><li><a href="atam-evaluation.html">atam-evaluation</a></li></ul></div>
+</div></body></html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式系统的分类（实时系统与安全攸关） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 260px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Tree animation styles */
+.tree { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.tree-row { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; position: relative; }
+.tree-node { display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.4s ease; min-width: 100px; opacity: 0; transform: translateY(-10px); cursor: default; }
+.tree-node.root { background: #1e40af; color: #fff; border: 2px solid #1e3a8a; font-size: 15px; min-width: 160px; }
+.tree-node.level1 { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.tree-node.hard { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.tree-node.soft { background: #fffbeb; border: 2px solid #f59e0b; color: #92400e; }
+.tree-node.nonrt { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.tree-node.safety { background: #fdf2f8; border: 2px solid #ec4899; color: #be185d; }
+.tree-node.visible { opacity: 1; transform: translateY(0); }
+.tree-node.highlight { transform: scale(1.1); box-shadow: 0 0 20px rgba(37,99,235,0.4); z-index: 2; }
+.tree-branch { width: 2px; height: 24px; background: #cbd5e1; margin: 0 auto; opacity: 0; transition: opacity 0.3s; }
+.tree-branch.visible { opacity: 1; }
+.tree-branch-row { display: flex; justify-content: center; gap: 80px; opacity: 0; transition: opacity 0.3s; }
+.tree-branch-row.visible { opacity: 1; }
+.tree-hline { width: 60px; height: 2px; background: #cbd5e1; align-self: center; opacity: 0; transition: opacity 0.3s; }
+.tree-hline.visible { opacity: 1; }
+.node-desc { font-size: 11px; font-weight: 400; opacity: 0.8; margin-top: 2px; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.safety-box { margin-top: 16px; padding: 12px 20px; border-radius: 8px; background: linear-gradient(135deg, #fef2f2, #fff1f2); border: 2px dashed #f87171; text-align: center; font-size: 13px; color: #991b1b; font-weight: 600; opacity: 0; transition: all 0.5s; }
+.safety-box.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 嵌入式系统的分类</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>嵌入式系统的分类（实时系统与安全攸关）</h1>
+  <p class="one-liner">按实时性和安全性分为强实时、弱实时和安全攸关三类系统</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="tree" id="tree">
+      <!-- Level 0: Root -->
+      <div class="tree-row">
+        <div class="tree-node root" id="n0">嵌入式系统</div>
+      </div>
+      <div class="tree-branch" id="b0"></div>
+
+      <!-- Level 1: 实时 / 非实时 -->
+      <div class="tree-row">
+        <div class="tree-node level1" id="n1">实时系统 (RTS)<div class="node-desc">有时间约束</div></div>
+        <div class="tree-node nonrt" id="n2">非实时系统<div class="node-desc">无严格时限</div></div>
+      </div>
+      <div class="tree-branch" id="b1"></div>
+
+      <!-- Level 2: 强实时 / 弱实时 -->
+      <div class="tree-row">
+        <div class="tree-node hard" id="n3">强实时 Hard RT<div class="node-desc">超时=系统失败</div></div>
+        <div class="tree-node soft" id="n4">弱实时 Weak RT<div class="node-desc">偶尔超时可接受</div></div>
+      </div>
+    </div>
+
+    <div class="safety-box" id="safety">
+      🔒 安全攸关 (Safety-Critical)：失效 → 人员伤亡/财产损失<br>
+      <span style="font-weight:400;font-size:12px;color:#b91c1c">飞控、导弹、医疗设备、汽车制动 = 安全攸关 &nbsp;|&nbsp; 智能手表、电子词典 = 非安全攸关</span>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 嵌入式系统分类</span>
+<span class="kw">switch</span>(用途) {
+  <span class="kw">case</span> <span class="st">"实时系统"</span>:
+    <span class="kw">if</span>(安全性要求严格) <span class="kw">return</span> <span class="st">"强实时(Hard Real-Time)"</span>;
+    <span class="kw">else</span> <span class="kw">return</span> <span class="st">"弱实时(Weak Real-Time)"</span>;
+  <span class="kw">case</span> <span class="st">"非实时系统"</span>:
+    <span class="kw">return</span> <span class="st">"嵌入式非实时系统"</span>;
+}
+
+<span class="cm">// 安全攸关分类</span>
+<span class="kw">if</span>(失效后果 == 人员伤亡/财产损失)
+  <span class="kw">return</span> <span class="st">"安全攸关(Safety-Critical)"</span>;
+<span class="kw">else</span> <span class="kw">return</span> <span class="st">"非安全攸关"</span>;</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>按用途分为<span class="hl">实时系统</span>和<span class="hl">非实时系统</span>。
+  实时系统又分两种：<span class="hl">强实时(Hard Real-Time)</span>——必须在规定时间内完成，否则系统失败；
+  <span class="hl">弱实时(Weak Real-Time)</span>——尽量在规定时间内完成，偶尔超时可接受。
+  从安全性角度还分为<span class="hl">安全攸关系统(Safety-Critical)</span>和非安全攸关系统，前者失效会导致人员伤亡或财产损失。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🛩️ 强实时：飞机飞控、导弹制导</span>
+  <span class="tag-item">📹 弱实时：视频播放、网络电话</span>
+  <span class="tag-item">⌚ 非实时：智能手表、电子词典</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>分类清晰，便于设计选型</li>
+      <li>实时性等级明确，利于确定开发标准</li>
+      <li>安全攸关维度帮助评估失效风险</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 注意</h4>
+    <ul>
+      <li>边界模糊：有些系统介于强弱实时之间</li>
+      <li>安全攸关与非安全攸关并非绝对二分</li>
+      <li>实际系统可能同时跨越多个分类</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">强实时</span>
+    <span class="keyword">弱实时</span>
+    <span class="keyword">安全攸关</span>
+    <span class="keyword">实时系统RTS</span>
+    <span class="keyword">Safety-Critical</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="es01_composition.html" style="color:#0369a1"><strong>es01 · 嵌入式系统组成</strong></a> —— 分类的基础：先了解系统由什么构成</li>
+    <li><a href="es10_safety_do178b.html" style="color:#0369a1"><strong>es10 · 安全攸关与DO-178B</strong></a> —— 安全攸关系统的开发标准详解</li>
+    <li><strong>强实时 vs 弱实时</strong>：核心区别在于"超时后果"——失败 vs 可容忍</li>
+    <li><strong>实时 ≠ 快</strong>：实时强调的是"确定性"，不是"速度"</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animRunning = false;
+
+function playAnimation() {
+  if (animRunning) return;
+  animRunning = true;
+
+  // Reset all
+  document.querySelectorAll('.tree-node, .tree-branch, .safety-box').forEach(el => {
+    el.classList.remove('visible', 'highlight');
+  });
+
+  const steps = [
+    { show: ['n0'], delay: 300 },
+    { show: ['b0'], delay: 300 },
+    { show: ['n1', 'n2'], delay: 500 },
+    { show: ['b1'], delay: 300 },
+    { show: ['n3', 'n4'], delay: 500 },
+    { show: ['safety'], delay: 400 },
+  ];
+
+  let totalDelay = 0;
+  steps.forEach(step => {
+    totalDelay += step.delay;
+    setTimeout(() => {
+      step.show.forEach(id => {
+        document.getElementById(id).classList.add('visible');
+      });
+    }, totalDelay);
+    totalDelay += 200;
+  });
+
+  // Highlight sequence
+  totalDelay += 300;
+  const highlights = [
+    { id: 'n3', color: '#ef4444' },
+    { id: 'n4', color: '#f59e0b' },
+    { id: 'n1', color: '#3b82f6' },
+    { id: 'n2', color: '#22c55e' },
+  ];
+
+  highlights.forEach((h, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(h.id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 600);
+    }, totalDelay + i * 700);
+  });
+
+  setTimeout(() => { animRunning = false; }, totalDelay + highlights.length * 700);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

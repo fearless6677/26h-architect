@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>构件化开发方法 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 信息系统开发方法 › 构件化开发方法</span></nav>
+<div class="ct">
+<div><span class="tag c">信息系统开发方法</span><span class="tag e">高频</span>
+<h1>构件化开发方法</h1><p class="ol">构件化开发是像搭积木一样复用已有的软件组件来快速构建系统。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>基于构件/组件(Component)的软件开发方法。构件获取方式有4种：①从现有构件中获取并复用或作适应性修改；②通过遗留工程(Legacy Engineering)提取潜在可复用构件；③购买商业构件；④开发新构件。构件分类方式3种：关键字分类法（树型/有向无回路图结构）、刻面分类法（用多个"刻面"刻画构件特征）、超文本方法（网状链接+全文检索）。构件存放于构件库，按需裁剪使用。注意：一个类元素只能属于一个构件。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">构件获取4方式:
+1. 现有构件复用/适应性修改
+2. 遗留工程提取
+3. 购买商业构件
+4. 开发新构件
+
+构件分类3方式:
+- 关键字分类法 → 树型/有向无回路图
+- 刻面分类法 → 多维度刻面描述
+- 超文本方法 → 网状链接 + 全文检索</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>从公司组件库拿登录组件直接用到新项目 → 现有构件复用</li><li>把老系统里的支付模块提取为独立组件 → 遗留工程</li><li>购买第三方的地图SDK → 购买商业构件</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>提高开发效率和软件质量</li><li>降低开发成本</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>构件的适配性可能不足</li><li>需要维护构件库</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">构件/Component</span><span class="k">遗留工程/Legacy Engineering</span><span class="k">构件库</span><span class="k">关键字分类法</span><span class="k">刻面分类法</span><span class="k">超文本方法</span><span class="k">一个类只能属于一个构件</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="h04-03.html">h04-03</a></li><li><a href="h04-03c.html">h04-03c</a></li></ul></div>
+</div></body></html>

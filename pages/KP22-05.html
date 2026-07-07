@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大数据架构典型实践场景 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .code-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all .2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn .3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .hl { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Scenario switcher */
+.scenario-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.scenario-tab { padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; border: 2px solid #e2e8f0; color: #64748b; transition: all .25s; }
+.scenario-tab:hover { border-color: #94a3b8; transform: translateY(-1px); }
+.scenario-tab.active { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+.scenario-tab.active.kappa-tab { border-color: #059669; color: #059669; background: #ecfdf5; }
+.scenario-panel { animation: fadeIn .35s; }
+.scenario-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 16px; transition: box-shadow .3s; }
+.scenario-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+.scenario-card h3 { font-size: 16px; color: #1e293b; margin-bottom: 6px; }
+.scenario-card .arch-badge { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 10px; margin-bottom: 8px; font-weight: 600; }
+.scenario-card .arch-badge.lambda { background: #ede9fe; color: #7c3aed; }
+.scenario-card .arch-badge.kappa { background: #ecfdf5; color: #059669; }
+
+/* Flow diagram */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 60px; }
+.box small { font-size: 10px; font-weight: 400; color: #64748b; margin-top: 2px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.orange { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.box.purple { background: #f5f3ff; border: 2px solid #8b5cf6; color: #6d28d9; }
+.box.red { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.box.cyan { background: #ecfeff; border: 2px solid #06b6d4; color: #0e7490; }
+.box.processing { transform: scale(1.12); box-shadow: 0 0 18px rgba(37,99,235,0.45); z-index: 2; }
+.pipe { width: 32px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; flex-shrink: 0; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+.pipe.down { width: 4px; height: 24px; margin: 0 auto; }
+.pipe.down .flow { width: 4px; height: 20px; left: 0; background: linear-gradient(180deg, transparent, #3b82f6, transparent); animation: pipeFlowDown 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 32px; } }
+@keyframes pipeFlowDown { 0% { top: -20px; } 100% { top: 24px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; transition: background .2s; }
+.play-btn:hover { background: #1d4ed8; }
+.merge-label { font-size: 11px; color: #64748b; text-align: center; margin: 4px 0; }
+.layer-label { font-size: 10px; color: #94a3b8; text-align: center; margin: 6px 0 2px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 大数据架构 › 典型实践场景</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">大数据架构实践</span>
+  <span class="exam-tag">⭐ 论文25分</span>
+  <span class="code-tag">KP22-05</span>
+  <h1>大数据架构典型实践场景</h1>
+  <p class="one-liner">四大典型实践场景——视频网络(Λ)、广告平台(Λ)、证券日志分析(Κ)、电商决策(Κ)，论文需结合项目论述架构选择理由</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'scenarios')">🎬 四大场景</div>
+  <div class="tab" onclick="switchTab(this,'anim')">🔄 Lambda vs Kappa</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- ==================== TAB 1: 四大场景 ==================== -->
+<div id="scenarios" class="tab-content active">
+  <div class="scenario-tabs">
+    <div class="scenario-tab active" onclick="showScenario(this,1)">① 大规模视频网络</div>
+    <div class="scenario-tab" onclick="showScenario(this,2)">② 广告平台</div>
+    <div class="scenario-tab kappa-tab" onclick="showScenario(this,3)">③ 证券智能决策</div>
+    <div class="scenario-tab kappa-tab" onclick="showScenario(this,4)">④ 电商智能决策</div>
+  </div>
+
+  <!-- 场景1: 视频网络 Lambda -->
+  <div class="scenario-panel" id="sp1">
+    <div class="scenario-card">
+      <span class="arch-badge lambda">Λ Lambda 架构</span>
+      <h3>场景一：大规模视频网络</h3>
+      <p class="explain" style="margin:8px 0"><strong>离线批处理链路 — Spark / MR：</strong></p>
+      <div class="flow-row">
+        <div class="box blue" id="s1a">视频源</div>
+        <div class="pipe"><div class="flow"></div></div>
+        <div class="box purple" id="s1b">离线批处理<br><small>Spark / MR</small></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.4s"></div></div>
+        <div class="box green" id="s1c">合并写入</div>
+      </div>
+      <p class="explain" style="margin:8px 0"><strong>实时流处理链路 — Spark Streaming：</strong></p>
+      <div class="flow-row">
+        <div class="box blue">视频源</div>
+        <div class="pipe"><div class="flow" style="animation-delay:.2s"></div></div>
+        <div class="box orange" id="s1d">实时流处理<br><small>Spark Streaming</small></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+        <div class="box green" id="s1e">合并写入</div>
+      </div>
+      <p class="merge-label">↓ 两路合并写入 ↓</p>
+      <div class="flow-row">
+        <div class="box red" id="s1f">HBase 存储</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景2: 广告平台 Lambda -->
+  <div class="scenario-panel" id="sp2" style="display:none">
+    <div class="scenario-card">
+      <span class="arch-badge lambda">Λ Lambda 架构</span>
+      <h3>场景二：广告平台</h3>
+      <p class="explain" style="margin-top:8px"><strong>批处理链路：</strong></p>
+      <div class="flow-row">
+        <div class="box blue" id="s2a">Kafka</div>
+        <div class="pipe"><div class="flow"></div></div>
+        <div class="box purple" id="s2b">HDFS</div>
+        <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+        <div class="box purple" id="s2c">Hive</div>
+        <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+        <div class="box red" id="s2d">MySQL</div>
+      </div>
+      <p class="explain" style="margin-top:12px"><strong>实时加速链路：</strong></p>
+      <div class="flow-row">
+        <div class="box blue">Kafka</div>
+        <div class="pipe"><div class="flow" style="animation-delay:.2s"></div></div>
+        <div class="box orange" id="s2e">Spark Streaming</div>
+        <div class="pipe"><div class="flow" style="animation-delay:.5s"></div></div>
+        <div class="box red" id="s2f">Redis</div>
+      </div>
+      <p class="explain" style="margin-top:12px"><strong>服务层：</strong>Java Web → 读取 MySQL + Redis 提供广告查询服务</p>
+    </div>
+  </div>
+
+  <!-- 场景3: 证券智能决策 Kappa -->
+  <div class="scenario-panel" id="sp3" style="display:none">
+    <div class="scenario-card">
+      <span class="arch-badge kappa">Κ Kappa 架构</span>
+      <h3>场景三：证券智能决策（日志分析）</h3>
+      <div class="flow-row">
+        <div class="box blue" id="s3a">Filebeat<br><small>日志采集</small></div>
+        <div class="pipe"><div class="flow"></div></div>
+        <div class="box purple" id="s3b">Kafka<br><small>消息缓冲</small></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+        <div class="box orange" id="s3c">Flink<br><small>实时计算</small></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+        <div class="box green" id="s3d">ElasticSearch<br><small>日志检索</small></div>
+      </div>
+      <div class="flow-row" style="margin-top:4px">
+        <div style="width:80px"></div>
+        <div style="width:32px"></div>
+        <div style="width:80px"></div>
+        <div style="width:32px"></div>
+        <div style="width:80px"></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.8s"></div></div>
+        <div class="box green" id="s3e">OpenTSDB<br><small>时序指标</small></div>
+      </div>
+      <p class="explain" style="margin-top:10px;font-size:12px;color:#64748b">💡 纯流式，无批处理分支——Kappa 的精髓：一条链路搞定一切</p>
+    </div>
+  </div>
+
+  <!-- 场景4: 电商智能决策 Kappa -->
+  <div class="scenario-panel" id="sp4" style="display:none">
+    <div class="scenario-card">
+      <span class="arch-badge kappa">Κ Kappa 架构</span>
+      <h3>场景四：电商智能决策</h3>
+      <div class="flow-row">
+        <div class="box blue" id="s4a">Kafka<br><small>订单/行为流</small></div>
+        <div class="pipe"><div class="flow"></div></div>
+        <div class="box orange" id="s4b">Flink<br><small>实时决策</small></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.4s"></div></div>
+        <div class="box purple" id="s4c">Hive + Tair<br><small>离线+缓存</small></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.7s"></div></div>
+        <div class="box red" id="s4d">决策服务<br><small>风控/推荐</small></div>
+      </div>
+      <p class="explain" style="margin-top:10px;font-size:12px;color:#64748b">💡 Flink 统一处理离线与实时，无需维护两套代码</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: Lambda vs Kappa 对比动画 ==================== -->
+<div id="anim" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放全流程</button>
+    <p class="explain" style="text-align:center;margin-bottom:4px"><strong>Λ Lambda 架构：批处理 + 实时流 双路并行</strong></p>
+    <div class="flow-row">
+      <div class="box blue" id="a1">数据源</div>
+      <div style="display:flex;flex-direction:column;gap:20px;align-items:center">
+        <div class="pipe"><div class="flow"></div></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="box purple" id="a2">批处理层<br><small>Spark/Hive</small></div>
+        <div class="box orange" id="a3">加速层<br><small>Streaming</small></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;align-items:center">
+        <div class="pipe"><div class="flow" style="animation-delay:.5s"></div></div>
+        <div class="pipe"><div class="flow" style="animation-delay:.7s"></div></div>
+      </div>
+      <div class="box green" id="a4">合并层<br><small>服务层</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:1s"></div></div>
+      <div class="box red" id="a5">查询结果</div>
+    </div>
+
+    <div style="border-top:2px dashed #e2e8f0;margin:24px 0 16px;position:relative">
+      <span style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#f8fafc;padding:0 12px;font-size:12px;color:#059669;font-weight:700">▼ Kappa 简化：去掉批处理分支，一切皆流 ▼</span>
+    </div>
+
+    <div class="flow-row">
+      <div class="box blue" id="a6">数据源</div>
+      <div class="pipe"><div class="flow" style="animation-delay:.2s"></div></div>
+      <div class="box orange" id="a7">Flink<br><small>统一流处理</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.5s"></div></div>
+      <div class="box cyan" id="a8">Kafka<br><small>可重放</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.8s"></div></div>
+      <div class="box red" id="a9">查询结果</div>
+    </div>
+    <p class="explain" style="margin-top:12px;text-align:center;font-size:13px">
+      <strong>核心差异：</strong>Λ 维护<span class="hl">两套代码</span>（批+流），Κ 只维护<span class="hl">一套流代码</span>，重算从 Kafka 重消费
+    </p>
+  </div>
+</div>
+
+<!-- ==================== TAB 3: 伪代码 ==================== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ━━━━━━ Λ Lambda 架构 ━━━━━━ 批处理 + 实时流 双路写存储</span>
+
+<span class="cm">// 批处理链路（准确但慢 — 处理全量历史数据）</span>
+<span class="kw">batchLayer</span> = <span class="fn">Spark/MR</span>
+  .<span class="fn">read</span>(<span class="st">"HDFS"</span>)              <span class="cm">// 全量历史数据</span>
+  .<span class="fn">aggregate</span>(daily_summary)   <span class="cm">// 离线聚合</span>
+  .<span class="fn">write</span>(<span class="st">"HBase"</span>)            <span class="cm">// 写入存储</span>
+
+<span class="cm">// 实时加速链路（快但近似 — 处理增量数据）</span>
+<span class="kw">speedLayer</span> = <span class="fn">SparkStreaming</span>
+  .<span class="fn">read</span>(<span class="st">"Kafka"</span>)              <span class="cm">// 增量数据</span>
+  .<span class="fn">window</span>(<span class="st">5_min</span>)             <span class="cm">// 滑动窗口</span>
+  .<span class="fn">write</span>(<span class="st">"HBase"</span>)            <span class="cm">// 同一存储</span>
+
+<span class="cm">// 服务层：合并两路结果</span>
+<span class="fn">query</span>(user_id) → <span class="hl">merge</span>(batch_view, stream_view)
+
+<span class="cm">// ━━━━━━ Κ Kappa 架构 ━━━━━━ 一切皆流，Flink 统一处理</span>
+
+<span class="kw">streamOnly</span> = <span class="fn">Flink</span>
+  .<span class="fn">from</span>(<span class="st">"Kafka"</span>)              <span class="cm">// 数据入口</span>
+  .<span class="fn">window</span>(<span class="st">tumbling: 1h</span>)      <span class="cm">// 用窗口模拟批处理</span>
+  .<span class="fn">aggregate</span>(result)          <span class="cm">// 统一计算</span>
+  .<span class="fn">sink</span>(<span class="st">"ElasticSearch"</span>)      <span class="cm">// 写入存储</span>
+
+<span class="cm">// 💡 需要重算？从 Kafka 重新消费即可！</span>
+<span class="cm">// 💡 关键区别：Kappa 只维护一套流处理代码</span>
+
+<span class="cm">// ━━━━━━ 考试答题要点 ━━━━━━</span>
+<span class="cm">// ① 识别架构类型 → Λ 还是 Κ</span>
+<span class="cm">// ② 说明选择理由 → 业务需要精确批处理？团队能否驾驭纯流？</span>
+<span class="cm">// ③ 列举各层组件 → 采集/缓冲/计算/存储/服务</span></pre>
+</div>
+
+<!-- ==================== 核心解释 ==================== -->
+<div class="explain" style="margin-top:20px">
+  <strong>核心对比：</strong>
+  <span class="hl">Lambda(Λ)</span> = 批处理 + 实时流<span class="hl">双路并行</span>，准确但维护两套代码；
+  <span class="hl">Kappa(Κ)</span> = <span class="hl">一切皆流</span>，只维护一套代码，重算从 Kafka 重消费。
+  选 Λ 还是 Κ，关键看：<strong>是否需要精确批处理结果？团队能否驾驭纯流式？</strong>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🎬 视频平台 → Λ Lambda</span>
+  <span class="tag-item">📢 广告平台 → Λ Lambda</span>
+  <span class="tag-item">📈 证券决策 → Κ Kappa</span>
+  <span class="tag-item">🛒 电商决策 → Κ Kappa</span>
+  <span class="tag-item">📝 论文题 25分</span>
+  <span class="tag-item">📋 案例题 10-15分</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>理论与实践结合，考试覆盖面广</li>
+      <li>四大场景覆盖 Lambda + Kappa 两大架构</li>
+      <li>论文题有固定答题框架，好拿分</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 注意点</h4>
+    <ul>
+      <li>架构设计需结合实际业务场景，不能生搬硬套</li>
+      <li>论文必须结合<strong>自己参与的项目</strong></li>
+      <li>需说清"为什么选这个架构"的理由</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">大数据实践</span>
+    <span class="keyword">视频平台</span>
+    <span class="keyword">广告平台</span>
+    <span class="keyword">Lambda实践</span>
+    <span class="keyword">Kappa实践</span>
+    <span class="keyword">论文</span>
+    <span class="keyword">案例分析</span>
+  </div>
+  <p style="margin-top:12px;font-size:13px;color:#92400e">
+    <strong>分值分布：</strong>论文题约25分，案例分析约10-15分<br>
+    <strong>论文示例：</strong>结合实际项目论述大数据架构设计的选择与实现<br>
+    <strong>答题框架：</strong>项目背景 → 架构选型理由 → 技术栈描述 → 实施效果 → 经验总结
+  </p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="kp22-02.html"><strong>KP22-02</strong></a> — Lambda 架构详解（批处理层 + 加速层 + 服务层）</li>
+    <li><a href="kp22-03.html"><strong>KP22-03</strong></a> — Kappa 架构详解（一切皆流的简化方案）</li>
+    <li><a href="kp22-04.html"><strong>KP22-04</strong></a> — Lambda vs Kappa 对比选型</li>
+    <li><strong>论文答题框架：</strong>项目背景 → 架构选型理由 → 技术栈描述 → 实施效果 → 经验总结</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function showScenario(btn, n) {
+  document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('sp' + i).style.display = i === n ? 'block' : 'none';
+  }
+  // Re-trigger animation
+  setTimeout(function() { playScenarioAnimation(n); }, 120);
+}
+
+function animateBoxes(ids) {
+  ids.forEach(function(id, i) {
+    setTimeout(function() {
+      var el = document.getElementById(id);
+      if (el) {
+        el.classList.add('processing');
+        setTimeout(function() { el.classList.remove('processing'); }, 600);
+      }
+    }, i * 280);
+  });
+}
+
+function playAnimation() {
+  animateBoxes(['a1','a2','a4','a5','a6','a7','a8','a9']);
+}
+
+function playScenarioAnimation(n) {
+  var ids = [];
+  var els = document.querySelectorAll('#sp' + n + ' .box[id]');
+  els.forEach(function(el) { ids.push(el.id); });
+  animateBoxes(ids);
+}
+
+window.addEventListener('load', function() {
+  setTimeout(function() { playScenarioAnimation(1); }, 400);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构重构过程 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 260px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Flow animation styles */
+.flow-main { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 8px 0; flex-wrap: wrap; }
+.step-box { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.4s; min-width: 100px; }
+.step-box .en { font-size: 11px; font-weight: 400; opacity: 0.85; margin-top: 2px; }
+.step-box.seq { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.step-box.main { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.step-box.processing { transform: scale(1.1); box-shadow: 0 0 18px rgba(37,99,235,0.45); }
+.step-box.main.processing { box-shadow: 0 0 18px rgba(34,197,94,0.45); }
+.arrow-down { width: 4px; height: 24px; background: #cbd5e1; position: relative; border-radius: 2px; }
+.arrow-down .pulse { position: absolute; top: -8px; left: -4px; width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; animation: arrowPulse 1.8s ease-in-out infinite; opacity: 0; }
+@keyframes arrowPulse { 0% { top: -8px; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 24px; opacity: 0; } }
+.pipe-h { width: 32px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe-h .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #22c55e, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 32px; } }
+.loop-arrow { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); color: #94a3b8; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+.loop-arrow span { color: #6366f1; font-weight: 600; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+.traits { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+.trait-badge { background: linear-gradient(135deg, #eef2ff, #e0e7ff); border: 1px solid #a5b4fc; padding: 4px 14px; border-radius: 16px; font-size: 12px; color: #4338ca; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 架构重用（英文） › 软件架构重构过程</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">架构重用（英文）</span>
+  <span class="exam-tag">🎯 1分 · 第25小时</span>
+  <h1>Software Architecture Reconstruction<br>软件架构重构过程</h1>
+  <p class="one-liner">解释性、交互式、迭代的过程：信息提取 → 数据库构建 → 视图融合，加上可视化交互与模式定义识别两大主要活动。</p>
+</div>
+
+<div class="traits">
+  <span class="trait-badge">🔍 Interpretive 解释性</span>
+  <span class="trait-badge">🖱️ Interactive 交互式</span>
+  <span class="trait-badge">🔄 Iterative 迭代</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 活动流程</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放流程</button>
+
+    <div class="flow-main">
+      <!-- Sequential steps -->
+      <div class="flow-row">
+        <div class="step-box seq" id="s1">
+          ① 信息提取
+          <span class="en">Information extraction</span>
+        </div>
+      </div>
+
+      <div class="arrow-down"><div class="pulse" id="a1"></div></div>
+
+      <div class="flow-row">
+        <div class="step-box seq" id="s2">
+          ② 数据库构建
+          <span class="en">Database construction</span>
+        </div>
+      </div>
+
+      <div class="arrow-down"><div class="pulse" id="a2"></div></div>
+
+      <div class="flow-row">
+        <div class="step-box seq" id="s3">
+          ③ 视图融合
+          <span class="en">View fusion</span>
+        </div>
+      </div>
+
+      <div class="arrow-down"><div class="pulse" id="a3"></div></div>
+
+      <!-- Two main activities side by side -->
+      <div class="flow-row">
+        <div class="step-box main" id="s4">
+          ④ 可视化与交互
+          <span class="en">Visualization & interaction</span>
+        </div>
+        <div class="pipe-h"><div class="flow"></div></div>
+        <div class="step-box main" id="s5">
+          ⑤ 模式定义与识别
+          <span class="en">Pattern definition & recognition</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="loop-arrow">
+      <span>🔄</span> <span>iterative</span> — 不断循环迭代 refine
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// Software Architecture Reconstruction —— 解释性·交互式·迭代</span>
+
+<span class="kw">function</span> <span class="fn">reconstruct</span>(system) {
+    <span class="cm">// ① 信息提取：分析现有设计与实现工件，构造系统模型</span>
+    <span class="kw">let</span> model = <span class="fn">extract</span>(system.design + system.impl);
+
+    <span class="cm">// ② 数据库构建：将视图元素与关系转为标准存储格式</span>
+    <span class="kw">let</span> db = <span class="fn">buildDB</span>(model.elements, model.relations);
+
+    <span class="cm">// ③ 视图融合：理顺、加强、建立元素之间的连接</span>
+    <span class="kw">let</span> fused = <span class="fn">fuseViews</span>(db);  <span class="cm">// reconcile + augment + connect</span>
+
+    <span class="cm">// ④ 可视化与交互：用户操作架构元素</span>
+    <span class="fn">visualize</span>(fused);  <span class="cm">// 提供 UI 让用户浏览/操作</span>
+
+    <span class="cm">// ⑤ 模式定义与识别：识别架构模式</span>
+    <span class="kw">let</span> patterns = <span class="fn">recognize</span>(fused, <span class="st">definedPatterns</span>);
+
+    <span class="cm">// 🔄 迭代：重复以上过程直到架构清晰</span>
+    <span class="kw">while</span> (!architecture.clear) {
+        fused = <span class="fn">fuseViews</span>(<span class="fn">rebuild</span>(patterns));
+    }
+    <span class="kw">return</span> architecture;
+}
+
+<span class="cm">// 关键：①→②→③ 顺序执行；④⑤ 是贯穿全程的主要活动</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心理解：</strong>软件架构重构 = <span class="hl">5 个活动</span>。前三个
+  <strong>顺序执行</strong>（提取 → 构建 → 融合），后两个
+  <strong>贯穿全程</strong>（可视化交互 + 模式定义识别）。整个过程是
+  <span class="hl">解释性的</span>（需要人为判断）、<span class="hl">交互式的</span>（用户参与操作）、<span class="hl">迭代的</span>（反复精炼）。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">① extraction → 分析设计/实现工件</span>
+  <span class="tag-item">② DB construction → 标准化存储</span>
+  <span class="tag-item">③ view fusion → 理顺·加强·连接</span>
+  <span class="tag-item">④ visualization → 用户交互机制</span>
+  <span class="tag-item">⑤ pattern → 架构模式识别</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 记忆优势</h4>
+    <ul>
+      <li>活动流程有明确顺序，便于记忆</li>
+      <li>与第4小时架构评估中的重构知识关联</li>
+      <li>三个特征词（解释/交互/迭代）易背诵</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 易混淆点</h4>
+    <ul>
+      <li>重构过程包含多个活动，英文名称容易混淆</li>
+      <li>各活动的含义需要精确理解</li>
+      <li>view fusion 与 view extraction 区别</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">software architecture reconstruction</span>
+    <span class="keyword">information extraction</span>
+    <span class="keyword">database construction</span>
+    <span class="keyword">view fusion</span>
+    <span class="keyword">visualization</span>
+    <span class="keyword">pattern definition and recognition</span>
+    <span class="keyword">interpretive</span>
+    <span class="keyword">iterative</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>h25-kp04 架构恢复</strong> — 重构的前置步骤，从实现中恢复架构信息</li>
+    <li><strong>第4小时-架构评估与重构</strong> — 重构概念的首次出现，此处深化英文术语</li>
+    <li><strong>软件架构评估</strong> — 重构常作为评估后的改进行动</li>
+    <li><strong>逆向工程</strong> — 重构是逆向工程的核心技术手段</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const seqSteps = ['s1','s2','s3'];
+  const mainSteps = ['s4','s5'];
+
+  // Sequential 1→2→3
+  seqSteps.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('processing');
+      setTimeout(() => el.classList.remove('processing'), 600);
+    }, i * 700);
+  });
+
+  // Then two main activities together
+  setTimeout(() => {
+    mainSteps.forEach((id, i) => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        el.classList.add('processing');
+        setTimeout(() => el.classList.remove('processing'), 800);
+      }, i * 300);
+    });
+  }, seqSteps.length * 700);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

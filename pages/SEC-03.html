@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>对称加密算法（DES/AES/SM4） · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 加密技术 › 对称加密算法（DES/AES/SM4）</span></nav>
+<div class="ct">
+<div><span class="tag c">加密技术</span><span class="tag e">必考</span>
+<h1>对称加密算法（DES/AES/SM4）</h1><p class="ol">对称加密就是加密和解密用同一把钥匙——速度快，但钥匙怎么安全送过去是个难题。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>对称密钥加密算法的加密密钥和解密密钥相同，又称为共享密钥算法。主要包括：DES（56位密钥，64位分组，已不安全）、三重DES（112位密钥，三次DES加解密）、IDEA（128位密钥，全球通用）、AES（128位分组，支持128/192/256位密钥，替代DES的主流标准）、SM4（国密算法，128位分组和密钥）。对称加密的优点是速度快，缺点是密钥分发困难——通信双方需要安全地共享同一把密钥。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">对称加密(加密密钥 = 解密密钥):
+ DES:   分组64位, 密钥56位     → 已不安全
+ 3DES:  两次密钥(K1+K2=112位), 三次加解密(K1加密→K2解密→K1加密)
+ IDEA:  分组64位, 密钥128位
+ AES:   分组128位, 密钥128/192/256位 → 当前主流
+ SM4:   分组128位, 密钥128位    → 国密标准
+
+特点: 速度快, 适合大数据量加密
+缺点: 密钥分发困难</pre></div>
+
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>加解密速度快，适合大数据量</li><li>算法成熟，可软硬件实现</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>密钥分发困难，需要安全通道传递密钥</li><li>密钥数量随用户数增长(n用户需n(n-1)/2把密钥)</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">对称加密</span><span class="k">DES</span><span class="k">三重DES</span><span class="k">3DES</span><span class="k">IDEA</span><span class="k">AES</span><span class="k">SM4</span><span class="k">共享密钥</span><span class="k">112位</span><span class="k">分组长度</span><span class="k">密钥长度</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="SEC-04.html">SEC-04</a></li><li><a href="SEC-05.html">SEC-05</a></li></ul></div>
+</div></body></html>

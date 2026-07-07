@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交叉开发环境与低功耗设计 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.layer-box { transition: all 0.3s; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式开发 › 交叉开发环境与低功耗设计</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式开发</span>
+  <span class="exam-tag">⭐ 必考</span>
+  <h1>交叉开发环境与低功耗设计</h1>
+  <p class="one-liner">嵌入式开发=在PC(宿主机)写代码，用交叉编译器编译，下载到设备(目标机)上运行——开发和运行环境分离是最大特点。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div class="box blue" id="cd1" style="min-width:100px">🖥️ 宿主机<br><span style="font-size:10px">PC / 开发环境</span></div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:11px;color:#64748b;margin-bottom:4px">交叉编译</div>
+        <div class="pipe" style="width:80px"><div class="flow"></div></div>
+        <div style="font-size:10px;color:#64748b">串口/网络/JTAG</div>
+      </div>
+      <div style="text-align:center">
+        <div class="box green" id="cd2" style="min-width:100px">📟 目标机<br><span style="font-size:10px">嵌入式设备</span></div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#64748b;margin-top:12px">开发在PC上，运行在设备上 — 环境分离是最大特点</p>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 交叉开发模型</span>
+宿主机(PC) --[串口/网络/JTAG]--&gt; 目标机(嵌入式设备)
+
+<span class="cm">// 关键工具链</span>
+交叉编译器: 宿主机编译 → 生成目标机可执行代码
+交叉链接器: 链接目标机库文件
+源代码调试器: 远程调试目标机程序
+
+<span class="cm">// 低功耗设计手段</span>
+低功耗 = [编译优化, 软硬件协同设计, 算法优化, 中断代替查询, 电源管理]</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>嵌入式系统最大特点：开发在宿主机（PC）上进行，运行在目标机（嵌入式设备）上，两者通过串口/网络/JTAG连接。由于指令集不同，必须使用交叉编译器在宿主机上生成目标机可执行代码。基本工具：交叉编译器、交叉链接器、源代码调试器。低功耗设计是重要考量，软件层面包括：编译优化、软硬件协同设计、算法优化、用中断代替查询、电源管理。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">用PC上ARM交叉编译器编译Linux内核，通过JTAG下载到开发板运行</span>
+  <span class="tag-item">物联网传感器开发：VS Code写代码→交叉编译→串口烧录到STM32开发板</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>利用宿主机强大性能，目标机资源需求极低</li>
+      <li>交叉编译确保代码与目标硬件指令匹配</li>
+      <li>低功耗设计延长电池供电设备寿命</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>宿主机和目标机指令不同，调试复杂</li>
+      <li>需额外交叉工具链和调试设备</li>
+      <li>串口/网络调试带宽有限</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">宿主机</span>
+    <span class="keyword">目标机</span>
+    <span class="keyword">交叉编译器</span>
+    <span class="keyword">JTAG</span>
+    <span class="keyword">串口</span>
+    <span class="keyword">低功耗设计</span>
+    <span class="keyword">编译优化</span>
+    <span class="keyword">软硬件协同</span>
+    <span class="keyword">中断代替查询</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+      <li><a href="./embedded_system_composition.html" style="color:#2563eb;text-decoration:none">嵌入式系统的组成与特点</a></li>
+      <li><a href="./embedded_software_layers.html" style="color:#2563eb;text-decoration:none">嵌入式软件五层架构与六大特点</a></li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+
+    function playAnimation() {
+      ['cd1','cd2'].forEach((id,i) => {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          el.classList.add('processing');
+          setTimeout(() => el.classList.remove('processing'), 600);
+        }, i * 500);
+      });
+    }
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

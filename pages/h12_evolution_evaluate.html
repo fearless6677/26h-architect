@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构演化评估方法 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 架构演化评估 › 软件架构演化评估方法</span></nav>
+<div class="ct">
+<div><span class="tag c">架构演化评估</span><span class="tag e">常考</span>
+<h1>软件架构演化评估方法</h1><p class="ol">演化过程已知时对前后版本分别度量求差值；演化过程未知时通过特定评估流程进行评估</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>两种评估方式：(1)演化过程已知——将架构度量应用到演化过程中，对演化前后不同版本架构分别度量，得到度量结果差值及变化趋势，计算架构间质量属性距离，进而评估质量属性。(2)演化过程未知——按照特定评估流程示意图进行评估。核心思想是通过度量差值来量化演化效果。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">已知过程:
+  度量版本A → 度量版本B → 差值 + 趋势
+  计算质量属性距离 → 评估质量属性
+
+未知过程:
+  按评估流程图执行(图12.3)</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>对比重构前后的耦合度变化 → 演化过程已知的评估</li><li>对遗留系统架构进行健康度评估 → 演化过程未知的评估</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>量化评估演化效果</li><li>已知/未知两种路径覆盖全面</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>度量指标选取困难</li><li>未知过程评估结果可能不够精确</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">架构度量</span><span class="k">差值</span><span class="k">变化趋势</span><span class="k">质量属性距离</span><span class="k">已知</span><span class="k">未知</span><span class="k">评估流程</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="h12_18_principles.html">h12_18_principles</a></li><li><a href="h12_arch_maintenance.html">h12_arch_maintenance</a></li></ul></div>
+</div></body></html>

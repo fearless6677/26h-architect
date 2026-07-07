@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>净室与构件化软件工程 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 净室与构件化软件工程 › 净室与构件化软件工程</span></nav>
+<div class="ct">
+<div><span class="tag c">净室与构件化软件工程</span><span class="tag e">常考</span>
+<h1>净室与构件化软件工程</h1><p class="ol">净室靠数学验证而非测试来保证正确性；构件化就像搭积木，用现成模块拼装软件。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>净室软件工程(CSE)强调在开发中建立正确性，理论基础是函数理论和抽样理论，用盒子结构规约建模，以正确性验证(而非测试)为主要纠错机制。基于构件的软件工程(CBSE)基于分布对象技术，强调通过可复用构件构建系统。构件须具备可组装、可部署、文档化、独立性、标准化5个特征。CBSE与传统开发不同：需要早期完整需求、根据可用构件修改需求、架构设计特别重要。构件组装有顺序/层次/叠加三种方式，接口不兼容时需编写适配器。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// 净室软件工程(CSE)
+理论基础: 函数理论 + 抽样理论
+核心: 正确性验证(而非测试)作为发现错误的主要机制
+使用: 盒子结构规约进行分析和设计建模
+缺点: 太理论化、忽视测试、传统弊端
+
+// 基于构件的软件工程(CBSE)
+构件特征: 可组装 + 可部署 + 文档化 + 独立性 + 标准化
+
+CBSE过程:
+1. 系统需求概览
+2. 识别候选构件
+3. 修改需求匹配构件
+4. 体系结构设计(特别重要)
+5. 构件定制与适配
+6. 组装构件创建系统
+
+// 构件组装方式
+顺序组装 / 层次组装 / 叠加组装
+// 接口不兼容: 参数不兼容、操作不兼容、操作不完备
+// 解决: 编写适配器构件</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>净室用于航空等安全关键系统，通过数学验证保证正确性</li><li>构件模型：Web Services、EJB、.NET</li><li>CBSE场景：从构件库找到支付模块，修改后组装到新系统</li><li>接口不兼容示例：新构件参数类型与旧构件不同，需写适配器转换</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>净室：生成质量非常高的软件</li><li>CBSE：提高软件复用率，降低开发成本</li><li>构件化：缩短开发周期</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>净室太理论化，忽视测试</li><li>CBSE需要早期完整需求</li><li>构件接口不兼容需要适配器</li><li>架构设计阶段特别重要</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">净室CSE</span><span class="k">函数理论</span><span class="k">抽样理论</span><span class="k">正确性验证</span><span class="k">CBSE</span><span class="k">构件</span><span class="k">可组装</span><span class="k">构件组装</span><span class="k">适配器</span><span class="k">接口不兼容</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="sw_process_models.html">软件过程模型</a></li><li><a href="sa_sd_oo.html">系统分析与设计</a></li></ul></div>
+</div></body></html>

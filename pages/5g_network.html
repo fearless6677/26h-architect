@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5G通信网络特征 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; overflow: hidden; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* 5G animation styles */
+.gen-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px 0; flex-wrap: wrap; }
+.gen-box { display: inline-flex; flex-direction: column; align-items: center; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.4s; min-width: 70px; opacity: 0.5; }
+.gen-box.lit { opacity: 1; transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.35); }
+.gen-box.g1 { background: #f1f5f9; border: 2px solid #94a3b8; color: #475569; }
+.gen-box.g2 { background: #f0fdf4; border: 2px solid #86efac; color: #15803d; }
+.gen-box.g3 { background: #eff6ff; border: 2px solid #93c5fd; color: #1d4ed8; }
+.gen-box.g4 { background: #faf5ff; border: 2px solid #c4b5fd; color: #6d28d9; }
+.gen-box.g5 { background: #fef2f2; border: 2px solid #fca5a5; color: #dc2626; }
+.gen-arrow { font-size: 14px; color: #cbd5e1; }
+.feature-row { display: flex; gap: 12px; margin: 16px 0; justify-content: center; flex-wrap: wrap; }
+.feature-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; text-align: center; min-width: 130px; max-width: 180px; transition: all 0.4s; cursor: default; }
+.feature-card .icon { font-size: 28px; margin-bottom: 6px; }
+.feature-card .label { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.feature-card .desc { font-size: 11px; color: #64748b; }
+.feature-card.active { border-color: #3b82f6; background: #eff6ff; transform: translateY(-4px); box-shadow: 0 6px 20px rgba(37,99,235,0.15); }
+.slice-demo { margin-top: 16px; text-align: center; }
+.slice-bar { display: flex; height: 36px; border-radius: 8px; overflow: hidden; margin: 10px auto; max-width: 600px; border: 2px solid #e2e8f0; }
+.slice-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; transition: flex 0.6s ease; }
+.slice-seg.s1 { background: #3b82f6; flex: 1; }
+.slice-seg.s2 { background: #ef4444; flex: 1; }
+.slice-seg.s3 { background: #22c55e; flex: 1; }
+.slice-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+.slice-bar.split .slice-seg.s1 { flex: 2; }
+.slice-bar.split .slice-seg.s2 { flex: 0.6; }
+.slice-bar.split .slice-seg.s3 { flex: 1.4; }
+
+.section-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 16px 0 10px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 通信技术 › 5G通信网络特征</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">通信技术</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <span class="hour-tag">🕒 第3小时</span>
+  <h1>5G通信网络特征</h1>
+  <p class="one-liner">5G三大特征：高速率低时延大连接；核心技术：服务化架构SBA和网络切片</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <p class="section-title">📡 移动通信代际演进</p>
+    <div class="gen-row">
+      <div class="gen-box g1" id="g1">1G<br><small>模拟信号</small></div>
+      <span class="gen-arrow">→</span>
+      <div class="gen-box g2" id="g2">2G<br><small>数字通信</small></div>
+      <span class="gen-arrow">→</span>
+      <div class="gen-box g3" id="g3">3G<br><small>扩展频谱</small></div>
+      <span class="gen-arrow">→</span>
+      <div class="gen-box g4" id="g4">4G<br><small>快速发展</small></div>
+      <span class="gen-arrow">→</span>
+      <div class="gen-box g5" id="g5">5G<br><small>多业务融合</small></div>
+    </div>
+
+    <p class="section-title" style="margin-top:20px">🚀 5G三大优势特征</p>
+    <div class="feature-row">
+      <div class="feature-card" id="f1">
+        <div class="icon">⚡</div>
+        <div class="label">高速率</div>
+        <div class="desc">eMBB 增强移动宽带</div>
+      </div>
+      <div class="feature-card" id="f2">
+        <div class="icon">🎯</div>
+        <div class="label">低时延</div>
+        <div class="desc">URLLC 超低时延高可靠</div>
+      </div>
+      <div class="feature-card" id="f3">
+        <div class="icon">🌐</div>
+        <div class="label">大连接</div>
+        <div class="desc">mMTC 海量物联网接入</div>
+      </div>
+    </div>
+
+    <div class="slice-demo">
+      <p class="section-title">🔪 网络切片演示</p>
+      <div class="slice-bar" id="sliceBar">
+        <div class="slice-seg s1">eMBB 宽带</div>
+        <div class="slice-seg s2">URLLC 低时延</div>
+        <div class="slice-seg s3">mMTC 物联网</div>
+      </div>
+      <div class="slice-label">↑ 单个物理网络切分为多个逻辑网络 ↑</div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 5G关键特征</span>
+<span class="kw">5G特征</span> = {
+  <span class="fn">优势</span>: <span class="st">"高速率, 低时延, 接入用户数多"</span>,
+  <span class="fn">服务化架构SBA</span>: <span class="st">"网络功能灵活定制, 按需组合, 软件快速迭代升级"</span>,
+  <span class="fn">网络切片</span>: <span class="st">"单个物理网络切分出多个逻辑网络"</span>,
+  <span class="fn">硬切片</span>: <span class="st">"基于灵活以太网FlexE"</span>
+}
+
+<span class="cm">// 移动通信代际</span>
+<span class="num">1G</span> → 模拟信号,   <span class="num">2G</span> → 数字通信,
+<span class="num">3G</span> → 扩展频谱,   <span class="num">4G</span> → 快速发展,
+<span class="num">5G</span> → <span class="st">多业务多技术融合</span>
+
+<span class="cm">// 网络切片实例</span>
+<span class="kw">物理网络</span> → <span class="fn">切片</span>(<span class="st">"eMBB"</span>, <span class="st">"URLLC"</span>, <span class="st">"mMTC"</span>)
+           → <span class="cm">// 一个物理网络，三个逻辑网络</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>5G具有<span class="hl">高速率、低时延、接入用户数多</span>的优点。
+  服务化架构<span class="hl">SBA</span>实现网络功能灵活定制和按需组合；
+  <span class="hl">网络切片</span>技术在单个物理网络中切分出多个逻辑网络用于不同业务；
+  引入基于<span class="hl">FlexE</span>的硬切片技术。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📱 eMBB 增强移动宽带</span>
+  <span class="tag-item">🏭 URLLC 工业控制/自动驾驶</span>
+  <span class="tag-item">📡 mMTC 智慧城市/物联网</span>
+  <span class="tag-item">🔧 SBA 服务化架构</span>
+  <span class="tag-item">🔪 FlexE 硬切片</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优势</h4>
+    <ul>
+      <li>SBA实现网络功能灵活组合和快速升级</li>
+      <li>网络切片满足不同业务差异化需求</li>
+      <li>高速率支持4K/8K视频、VR/AR等场景</li>
+      <li>低时延保障自动驾驶、远程医疗等安全关键应用</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 挑战</h4>
+    <ul>
+      <li>基站建设成本高，覆盖范围较小</li>
+      <li>频谱资源有限，高频段穿透性差</li>
+      <li>网络安全风险增大，攻击面扩大</li>
+      <li>能耗问题突出，绿色节能需求迫切</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">5G</span>
+    <span class="keyword">高速率</span>
+    <span class="keyword">低时延</span>
+    <span class="keyword">服务化架构SBA</span>
+    <span class="keyword">网络切片</span>
+    <span class="keyword">FlexE</span>
+    <span class="keyword">硬切片</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="multiplex_multiple_access.html"><strong>复用与多址接入</strong></a> = 5G底层通信基础技术</li>
+    <li><strong>1G→5G演进</strong> = 模拟→数字→扩频→宽带→万物互联</li>
+    <li><strong>SBA服务化架构</strong> = 类似微服务思想，网络功能模块化、API化</li>
+    <li><strong>vs 4G</strong>：4G主要面向移动互联网；5G面向万物互联，支持三大场景(eMBB/URLLC/mMTC)</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // Step 1: light up mobile generations one by one
+  const gens = ['g1','g2','g3','g4','g5'];
+  gens.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('lit');
+    }, i * 350);
+  });
+
+  // Step 2: highlight feature cards
+  const features = ['f1','f2','f3'];
+  features.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      setTimeout(() => document.getElementById(id).classList.remove('active'), 800);
+    }, 2000 + i * 500);
+  });
+
+  // Step 3: split the network slice
+  setTimeout(() => {
+    document.getElementById('sliceBar').classList.add('split');
+  }, 3800);
+}
+
+// Auto play on load
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>决策分析与不确定型决策 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Decision tree animation */
+.tree-container { text-align: center; padding: 8px 0; }
+.tree-node { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 36px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: default; transition: all 0.4s; position: relative; }
+.tree-node.decision { background: #dbeafe; border: 2px solid #3b82f6; color: #1d4ed8; }
+.tree-node.chance { background: #fef9c3; border: 2px solid #eab308; color: #854d0e; border-radius: 50%; width: 40px; height: 40px; }
+.tree-node.leaf { background: #dcfce7; border: 2px solid #22c55e; color: #15803d; }
+.tree-node.highlight { transform: scale(1.15); box-shadow: 0 0 18px rgba(37,99,235,0.45); z-index: 2; }
+.tree-node.best { box-shadow: 0 0 0 3px #22c55e, 0 0 18px rgba(34,197,94,0.4); }
+
+.tree-svg { display: block; margin: 0 auto; }
+.tree-svg line { stroke: #cbd5e1; stroke-width: 2; transition: stroke 0.4s; }
+.tree-svg line.lit { stroke: #3b82f6; stroke-width: 3; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Regret table */
+.regret-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.regret-table th, .regret-table td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: center; }
+.regret-table th { background: #f1f5f9; color: #334155; font-weight: 600; }
+.regret-table td.regret { background: #fff7ed; color: #9a3412; }
+.regret-table td.max-regret { background: #fee2e2; color: #b91c1c; font-weight: 700; }
+.regret-table td.best-regret { background: #dcfce7; color: #15803d; font-weight: 700; }
+.regret-table .row-label { font-weight: 600; color: #1e40af; background: #eff6ff; }
+
+/* Criterion cards */
+.criterion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+.criterion-card { padding: 12px; border-radius: 8px; text-align: center; transition: all 0.3s; cursor: default; }
+.criterion-card:hover { transform: translateY(-2px); }
+.criterion-card h5 { font-size: 14px; margin-bottom: 4px; }
+.criterion-card p { font-size: 11px; margin: 0; }
+.criterion-card.optimistic { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; }
+.criterion-card.pessimistic { background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; }
+.criterion-card.compromise { background: #fefce8; border: 1px solid #fde047; color: #854d0e; }
+.criterion-card.equal { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
+.criterion-card.regret-card { background: #fdf4ff; border: 1px solid #d8b4fe; color: #7e22ce; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 定量分析 › 决策分析与不确定型决策</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">决策分析</span>
+  <span class="exam-tag">⭐ 约2分（选择题）</span>
+  <h1>决策分析与不确定型决策</h1>
+  <p class="one-liner">用EMV/决策树进行风险型决策，用乐观/悲观/后悔值准则进行不确定型决策</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 决策树动画</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 EMV伪代码</div>
+  <div class="tab" onclick="switchTab(this,'regret')">📊 后悔值法</div>
+</div>
+
+<!-- ===== 动画演示 ===== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playTree()">▶ 从右向左计算</button>
+
+    <svg class="tree-svg" width="820" height="300" viewBox="0 0 820 300">
+      <!-- Decision node ──→ Chance nodes ──→ Leaves -->
+      <!-- Lines: decision to chance -->
+      <line id="L1" x1="100" y1="150" x2="310" y2="70"/>
+      <line id="L2" x1="100" y1="150" x2="310" y2="230"/>
+      <!-- Lines: chance(c1) to leaves -->
+      <line id="L3" x1="350" y1="70" x2="560" y2="20"/>
+      <line id="L4" x1="350" y1="70" x2="560" y2="120"/>
+      <!-- Lines: chance(c2) to leaves -->
+      <line id="L5" x1="350" y1="230" x2="560" y2="180"/>
+      <line id="L6" x1="350" y1="230" x2="560" y2="280"/>
+
+      <!-- Decision node -->
+      <g id="N0"><rect x="55" y="132" width="90" height="36" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2.5"/>
+        <text x="100" y="155" text-anchor="middle" font-size="13" font-weight="700" fill="#1d4ed8">决策</text></g>
+
+      <!-- Chance node A (水路) -->
+      <g id="N1"><circle cx="330" cy="70" r="22" fill="#fef9c3" stroke="#eab308" stroke-width="2.5"/>
+        <text x="330" y="74" text-anchor="middle" font-size="11" font-weight="700" fill="#854d0e">水路</text></g>
+
+      <!-- Chance node B (陆路) -->
+      <g id="N2"><circle cx="330" cy="230" r="22" fill="#fef9c3" stroke="#eab308" stroke-width="2.5"/>
+        <text x="330" y="234" text-anchor="middle" font-size="11" font-weight="700" fill="#854d0e">陆路</text></g>
+
+      <!-- Leaf: 水路·正常 -->
+      <g id="N3"><rect x="555" y="2" width="100" height="36" rx="6" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+        <text x="605" y="18" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">700 × 85%</text>
+        <text x="605" y="32" text-anchor="middle" font-size="10" fill="#475569">= 595</text></g>
+
+      <!-- Leaf: 水路·损坏 -->
+      <g id="N4"><rect x="555" y="102" width="100" height="36" rx="6" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+        <text x="605" y="118" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">1600 × 15%</text>
+        <text x="605" y="132" text-anchor="middle" font-size="10" fill="#475569">= 240</text></g>
+
+      <!-- Leaf: 陆路·正常 -->
+      <g id="N5"><rect x="555" y="162" width="100" height="36" rx="6" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+        <text x="605" y="178" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">1000 × 60%</text>
+        <text x="605" y="192" text-anchor="middle" font-size="10" fill="#475569">= 600</text></g>
+
+      <!-- Leaf: 陆路·损坏 -->
+      <g id="N6"><rect x="555" y="262" width="100" height="36" rx="6" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+        <text x="605" y="278" text-anchor="middle" font-size="11" font-weight="600" fill="#15803d">1000 × 40%</text>
+        <text x="605" y="292" text-anchor="middle" font-size="10" fill="#475569">= 400</text></g>
+
+      <!-- EMV result labels (hidden initially) -->
+      <g id="emvA" opacity="0">
+        <rect x="690" y="52" width="110" height="36" rx="6" fill="#1e293b"/>
+        <text x="745" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">EMV水路=835</text>
+        <text x="745" y="82" text-anchor="middle" font-size="10" fill="#e2e8f0">595+240=835</text>
+      </g>
+      <g id="emvB" opacity="0">
+        <rect x="690" y="212" width="110" height="36" rx="6" fill="#1e293b"/>
+        <text x="745" y="228" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">EMV陆路=1000</text>
+        <text x="745" y="242" text-anchor="middle" font-size="10" fill="#e2e8f0">600+400=1000</text>
+      </g>
+      <g id="emvBest" opacity="0">
+        <rect x="200" y="132" width="90" height="36" rx="8" fill="#22c55e" stroke="#15803d" stroke-width="2"/>
+        <text x="245" y="155" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">选陆路!</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="explain" style="margin-top:16px;">
+    <strong>决策树计算规则：</strong>
+    从<span class="hl">最右端叶子</span>开始，向<span class="hl">左</span>逐层回推。
+    机会节点的EMV = 各结果收益 × 对应概率之和。
+    决策节点选EMV<span class="hl">最大</span>（收益型）或最小（成本型）的方案。
+  </div>
+</div>
+
+<!-- ===== 伪代码 ===== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ── EMV 期望货币值法 ──</span>
+<span class="kw">function</span> <span class="fn">EMV</span>(方案) {
+    sum = 0
+    <span class="kw">for each</span> (收益, 概率) <span class="kw">in</span> 方案.结果
+        sum += 收益 × 概率       <span class="cm">// 核心公式</span>
+    <span class="kw">return</span> sum
+}
+
+<span class="cm">// ── 决策树：从右向左逐层计算 ──</span>
+<span class="kw">function</span> <span class="fn">决策树</span>(node) {
+    <span class="kw">if</span> node 是叶子   <span class="cm">// ← 从最右端开始</span>
+        <span class="kw">return</span> node.收益
+    <span class="kw">if</span> node 是机会节点
+        <span class="kw">return</span> Σ <span class="fn">决策树</span>(child) × child.概率
+    <span class="kw">if</span> node 是决策节点
+        <span class="kw">return</span> <span class="fn">max</span>(<span class="fn">决策树</span>(child₁), <span class="fn">决策树</span>(child₂), ...)  <span class="cm">// 选最优</span>
+}
+
+<span class="cm">// ── 后悔值准则 ──</span>
+<span class="kw">function</span> <span class="fn">后悔值</span>(状态s, 方案a) {
+    <span class="kw">return</span> <span class="fn">max</span>(同状态下所有方案收益) − 方案a在s下的收益
+}
+<span class="cm">// 选各方案最大后悔值中的 → 最小值（最小最大后悔值）</span></pre>
+</div>
+
+<!-- ===== 后悔值法 ===== -->
+<div id="regret" class="tab-content">
+  <div class="anim-area">
+    <p style="font-size:13px;color:#475569;margin-bottom:8px;"><strong>后悔值矩阵示例：</strong></p>
+    <table class="regret-table">
+      <tr><th>方案 \ 状态</th><th>S₁（好）</th><th>S₂（中）</th><th>S₃（差）</th><th>最大后悔值</th></tr>
+      <tr>
+        <td class="row-label">A</td>
+        <td class="regret">0</td>
+        <td class="regret">120</td>
+        <td class="regret max-regret">280</td>
+        <td class="max-regret">280</td>
+      </tr>
+      <tr>
+        <td class="row-label">B</td>
+        <td class="regret">60</td>
+        <td class="regret">0</td>
+        <td class="regret">140</td>
+        <td class="best-regret">200 ✓</td>
+      </tr>
+      <tr>
+        <td class="row-label">C</td>
+        <td class="regret">100</td>
+        <td class="regret">80</td>
+        <td class="regret max-regret">170</td>
+        <td class="max-regret">350</td>
+      </tr>
+      <tr>
+        <td class="row-label">D</td>
+        <td class="regret max-regret">200</td>
+        <td class="regret">160</td>
+        <td class="regret">300</td>
+        <td class="max-regret">500</td>
+      </tr>
+    </table>
+    <p style="font-size:13px;color:#475569;margin-top:8px;">
+      后悔值 = 同状态下最高收益 − 该方案收益。
+      各方案最大后悔值分别为 280 / <span class="hl">200</span> / 350 / 500，
+      取<span class="hl">最小200 → 选方案B</span>。
+    </p>
+  </div>
+</div>
+
+<!-- ===== 核心讲解 ===== -->
+<div class="explain">
+  <strong>核心：</strong>决策分析从若干方案中选最优。
+  <span class="hl">风险型</span>（概率已知）用EMV/决策树；
+  <span class="hl">不确定型</span>（概率未知）用5种准则：
+</div>
+
+<div class="criterion-grid">
+  <div class="criterion-card optimistic">
+    <h5>🔥 乐观准则</h5>
+    <p>最大最大（大中取大）<br>选各方案最大收益中的最大</p>
+  </div>
+  <div class="criterion-card pessimistic">
+    <h5>🧊 悲观准则</h5>
+    <p>最大最小（小中取大）<br>选各方案最小收益中的最大</p>
+  </div>
+  <div class="criterion-card compromise">
+    <h5>⚖️ 折中准则</h5>
+    <p>乐观系数α加权<br>HV = α×最大 + (1-α)×最小</p>
+  </div>
+  <div class="criterion-card equal">
+    <h5>🎲 等可能性</h5>
+    <p>假设各状态等概率<br>直接算EMV比较</p>
+  </div>
+  <div class="criterion-card regret-card">
+    <h5>😤 后悔值准则</h5>
+    <p>最小最大后悔值<br>各方案最大后悔值中选最小</p>
+  </div>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📦 货运决策（水路vs陆路）</span>
+  <span class="tag-item">🏭 建厂决策树（大厂vs小厂）</span>
+  <span class="tag-item">📊 不确定型后悔值矩阵</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>EMV法量化客观，可比较</li>
+      <li>决策树直观展示多阶段决策过程</li>
+      <li>不确定型决策多种准则覆盖不同风险偏好</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>需要已知各状态的概率，实际中概率估计可能不准确</li>
+      <li>多阶段决策树计算量大，从右向左逐层计算容易出错</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">决策分析</span>
+    <span class="keyword">EMV</span>
+    <span class="keyword">期望值</span>
+    <span class="keyword">决策树</span>
+    <span class="keyword">从右向左</span>
+    <span class="keyword">乐观准则</span>
+    <span class="keyword">悲观准则</span>
+    <span class="keyword">后悔值准则</span>
+    <span class="keyword">不确定型决策</span>
+    <span class="keyword">最大最大</span>
+    <span class="keyword">最大最小</span>
+    <span class="keyword">最小最大后悔值</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>kp24-03 盈亏平衡分析</strong> = 决策分析的基础，确定成本-收益关系</li>
+    <li><strong>kp24-04 投资回报分析</strong> = 决策分析中的收益量化方法</li>
+    <li><strong>项目管理决策</strong> = 用决策树评估项目Go/No-Go</li>
+    <li><strong>风险管理</strong> = 概率估计是风险分析的核心输入</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playTree() {
+  const lines = ['L3','L4','L5','L6','L1','L2'];
+  const nodes = ['N3','N4','N5','N6','N1','N2','N0'];
+  let delay = 0;
+
+  // Step 1: Highlight leaves and calculate
+  nodes.forEach((nid, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(nid);
+      if (el) {
+        el.style.transition = 'all 0.4s';
+        if (i < 4) el.classList.add('highlight');
+        setTimeout(() => el.classList.remove('highlight'), 600);
+      }
+    }, delay);
+    delay += 350;
+  });
+
+  // Step 2: Show EMV results
+  setTimeout(() => {
+    const emvA = document.getElementById('emvA');
+    emvA.style.transition = 'opacity 0.5s';
+    emvA.setAttribute('opacity', '1');
+  }, delay);
+  delay += 500;
+
+  setTimeout(() => {
+    const emvB = document.getElementById('emvB');
+    emvB.style.transition = 'opacity 0.5s';
+    emvB.setAttribute('opacity', '1');
+  }, delay);
+  delay += 500;
+
+  // Step 3: Light up lines toward chosen path
+  setTimeout(() => {
+    document.getElementById('L2').classList.add('lit');
+  }, delay);
+  delay += 300;
+
+  // Step 4: Show best choice
+  setTimeout(() => {
+    const best = document.getElementById('emvBest');
+    best.style.transition = 'opacity 0.5s';
+    best.setAttribute('opacity', '1');
+  }, delay);
+
+  // Reset after full animation
+  setTimeout(() => {
+    lines.forEach(lid => {
+      const el = document.getElementById(lid);
+      if (el) el.classList.remove('lit');
+    });
+    ['emvA','emvB','emvBest'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute('opacity', '0');
+    });
+  }, delay + 2500);
+}
+
+window.addEventListener('load', () => setTimeout(playTree, 600));
+</script>
+</body>
+</html>

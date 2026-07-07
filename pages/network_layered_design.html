@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络分层设计与冗余设计 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Layer animation styles */
+.layer-stack { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 16px auto; max-width: 520px; }
+.layer-box { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: left; transition: all 0.4s ease; position: relative; }
+.layer-box.access { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.layer-box.distribution { background: #fefce8; border: 2px solid #eab308; color: #854d0e; }
+.layer-box.core { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.layer-box .layer-icon { font-size: 22px; flex-shrink: 0; }
+.layer-box .layer-label { font-size: 15px; }
+.layer-box .layer-desc { font-size: 12px; font-weight: 400; opacity: 0.85; }
+.layer-connector { width: 2px; height: 18px; background: #cbd5e1; position: relative; }
+.layer-connector .pulse { position: absolute; top: 0; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; opacity: 0; }
+.layer-connector .pulse.anim { animation: connPulse 0.8s ease-out forwards; }
+@keyframes connPulse { 0% { top: 0; opacity: 1; } 100% { top: 18px; opacity: 0; } }
+.layer-box.highlight { transform: scale(1.04); box-shadow: 0 0 20px rgba(37,99,235,0.3); }
+
+/* Redundancy animation styles */
+.redundancy-demo { margin-top: 24px; padding-top: 20px; border-top: 1px dashed #cbd5e1; }
+.redundancy-demo h5 { font-size: 13px; color: #64748b; margin-bottom: 12px; text-align: center; }
+.path-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+.node { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; font-size: 11px; font-weight: 700; transition: all 0.4s; }
+.node.active { background: #dbeafe; border: 2px solid #3b82f6; color: #1d4ed8; }
+.node.fail { background: #fef2f2; border: 2px solid #ef4444; color: #dc2626; }
+.node.backup { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.link { width: 36px; height: 4px; border-radius: 2px; position: relative; overflow: hidden; transition: all 0.4s; }
+.link.active-link { background: #cbd5e1; }
+.link.active-link .data-flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.2s linear infinite; }
+.link.broken { background: #fca5a5; }
+.link.backup-link { background: #bbf7d0; }
+.link.backup-link .data-flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #22c55e, transparent); animation: pipeFlow 1.2s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+.status-label { text-align: center; font-size: 12px; color: #64748b; margin-top: 8px; min-height: 20px; font-weight: 600; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+.play-btn.secondary { background: #22c55e; right: 80px; }
+.play-btn.secondary:hover { background: #15803d; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 网络工程 › 网络分层设计与冗余设计</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">网络工程</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>网络分层设计与冗余设计</h1>
+  <p class="one-liner">网络三层：接入层(用户接入)→汇聚层(策略控制)→核心层(高速骨干)；冗余设计避免单点失效</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playLayerAnimation()">▶ 分层演示</button>
+    <button class="play-btn secondary" onclick="playRedundancyAnimation()">⚡ 冗余演示</button>
+
+    <!-- Three-layer architecture -->
+    <div class="layer-stack">
+      <div class="layer-box core" id="L3">
+        <span class="layer-icon">🌐</span>
+        <div>
+          <div class="layer-label">核心层（Core Layer）</div>
+          <div class="layer-desc">高速转发 · 可靠骨干 · 双机冗余热备份 · 负载均衡</div>
+        </div>
+      </div>
+      <div class="layer-connector" id="C2"><div class="pulse"></div></div>
+      <div class="layer-box distribution" id="L2">
+        <span class="layer-icon">🔀</span>
+        <div>
+          <div class="layer-label">汇聚层（Distribution Layer）</div>
+          <div class="layer-desc">核心与接入分界 · 策略控制/过滤/寻址 · 视规模而定</div>
+        </div>
+      </div>
+      <div class="layer-connector" id="C1"><div class="pulse"></div></div>
+      <div class="layer-box access" id="L1">
+        <span class="layer-icon">💻</span>
+        <div>
+          <div class="layer-label">接入层（Access Layer）</div>
+          <div class="layer-desc">面向用户 · 互访 · 带宽分配 · 用户管理(认证/计费)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Redundancy demo -->
+    <div class="redundancy-demo">
+      <h5>冗余设计：主路径 vs 备用路径</h5>
+      <div class="path-row">
+        <div class="node active" id="N1">源</div>
+        <div class="link active-link" id="LK1"><div class="data-flow"></div></div>
+        <div class="node active" id="N2">路由A</div>
+        <div class="link active-link" id="LK2"><div class="data-flow"></div></div>
+        <div class="node active" id="N3">目的</div>
+      </div>
+      <div class="path-row" style="margin-top: -4px;">
+        <div style="width:44px"></div>
+        <div style="width:44px"></div>
+        <div class="link" id="LK3" style="visibility:hidden;"><div class="data-flow"></div></div>
+        <div class="node backup" id="N4" style="opacity:0.4;">路由B</div>
+        <div class="link" id="LK4" style="visibility:hidden;"><div class="data-flow"></div></div>
+        <div style="width:44px"></div>
+      </div>
+      <div class="status-label" id="statusLabel">✅ 正常：主路径转发，备用路径待命</div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 网络三层架构设计</span>
+<span class="fn">网络分层</span> = {
+  <span class="st">接入层</span>: <span class="cm">"面向用户, 互访, 带宽, 用户管理(认证/计费)"</span>,
+  <span class="st">汇聚层</span>: <span class="cm">"核心与接入分界, 策略控制/过滤/寻址, 视规模而定"</span>,
+  <span class="st">核心层</span>: <span class="cm">"高速转发, 可靠骨干, 双机冗余热备份, 负载均衡"</span>
+}
+
+<span class="cm">// 冗余设计</span>
+<span class="fn">冗余设计</span> = {
+  <span class="st">目的</span>:     <span class="cm">"避免单点失效"</span>,
+  <span class="st">备用路径</span>: <span class="cm">"主路径失效时启用, 不承担主路径流量"</span>,
+  <span class="st">负载分担</span>: <span class="cm">"并行链路分担流量, 提高性能"</span>
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>网络分层设计 —— <span class="hl">接入层</span>面向用户连接和访问管理；<span class="hl">汇聚层</span>是核心与接入的分界面，完成策略控制和数据处理（视规模而定）；<span class="hl">核心层</span>提供高速可靠的骨干传输，需双机冗余热备份。
+  <br>
+  <strong>冗余设计：</strong><span class="hl">避免单点失效</span>，备用路径在主路径失效时启用，负载分担通过并行链路提高性能。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🖥️ 企业园区网三层架构</span>
+  <span class="tag-item">🔧 数据中心核心交换冗余</span>
+  <span class="tag-item">🔗 HSRP / VRRP 热备份协议</span>
+  <span class="tag-item">📡 OSPF 多路径负载均衡</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>分层设计职责清晰，便于管理和排错</li>
+      <li>冗余设计提高网络可靠性，避免单点失效</li>
+      <li>负载分担提升整体网络性能</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>分层增加设备成本和管理开销</li>
+      <li>冗余设计增加网络复杂度</li>
+      <li>备用链路平时闲置，利用率低</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">接入层</span>
+    <span class="keyword">汇聚层</span>
+    <span class="keyword">核心层</span>
+    <span class="keyword">分层设计</span>
+    <span class="keyword">冗余设计</span>
+    <span class="keyword">单点失效</span>
+    <span class="keyword">备用路径</span>
+    <span class="keyword">负载分担</span>
+    <span class="keyword">双机冗余</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>网络设备</strong> = 接入层交换机 / 汇聚层三层交换机 / 核心层路由器</li>
+    <li><strong>STP 生成树协议</strong> = 二层冗余防环机制，与冗余设计密切相关</li>
+    <li><strong>HSRP / VRRP</strong> = 网关冗余协议，实现核心层双机热备份</li>
+    <li><strong>OSPF / ECMP</strong> = 路由层面实现负载分担与多路径冗余</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// Reset all layer animations
+function resetLayers() {
+  ['L1','L2','L3'].forEach(id => {
+    document.getElementById(id).classList.remove('highlight');
+  });
+  ['C1','C2'].forEach(id => {
+    document.getElementById(id).querySelector('.pulse').classList.remove('anim');
+  });
+}
+
+// Layer animation: bottom-up highlighting with data flow pulses
+function playLayerAnimation() {
+  resetLayers();
+  // Step 1: Access layer
+  setTimeout(() => {
+    document.getElementById('L1').classList.add('highlight');
+    document.getElementById('C1').querySelector('.pulse').classList.add('anim');
+  }, 200);
+  // Step 2: Distribution layer
+  setTimeout(() => {
+    document.getElementById('L2').classList.add('highlight');
+    document.getElementById('C2').querySelector('.pulse').classList.add('anim');
+  }, 800);
+  // Step 3: Core layer
+  setTimeout(() => {
+    document.getElementById('L3').classList.add('highlight');
+  }, 1400);
+  // Reset after cycle
+  setTimeout(() => resetLayers(), 2200);
+}
+
+// Redundancy animation: main path fails, backup takes over
+let redundancyTimer = null;
+function playRedundancyAnimation() {
+  const n1 = document.getElementById('N1');
+  const n2 = document.getElementById('N2');
+  const n3 = document.getElementById('N3');
+  const n4 = document.getElementById('N4');
+  const lk1 = document.getElementById('LK1');
+  const lk2 = document.getElementById('LK2');
+  const lk3 = document.getElementById('LK3');
+  const lk4 = document.getElementById('LK4');
+  const label = document.getElementById('statusLabel');
+
+  // Reset state
+  n2.className = 'node active';
+  n4.className = 'node backup';
+  n4.style.opacity = '0.4';
+  lk1.className = 'link active-link'; lk1.style.visibility = 'visible';
+  lk2.className = 'link active-link'; lk2.style.visibility = 'visible';
+  lk3.className = 'link'; lk3.style.visibility = 'hidden';
+  lk4.className = 'link'; lk4.style.visibility = 'hidden';
+  label.textContent = '✅ 正常：主路径转发，备用路径待命';
+  label.style.color = '#15803d';
+
+  // Step 1: Main path failure
+  setTimeout(() => {
+    n2.className = 'node fail';
+    lk1.className = 'link broken';
+    lk2.className = 'link broken';
+    label.textContent = '⚠️ 故障：路由A不可达，主路径中断！';
+    label.style.color = '#dc2626';
+  }, 1200);
+
+  // Step 2: Backup path activates
+  setTimeout(() => {
+    n4.style.opacity = '1';
+    n4.className = 'node active';
+    lk3.style.visibility = 'visible';
+    lk3.className = 'link backup-link';
+    lk3.innerHTML = '<div class="data-flow"></div>';
+    lk4.style.visibility = 'visible';
+    lk4.className = 'link backup-link';
+    lk4.innerHTML = '<div class="data-flow"></div>';
+    label.textContent = '🔄 切换：备用路径(路由B)已接管！';
+    label.style.color = '#1d4ed8';
+  }, 2400);
+
+  // Step 3: Recovery
+  setTimeout(() => {
+    n2.className = 'node active';
+    n4.className = 'node backup';
+    n4.style.opacity = '0.4';
+    lk1.className = 'link active-link'; lk1.innerHTML = '<div class="data-flow"></div>';
+    lk2.className = 'link active-link'; lk2.innerHTML = '<div class="data-flow"></div>';
+    lk3.style.visibility = 'hidden'; lk3.className = 'link';
+    lk4.style.visibility = 'hidden'; lk4.className = 'link';
+    label.textContent = '✅ 恢复：主路径已修复，切回主路径';
+    label.style.color = '#15803d';
+  }, 4000);
+}
+
+window.addEventListener('load', () => setTimeout(playLayerAnimation, 500));
+</script>
+</body>
+</html>

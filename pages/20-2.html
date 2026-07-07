@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>广域网网络架构 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 通信系统架构 › 广域网网络架构</span></nav>
+<div class="ct">
+<div><span class="tag c">通信系统架构</span><span class="tag e">中频选择题</span>
+<h1>广域网网络架构</h1><p class="ol">广域网架构包括单核心、双核心、环型、半/全冗余、对等子域和层次子域六种类型。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>广域网由骨干网、分布网、接入网组成。网络架构分为6种：(1)单核心架构——以单台核心三层交换机为核心，结构简单但存在单点故障；(2)双核心架构——两台核心交换机，路由可热切换、可靠性高；(3)环型架构——多台交换机组成路由环路，接入方便但投资高；(4)半冗余/全冗余架构——核心路由设备互连，任意核心有两条以上到其他核心链路为半冗余，任何两个核心间均有链路为全冗余，结构灵活可靠但不便管理；(5)对等子域架构——将半冗余核心划为独立子域，子域间互连；(6)层次子域架构——子域间存在层次关系，扩展性较好。</p></div>
+
+<div class="s"><h3>📌 实际例子</h3><ul><li>半冗余架构中任意核心存在两条以上到其他核心的链路</li><li>全冗余架构中任何两个核心间均存在链路，可靠性最高</li><li>对等子域架构将核心划为两个独立子域，路由控制灵活</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>全冗余架构可靠性高</li><li>层次子域架构扩展性较好</li><li>双核心架构路由可热切换</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>半/全冗余架构结构零散，不便管理和排障</li><li>对等子域架构易形成环路或存在非法路由风险</li><li>环型架构投资较高且易形成环路</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">单核心架构</span><span class="k">双核心架构</span><span class="k">半冗余架构</span><span class="k">全冗余架构</span><span class="k">对等子域</span><span class="k">层次子域</span><span class="k">骨干网</span><span class="k">接入网</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="20-1.html">20-1</a></li><li><a href="20-3.html">20-3</a></li></ul></div>
+</div></body></html>

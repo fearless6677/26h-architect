@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务网格（Service Mesh）与容器技术 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ── Service Mesh 动画 ── */
+.mesh-canvas { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 12px; }
+.control-plane { background: linear-gradient(135deg, #ede9fe, #ddd6fe); border: 2px solid #8b5cf6; border-radius: 10px; padding: 10px 28px; font-size: 14px; font-weight: 700; color: #6d28d9; text-align: center; position: relative; width: 90%; max-width: 620px; }
+.control-plane small { display: block; font-size: 11px; font-weight: 400; color: #7c3aed; }
+.control-lines { display: flex; justify-content: center; gap: 60px; }
+.ctrl-line { width: 2px; height: 24px; background: #a78bfa; position: relative; overflow: hidden; }
+.ctrl-line .dash { position: absolute; top: -8px; left: 0; width: 2px; height: 8px; background: #7c3aed; animation: dashDown 1.2s linear infinite; }
+@keyframes dashDown { 0%{top:-8px;} 100%{top:24px;} }
+.svc-row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+.svc-pod { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.svc-box { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; min-width: 90px; transition: all 0.3s; }
+.svc-app { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.svc-sidecar { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; font-size: 11px; padding: 6px 12px; min-width: 80px; }
+.svc-pair { display: flex; align-items: center; gap: 6px; }
+.svc-conn { display: flex; align-items: center; gap: 0; }
+.data-pipe { width: 48px; height: 4px; background: #cbd5e1; border-radius: 2px; position: relative; overflow: hidden; }
+.data-pipe .pkt { position: absolute; top: 0; left: -16px; width: 16px; height: 4px; background: linear-gradient(90deg, transparent, #f59e0b, transparent); animation: pktFlow 1s linear infinite; }
+@keyframes pktFlow { 0%{left:-16px;} 100%{left:48px;} }
+.svc-box.highlight { transform: scale(1.06); box-shadow: 0 0 14px rgba(245,158,11,0.5); }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+/* ── Container 对比表 ── */
+.cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+.cmp-table th { background: #e2e8f0; color: #1e293b; padding: 8px 10px; text-align: left; }
+.cmp-table td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; color: #475569; }
+.cmp-table tr:hover td { background: #f1f5f9; }
+.cmp-table .yes { color: #15803d; font-weight: 600; }
+.cmp-table .no { color: #b91c1c; }
+
+/* ── Container 编排卡片 ── */
+.orch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin: 12px 0; }
+.orch-card { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #15803d; font-weight: 600; text-align: center; transition: all 0.25s; }
+.orch-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(34,197,94,0.2); }
+.orch-card small { display: block; font-size: 11px; font-weight: 400; color: #475569; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 云原生架构 › 服务网格与容器技术</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">云原生架构相关技术</span>
+  <span class="exam-tag">2~4分（单选）+ 案例题</span>
+  <h1>服务网格（Service Mesh）与容器技术</h1>
+  <p class="one-liner">服务网格将微服务间的连接、安全、流量控制和可观测下沉为平台基础设施，实现应用与基础设施解耦；容器将应用及依赖打包，不受环境限制。典型Mesh技术：Istio、Linkerd、Consul。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'container')">📦 容器对比</div>
+  <div class="tab" onclick="switchTab(this,'orch')">🧩 编排能力</div>
+</div>
+
+<!-- ── 动画：Service Mesh Sidecar 模式 ── -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="mesh-canvas">
+      <div class="control-plane">
+        🔧 控制平面 Control Plane
+        <small>策略配置 · 服务发现 · 可观测 · 安全证书</small>
+      </div>
+      <div class="control-lines">
+        <div class="ctrl-line"><div class="dash"></div></div>
+        <div class="ctrl-line"><div class="dash" style="animation-delay:.4s"></div></div>
+        <div class="ctrl-line"><div class="dash" style="animation-delay:.8s"></div></div>
+      </div>
+      <div class="svc-row">
+        <!-- 服务A -->
+        <div class="svc-pod">
+          <div class="svc-pair">
+            <div class="svc-box svc-app" id="svcA">服务 A</div>
+            <div class="data-pipe"><div class="pkt"></div></div>
+            <div class="svc-sidecar" id="scA">Sidecar 代理</div>
+          </div>
+        </div>
+        <!-- 连接管道 -->
+        <div class="svc-conn">
+          <div class="data-pipe" style="width:60px;"><div class="pkt" style="animation-delay:.2s"></div></div>
+        </div>
+        <!-- 服务B -->
+        <div class="svc-pod">
+          <div class="svc-pair">
+            <div class="svc-sidecar" id="scB">Sidecar 代理</div>
+            <div class="data-pipe"><div class="pkt" style="animation-delay:.5s"></div></div>
+            <div class="svc-box svc-app" id="svcB">服务 B</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;">
+        请求路径：服务A → Sidecar A（熔断/限流/服务发现）→ Sidecar B → 服务B
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 伪代码 ── -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ─── Service Mesh：Sidecar 代理拦截所有网络通信 ───</span>
+<span class="cm">// 应用代码只关心业务逻辑，网络策略全交给 Sidecar</span>
+
+<span class="kw">class</span> <span class="fn">ServiceA</span>:
+    <span class="kw">def</span> <span class="fn">callB</span>(req):
+        <span class="cm"># 应用代码: 像调用本地方法一样调用服务B</span>
+        <span class="kw">return</span> http.get(<span class="st">"http://serviceB/api"</span>, req)
+        <span class="cm"># ↑ 实际请求被 Sidecar 拦截！应用无感知</span>
+
+<span class="kw">class</span> <span class="fn">SidecarProxy</span>:    <span class="cm">// 每个服务实例旁边都有一个</span>
+    <span class="kw">def</span> <span class="fn">intercept</span>(req):
+        <span class="fn">service_discovery</span>(req)   <span class="cm">// 1. 服务发现：找到服务B地址</span>
+        <span class="fn">rate_limit</span>(req)          <span class="cm">// 2. 限流：QPS 不超过阈值</span>
+        <span class="fn">circuit_breaker</span>(req)     <span class="cm">// 3. 熔断：服务B故障时快速失败</span>
+        <span class="fn">auth_mTLS</span>(req)           <span class="cm">// 4. 安全：mTLS 加密通信</span>
+        <span class="fn">tracing</span>(req)             <span class="cm">// 5. 可观测：分布式追踪/指标</span>
+        <span class="kw">return</span> <span class="fn">forward</span>(req)      <span class="cm">// 通过所有策略后，转发请求</span>
+
+<span class="cm">// 控制平面 (Istio/Linkerd/Consul) 统一下发策略到各 Sidecar</span>
+<span class="cm">// Sidecar = 数据平面(Data Plane)，负责实际流量转发</span></pre>
+</div>
+
+<!-- ── 容器对比 ── -->
+<div id="container" class="tab-content">
+  <div class="anim-area" style="min-height:auto;">
+    <table class="cmp-table">
+      <thead>
+        <tr><th>对比维度</th><th>🐳 容器</th><th>🖥️ 虚拟机</th><th>📦 传统部署</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>隔离级别</td><td>进程级（共享宿主机内核）</td><td>硬件级（完整OS）</td><td>无隔离</td></tr>
+        <tr><td>启动速度</td><td class="yes">秒级 ✅</td><td class="no">分钟级 ❌</td><td class="no">手动部署 ❌</td></tr>
+        <tr><td>资源占用</td><td class="yes">MB级 ✅</td><td class="no">GB级 ❌</td><td>—</td></tr>
+        <tr><td>环境一致性</td><td class="yes">打包全部依赖 ✅</td><td>部分 ✅</td><td class="no">"在我机器上能跑" ❌</td></tr>
+        <tr><td>可移植性</td><td class="yes">"一次构建，到处运行" ✅</td><td>受限</td><td class="no">强绑定环境 ❌</td></tr>
+        <tr><td>密度（单机运行数）</td><td class="yes">高 ✅</td><td class="no">低 ❌</td><td>1个</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 容器编排能力 ── -->
+<div id="orch" class="tab-content">
+  <div class="anim-area" style="min-height:auto;">
+    <p class="explain" style="margin-bottom:10px;"><strong>容器编排（如 Kubernetes）</strong>提供以下核心能力：</p>
+    <div class="orch-grid">
+      <div class="orch-card">📅 资源调度<small>CPU/内存/节点分配</small></div>
+      <div class="orch-card">🚀 应用部署<small>滚动更新 / 回滚</small></div>
+      <div class="orch-card">🔧 自动修复<small>故障自愈、重启</small></div>
+      <div class="orch-card">🔍 服务发现<small>自动注册与寻址</small></div>
+      <div class="orch-card">⚖️ 负载均衡<small>流量均匀分配</small></div>
+      <div class="orch-card">📈 弹性伸缩<small>HPA / VPA 自动扩缩</small></div>
+      <div class="orch-card">📝 声明式 API<small>YAML 描述期望状态</small></div>
+      <div class="orch-card">🔌 可扩展架构<small>CRD / Operator 模式</small></div>
+      <div class="orch-card">🌐 可移植性<small>跨云 / 混合云部署</small></div>
+    </div>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>服务网格将<span class="hl">连接、安全、流量控制、可观测</span>从应用代码中剥离，下沉到 Sidecar 代理层。
+  应用只关心业务，网络策略由<span class="hl">控制平面统一管理</span>。容器把应用+依赖打包，<span class="hl">不再受环境限制</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔗 Istio（最流行）</span>
+  <span class="tag-item">🔗 Linkerd（轻量级）</span>
+  <span class="tag-item">🔗 Consul（+服务发现）</span>
+  <span class="tag-item">🐳 Docker 容器</span>
+  <span class="tag-item">☸️ Kubernetes 编排</span>
+  <span class="tag-item">🏗️ Sidecar 模式</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>应用与基础设施解耦，业务代码更干净</li>
+      <li>通用功能下沉到 Sidecar，减少重复开发</li>
+      <li>统一的流量控制和安全策略（全网格一致）</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>引入额外网络跳数（Sidecar 代理）增加延迟</li>
+      <li>Sidecar 管理复杂（每实例一个，资源开销大）</li>
+      <li>学习曲线陡峭（Istio 概念多、配置复杂）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">Service Mesh</span>
+    <span class="keyword">Istio</span>
+    <span class="keyword">Linkerd</span>
+    <span class="keyword">Sidecar</span>
+    <span class="keyword">控制平面</span>
+    <span class="keyword">容器</span>
+    <span class="keyword">容器编排</span>
+    <span class="keyword">数据存储隔离</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="17-3.html" style="color:#0369a1;"><strong>17-3 微服务架构</strong></a> — 服务网格是微服务间通信的治理方案</li>
+    <li><a href="17-4.html" style="color:#0369a1;"><strong>17-4 容器与K8s</strong></a> — 容器是 Service Mesh 的运行载体</li>
+    <li><a href="17-1.html" style="color:#0369a1;"><strong>17-1 云原生概述</strong></a> — 云原生技术体系全景</li>
+    <li><strong>vs 管道-过滤器</strong>：Sidecar 模式是管道-过滤器在云原生中的变体应用</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const seq = ['scA', 'svcA', 'scA', 'scB', 'svcB'];
+  seq.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 450);
+    }, i * 400);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

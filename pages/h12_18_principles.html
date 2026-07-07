@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构演化18条可持续演化原则 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; font-weight: 600; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all .2s; user-select: none; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Code */
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+
+/* Animation area */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background .2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Principle grid */
+.principle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+.principle-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: #475569; transition: all .3s; cursor: default; }
+.principle-card .num { display: block; font-size: 20px; font-weight: 800; color: #2563eb; margin-bottom: 2px; }
+.principle-card:hover { border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,0.15); }
+.principle-card.highlight { border-color: #f59e0b; background: #fffbeb; animation: pulse .6s ease; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+/* Group labels */
+.group-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; padding-left: 4px; }
+.group-label:first-of-type { margin-top: 0; }
+
+/* Explain */
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+
+/* Tags */
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+
+/* Pros/Cons */
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+
+/* Related */
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+
+/* Exam box */
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Examples list */
+.example-list { list-style: none; padding: 0; }
+.example-list li { background: #fff; border-left: 3px solid #2563eb; padding: 10px 14px; margin-bottom: 8px; border-radius: 0 6px 6px 0; font-size: 13px; color: #334155; transition: all .2s; }
+.example-list li:hover { border-left-color: #f59e0b; background: #fffbeb; }
+.example-list .answer { color: #dc2626; font-weight: 600; }
+
+/* Detail list */
+.detail-list { list-style: none; padding: 0; counter-reset: prin; }
+.detail-list li { padding: 10px 14px 10px 42px; margin-bottom: 6px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; color: #334155; position: relative; transition: all .2s; }
+.detail-list li::before { counter-increment: prin; content: counter(prin); position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; background: #2563eb; color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.detail-list li:hover { border-color: #3b82f6; background: #eff6ff; }
+.detail-list li .key { color: #1e40af; font-weight: 600; }
+
+/* Mnemonic grid animation */
+.mnemonic-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+.mnemonic-block { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; color: #fff; opacity: 0; transform: scale(0.8); transition: all .4s ease; }
+.mnemonic-block.show { opacity: 1; transform: scale(1); }
+.mnemonic-block.g1 { background: #3b82f6; }
+.mnemonic-block.g2 { background: #8b5cf6; }
+.mnemonic-block.g3 { background: #06b6d4; }
+.mnemonic-block.g4 { background: #10b981; }
+.mnemonic-block.g5 { background: #f59e0b; }
+.mnemonic-block.g6 { background: #ef4444; }
+.mnemonic-arrow { color: #94a3b8; font-size: 16px; opacity: 0; transition: opacity .3s; }
+.mnemonic-arrow.show { opacity: 1; }
+
+@media (max-width: 640px) {
+  .principle-grid { grid-template-columns: repeat(2, 1fr); }
+  .page-header h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 架构演化 › 18条可持续演化原则</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">架构演化原则</span>
+  <span class="exam-tag">🔥 必考</span>
+  <h1>软件架构演化18条可持续演化原则</h1>
+  <p class="one-liner">18条原则涵盖成本/进度/风险可控、主体维持、平滑演化、目标一致、模块独立、质量向好等</p>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 记忆口诀</div>
+  <div class="tab" onclick="switchTab(this,'detail')">📖 逐条详解</div>
+  <div class="tab" onclick="switchTab(this,'examples')">🎯 真题演练</div>
+</div>
+
+<!-- Tab: Animation -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="group-label">第一组：经济维度</div>
+    <div class="principle-grid">
+      <div class="principle-card" id="c1"><span class="num">01</span>成本可控</div>
+      <div class="principle-card" id="c2"><span class="num">02</span>进度可控</div>
+      <div class="principle-card" id="c3"><span class="num">03</span>风险可控</div>
+    </div>
+
+    <div class="group-label">第二组：结构维度</div>
+    <div class="principle-grid">
+      <div class="principle-card" id="c4"><span class="num">04</span>主体维持</div>
+      <div class="principle-card" id="c5"><span class="num">05</span>结构优化</div>
+      <div class="principle-card" id="c6"><span class="num">06</span>平滑演化</div>
+    </div>
+
+    <div class="group-label">第三组：目标维度</div>
+    <div class="principle-grid">
+      <div class="principle-card" id="c7"><span class="num">07</span>目标一致</div>
+      <div class="principle-card" id="c8"><span class="num">08</span>模块独立</div>
+      <div class="principle-card" id="c9"><span class="num">09</span>影响可控</div>
+    </div>
+
+    <div class="group-label">第四组：工程维度</div>
+    <div class="principle-grid">
+      <div class="principle-card" id="c10"><span class="num">10</span>复杂性可控</div>
+      <div class="principle-card" id="c11"><span class="num">11</span>利于重构</div>
+      <div class="principle-card" id="c12"><span class="num">12</span>利于重用</div>
+    </div>
+
+    <div class="group-label">第五组：适应维度</div>
+    <div class="principle-grid">
+      <div class="principle-card" id="c13"><span class="num">13</span>设计原则遵循</div>
+      <div class="principle-card" id="c14"><span class="num">14</span>适应新技术</div>
+      <div class="principle-card" id="c15"><span class="num">15</span>环境适应</div>
+    </div>
+
+    <div class="group-label">第六组：质量维度</div>
+    <div class="principle-grid">
+      <div class="principle-card" id="c16"><span class="num">16</span>标准依从</div>
+      <div class="principle-card" id="c17"><span class="num">17</span>质量向好</div>
+      <div class="principle-card" id="c18"><span class="num">18</span>适应新需求</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Code / Mnemonic -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ═══════════════════════════════════════════════════</span>
+<span class="cm">// 18条原则 · 6组×3条 关键词记忆法</span>
+<span class="cm">// ═══════════════════════════════════════════════════</span>
+
+<span class="cm">// ┌─────────────────────────────────────────┐</span>
+<span class="cm">// │  口诀：成进风，主结平，目模影，        │</span>
+<span class="cm">// │       复重构，设适环，标质适           │</span>
+<span class="cm">// └─────────────────────────────────────────┘</span>
+
+<span class="kw">第1组</span> <span class="fn">经济可控</span> → <span class="st">成本可控</span> | <span class="st">进度可控</span> | <span class="st">风险可控</span>
+<span class="kw">第2组</span> <span class="fn">结构稳定</span> → <span class="st">主体维持</span> | <span class="st">结构优化</span> | <span class="st">平滑演化</span>
+<span class="kw">第3组</span> <span class="fn">目标清晰</span> → <span class="st">目标一致</span> | <span class="st">模块独立</span> | <span class="st">影响可控</span>
+<span class="kw">第4组</span> <span class="fn">工程友好</span> → <span class="st">复杂性可控</span> | <span class="st">利于重构</span> | <span class="st">利于重用</span>
+<span class="kw">第5组</span> <span class="fn">适应变化</span> → <span class="st">设计原则遵循</span> | <span class="st">适应新技术</span> | <span class="st">环境适应</span>
+<span class="kw">第6组</span> <span class="fn">质量保障</span> → <span class="st">标准依从</span> | <span class="st">质量向好</span> | <span class="st">适应新需求</span>
+
+<span class="cm">// 💡 记忆关键：6组每组3条，组名就是维度</span>
+<span class="cm">// 💡 真题高频：平滑演化、主体维持、模块独立</span></pre>
+</div>
+
+<!-- Tab: Detail -->
+<div id="detail" class="tab-content">
+  <div class="group-label">第一组 · 经济维度</div>
+  <ul class="detail-list">
+    <li><span class="key">演化成本控制</span> —— 成本在预期范围内</li>
+    <li><span class="key">进度可控</span> —— 在预期时间内完成</li>
+    <li><span class="key">风险可控</span> —— 经济/时间/人力/技术/环境风险可控</li>
+  </ul>
+
+  <div class="group-label">第二组 · 结构维度</div>
+  <ul class="detail-list">
+    <li><span class="key">主体维持</span> —— 平均增量增长平稳，主体行为稳定</li>
+    <li><span class="key">系统总体结构优化</span> —— 整体布局更合理</li>
+    <li><span class="key">平滑演化</span> —— 演化速率趋于稳定</li>
+  </ul>
+
+  <div class="group-label">第三组 · 目标维度</div>
+  <ul class="detail-list">
+    <li><span class="key">目标一致</span> —— 阶段目标和最终目标一致</li>
+    <li><span class="key">模块独立演化</span> —— 各模块演化相互独立</li>
+    <li><span class="key">影响可控</span> —— 模块变更影响在可控范围</li>
+  </ul>
+
+  <div class="group-label">第四组 · 工程维度</div>
+  <ul class="detail-list">
+    <li><span class="key">复杂性可控</span> —— 控制架构复杂性</li>
+    <li><span class="key">有利于重构</span> —— 架构便于后续重构</li>
+    <li><span class="key">有利于重用</span> —— 架构促进组件复用</li>
+  </ul>
+
+  <div class="group-label">第五组 · 适应维度</div>
+  <ul class="detail-list">
+    <li><span class="key">设计原则遵循性</span> —— 遵循经典设计原则</li>
+    <li><span class="key">适应新技术</span> —— 独立于特定技术</li>
+    <li><span class="key">环境适应性</span> —— 适应运行环境变化</li>
+  </ul>
+
+  <div class="group-label">第六组 · 质量维度</div>
+  <ul class="detail-list">
+    <li><span class="key">标准依从性</span> —— 不违背国际/国家/行业标准</li>
+    <li><span class="key">质量向好</span> —— 质量指标变好</li>
+    <li><span class="key">适应新需求</span> —— 能容纳新需求</li>
+  </ul>
+</div>
+
+<!-- Tab: Examples -->
+<div id="examples" class="tab-content">
+  <div class="explain"><strong>🎯 真题考法：</strong>给出描述，判断属于哪条原则</div>
+  <ul class="example-list">
+    <li>"演化速率趋于稳定" → <span class="answer">平滑演化原则</span></li>
+    <li>"各模块自身的演化最好相互独立" → <span class="answer">模块独立演化原则</span></li>
+    <li>"不违背国际/国家/行业标准" → <span class="answer">标准依从性原则</span></li>
+    <li>"成本在预期范围内" → <span class="answer">演化成本控制原则</span></li>
+    <li>"平均增量增长平稳，主体行为稳定" → <span class="answer">主体维持原则</span></li>
+    <li>"阶段目标和最终目标一致" → <span class="answer">目标一致原则</span></li>
+  </ul>
+</div>
+
+<!-- Explanation -->
+<div class="explain" style="margin-top: 20px;">
+  <strong>核心：</strong>18条原则分为<span class="hl">6组×3条</span>，从经济、结构、目标、工程、适应、质量六个维度全面指导架构演化。
+  关键思想：演化要<span class="hl">可控</span>（成本/进度/风险/影响）、<span class="hl">稳定</span>（主体维持/平滑演化）、<span class="hl">开放</span>（适应新技术/新需求/环境）。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📊 经济：成本/进度/风险</span>
+  <span class="tag-item">🏗️ 结构：主体/优化/平滑</span>
+  <span class="tag-item">🎯 目标：一致/独立/可控</span>
+  <span class="tag-item">⚙️ 工程：复杂/重构/重用</span>
+  <span class="tag-item">🔄 适应：设计/技术/环境</span>
+  <span class="tag-item">✅ 质量：标准/向好/新需求</span>
+</div>
+
+<!-- Pros / Cons -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>为架构演化提供全面指导方针</li>
+      <li>覆盖经济、技术、质量多维度</li>
+      <li>6组分类便于系统记忆</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>原则多难以全部记住</li>
+      <li>实际中可能相互冲突需权衡</li>
+      <li>偏理论化，缺少具体操作方法</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Exam keywords -->
+<div class="exam-box">
+  <h4>📝 考试关键词（必考）</h4>
+  <div>
+    <span class="keyword">平滑演化</span>
+    <span class="keyword">主体维持</span>
+    <span class="keyword">目标一致</span>
+    <span class="keyword">模块独立</span>
+    <span class="keyword">影响可控</span>
+    <span class="keyword">质量向好</span>
+    <span class="keyword">标准依从</span>
+    <span class="keyword">18条原则</span>
+  </div>
+</div>
+
+<!-- Related -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>架构演化评估</strong> = 用指标量化判断演化是否满足这18条原则</li>
+    <li><strong>架构维护</strong> = 18条原则的实际落地手段</li>
+    <li><strong>演化速率</strong> = 平滑演化原则的核心度量指标（真题高频）</li>
+    <li><strong>vs 软件维护</strong>：架构演化关注整体方向，软件维护关注具体修复</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // Reset all cards
+  for (let i = 1; i <= 18; i++) {
+    const el = document.getElementById('c' + i);
+    el.classList.remove('highlight');
+  }
+
+  // Sequentially highlight each card
+  for (let i = 1; i <= 18; i++) {
+    setTimeout(() => {
+      const el = document.getElementById('c' + i);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 500);
+    }, (i - 1) * 200);
+  }
+}
+
+// Auto-play on load
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

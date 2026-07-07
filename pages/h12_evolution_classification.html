@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构演化方式分类——时期与静态/动态 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 架构演化分类 › 软件架构演化方式分类——时期与静态/动态</span></nav>
+<div class="ct">
+<div><span class="tag c">架构演化分类</span><span class="tag e">必考</span>
+<h1>软件架构演化方式分类——时期与静态/动态</h1><p class="ol">按演化时期分为设计时/运行前/有限制运行时/运行时四类；按性质分为静态演化和动态演化</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>四种演化时期：(1)设计时演化——编译前；(2)运行前演化——编译后执行前；(3)有限制运行时演化——特定约束满足时才能演化（置于安全模式）；(4)运行时演化——运行时不满足要求时。静态演化过程：软件理解→需求变更分析→演化计划→系统重构→系统测试。动态演化按等级：交互动态性、结构动态性、架构动态性；按内容：属性改名、行为变化、拓扑结构改变、风格变化。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">演化时期:
+  设计时演化   → 编译之前
+  运行前演化   → 编译后,执行前
+  有限制运行时演化 → 约束满足时
+  运行时演化   → 运行不满足要求时
+
+静态演化过程:
+  软件理解 → 需求变更分析 → 演化计划 → 系统重构 → 系统测试
+
+动态演化内容:
+  属性改名 | 行为变化 | 拓扑结构改变 | 风格变化</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>在IDE中重构类结构 → 设计时演化</li><li>编译后调整配置文件参数 → 运行前演化</li><li>设定约束条件,只在安全模式下执行预定义操作 → 有限制运行时演化</li><li>线上服务不满足性能要求时热更新 → 运行时演化</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>分类体系完整覆盖全生命周期</li><li>静态演化过程规范清晰</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>有限制运行时演化约束定义困难</li><li>运行时演化需保证系统完整性</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">设计时</span><span class="k">运行前</span><span class="k">有限制运行时</span><span class="k">运行时</span><span class="k">静态演化</span><span class="k">动态演化</span><span class="k">安全模式</span><span class="k">属性改名</span><span class="k">行为变化</span><span class="k">拓扑结构</span><span class="k">风格变化</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="h12_dsa.html">h12_dsa</a></li><li><a href="h12_static_ops.html">h12_static_ops</a></li></ul></div>
+</div></body></html>

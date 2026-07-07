@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大数据基础概念与利用过程 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ---- 特性卡片网格 ---- */
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 20px; }
+.feature-card { border-radius: 10px; padding: 16px 14px; text-align: center; transition: all .35s ease; cursor: default; position: relative; overflow: hidden; }
+.feature-card:hover { transform: translateY(-4px) scale(1.03); }
+.feature-card .icon { font-size: 28px; margin-bottom: 6px; }
+.feature-card .label { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.feature-card .desc { font-size: 11px; opacity: .75; }
+.fc-vol { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.fc-var { background: #fefce8; border: 2px solid #eab308; color: #a16207; }
+.fc-vel { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.feature-card.active { transform: scale(1.08); box-shadow: 0 0 18px rgba(37,99,235,0.35); z-index: 2; }
+
+/* ---- 流水线动画 ---- */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 14px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box small { font-size: 11px; font-weight: 400; opacity: .7; margin-top: 2px; }
+.box.blue   { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green  { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.purple { background: #f5f3ff; border: 2px solid #8b5cf6; color: #6d28d9; }
+.box.amber  { background: #fffbeb; border: 2px solid #f59e0b; color: #b45309; }
+.box.processing { transform: scale(1.1); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 40px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 40px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* ---- 相关性vs因果 ---- */
+.insight-box { background: linear-gradient(135deg, #fdf2f8, #fce7f3); border: 1px solid #f9a8d4; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.insight-box h4 { color: #be185d; margin-bottom: 8px; }
+.insight-box p { font-size: 13px; color: #475569; }
+.insight-box .vs { display: inline-flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.insight-box .vs span { padding: 4px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; }
+.vs-yin { background: #fce7f3; color: #be185d; border: 1px solid #f9a8d4; }
+.vs-yang { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+
+/* ---- 技术栈卡片 ---- */
+.tech-stack { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+.tech-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 160px; }
+.tech-item .name { font-size: 14px; font-weight: 700; color: #1e40af; margin-bottom: 4px; }
+.tech-item .role { font-size: 12px; color: #64748b; }
+
+@media (max-width: 600px) {
+  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 大数据基础 › 大数据基础概念与利用过程</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">大数据基础</span>
+  <span class="exam-tag">⭐ 高频选择题 · 约5-10分</span>
+  <h1>大数据基础概念与利用过程</h1>
+  <p class="one-liner">大数据具有体量大、类型多样、时效性强的特点，利用过程为采集→清洗→统计→挖掘，重在相关性分析而非因果分析</p>
+</div>
+
+<!-- ====== Tabs ====== -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 利用流程</div>
+  <div class="tab" onclick="switchTab(this,'features')">🧊 三大特点</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- ====== Tab1: 流水线动画 ====== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playPipeline()">▶ 播放</button>
+    <div class="flow-row">
+      <div class="box blue" id="s1">采集<small>Collect</small></div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box green" id="s2">清洗<small>Clean</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="box purple" id="s3">统计<small>Statistics</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="box amber" id="s4">挖掘<small>Mining</small></div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#94a3b8;margin-top:8px;">点击「播放」观察数据从原始采集到知识发现的 4 个阶段</p>
+  </div>
+
+  <div class="tech-stack">
+    <div class="tech-item">
+      <div class="name">🐘 Hadoop HDFS</div>
+      <div class="role">分布式文件系统 — 海量数据存储</div>
+    </div>
+    <div class="tech-item">
+      <div class="name">⚙️ MapReduce / Spark</div>
+      <div class="role">分布式处理 — 批量计算与内存迭代</div>
+    </div>
+    <div class="tech-item">
+      <div class="name">📨 Kafka</div>
+      <div class="role">消息队列 — 高吞吐实时数据通道</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Tab2: 三大特点 ====== -->
+<div id="features" class="tab-content">
+  <div class="feature-grid" id="featureGrid">
+    <div class="feature-card fc-vol" data-idx="0"><div class="icon">📦</div><div class="label">体量大</div><div class="desc">Volume · 海量数据</div></div>
+    <div class="feature-card fc-var" data-idx="1"><div class="icon">🧩</div><div class="label">类型多样</div><div class="desc">Variety · 非/半结构化</div></div>
+    <div class="feature-card fc-vel" data-idx="2"><div class="icon">⚡</div><div class="label">时效性强</div><div class="desc">Velocity · 高速实时</div></div>
+  </div>
+</div>
+
+<!-- ====== Tab3: 伪代码 ====== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 大数据利用 4 阶段 & 核心技术栈</span>
+
+<span class="cm">// ① 采集 —— Kafka 消息队列实时接入</span>
+<span class="kw">val</span> stream = <span class="fn">KafkaConsumer</span>(topic = <span class="st">"raw-data"</span>)
+
+<span class="cm">// ② 清洗 —— Spark 去噪、补全、格式化</span>
+<span class="kw">val</span> cleaned = stream
+    .<span class="fn">dedup</span>()                        <span class="cm">// 去重</span>
+    .<span class="fn">fillNull</span>()                     <span class="cm">// 补全缺失</span>
+    .<span class="fn">normalize</span>()                    <span class="cm">// 统一格式</span>
+
+<span class="cm">// ③ 统计 —— MapReduce 聚合 / OLAP</span>
+cleaned.<span class="fn">groupBy</span>(_.category).<span class="fn">count</span>()
+
+<span class="cm">// ④ 挖掘 —— 找相关性，发现新知识</span>
+<span class="kw">val</span> rules = <span class="fn">Apriori</span>(cleaned, minSupport = <span class="st">0.3</span>)
+
+<span class="cm">// 底层存储: Hadoop HDFS 分布式文件系统</span>
+<span class="cm">// 关键: 重在「相关性」而非「因果性」→ 科学决策</span></pre>
+</div>
+
+<!-- ====== 核心解读 ====== -->
+<div class="explain">
+  <strong>核心：</strong>大数据利用分<span class="hl">4个阶段</span>——<span class="hl">采集→清洗→统计→挖掘</span>。
+  传统数据库面临<span class="hl">数据过载</span>问题，难以应对类型多样化的数据。
+  大数据应用重在发掘数据间的<span class="hl">相关性而非因果关系</span>，目的在于发现新知识、洞悉趋势并进行科学决策。
+</div>
+
+<!-- ====== 关键洞察 ====== -->
+<div class="insight-box">
+  <h4>💡 关键洞察：相关性 &gt; 因果性</h4>
+  <p>大数据应用不追问"为什么"，而关注"什么总一起发生"。例：啤酒与尿布一起购买频次高 → 直接调整货架即可，无需研究因果。</p>
+  <div class="vs">
+    <span class="vs-yin">❌ 因果性：为什么A导致B？</span>
+    <span class="vs-yang">✅ 相关性：A和B总一起出现！</span>
+  </div>
+</div>
+
+<!-- ====== 标签 ====== -->
+<div class="tag-list">
+  <span class="tag-item">📦 体量大 Volume</span>
+  <span class="tag-item">🧩 类型多样 Variety</span>
+  <span class="tag-item">⚡ 时效性强 Velocity</span>
+  <span class="tag-item">🔗 相关性 ≠ 因果性</span>
+  <span class="tag-item">🐘 Hadoop HDFS</span>
+  <span class="tag-item">⚙️ MapReduce / Spark</span>
+  <span class="tag-item">📨 Kafka 消息队列</span>
+</div>
+
+<!-- ====== 优缺点 ====== -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优势</h4>
+    <ul>
+      <li>发掘数据间相关性，发现新知识</li>
+      <li>支持科学决策，洞悉趋势</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 挑战</h4>
+    <ul>
+      <li>传统数据库面临数据过载问题</li>
+      <li>难以应对类型多样化的数据</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ====== 考试关键词 ====== -->
+<div class="exam-box">
+  <h4>📝 考试关键词（高频选择题 · 约5-10分）</h4>
+  <div>
+    <span class="keyword">大数据特点</span>
+    <span class="keyword">类型多样</span>
+    <span class="keyword">相关性非因果</span>
+    <span class="keyword">采集清洗统计挖掘</span>
+    <span class="keyword">数据过载</span>
+    <span class="keyword">Hadoop</span>
+    <span class="keyword">MapReduce</span>
+    <span class="keyword">Spark</span>
+    <span class="keyword">Kafka</span>
+  </div>
+</div>
+
+<!-- ====== 典型例题 ====== -->
+<div class="exam-box" style="margin-top:12px;">
+  <h4>📖 典型例题</h4>
+  <ul style="font-size:13px;color:#475569;list-style:disc inside;">
+    <li>大数据特点选择题："大数据构造单调"是<strong style="color:#dc2626;">错误的</strong>，实际类型多样</li>
+    <li>大数据利用过程排序：采集 → 清洗 → 统计 → 挖掘</li>
+    <li>大数据重在<strong style="color:#1e40af;">相关性</strong>而非因果性</li>
+  </ul>
+</div>
+
+<!-- ====== 关联 ====== -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="KP22-02.html" style="color:#0369a1;"><strong>KP22-02</strong></a> · 大数据处理技术（深入 Hadoop / Spark / Kafka）</li>
+    <li><a href="KP22-03.html" style="color:#0369a1;"><strong>KP22-03</strong></a> · 大数据应用与价值</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* 流水线动画 */
+function playPipeline() {
+  const ids = ['s1','s2','s3','s4'];
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('processing');
+      setTimeout(() => el.classList.remove('processing'), 600);
+    }, i * 500);
+  });
+}
+
+/* 特性卡片依次高亮 */
+function playFeatures() {
+  const cards = document.querySelectorAll('.feature-card');
+  cards.forEach((c, i) => {
+    setTimeout(() => {
+      c.classList.add('active');
+      setTimeout(() => c.classList.remove('active'), 700);
+    }, i * 350);
+  });
+}
+
+/* 页面加载自动播放 */
+window.addEventListener('load', () => {
+  setTimeout(playPipeline, 400);
+  setTimeout(playFeatures, 600);
+});
+</script>
+</body>
+</html>

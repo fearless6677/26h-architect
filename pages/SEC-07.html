@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数字签名技术 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Flow animation styles */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 70px; }
+.box.file-box { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.hash-box { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.box.key-box { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.box.sign-box { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.verify-box { background: #ecfeff; border: 2px solid #06b6d4; color: #0e7490; }
+.box.active-step { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 32px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 32px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+.step-label { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.section-divider { text-align: center; font-size: 12px; color: #94a3b8; margin: 16px 0 8px; letter-spacing: 2px; }
+
+/* Feature badges */
+.feature-badges { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 16px 0; }
+.badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; opacity: 0; transform: translateY(10px); transition: all 0.4s; }
+.badge.show { opacity: 1; transform: translateY(0); }
+.badge.b1 { background: #dbeafe; color: #1d4ed8; }
+.badge.b2 { background: #fce7f3; color: #be185d; }
+.badge.b3 { background: #e0e7ff; color: #4338ca; }
+.badge.b4 { background: #d1fae5; color: #065f46; }
+.badge.b5 { background: #fef3c7; color: #92400e; }
+
+/* Compare table */
+.compare-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.compare-table th { background: #f1f5f9; color: #475569; padding: 8px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+.compare-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #475569; }
+.compare-table tr:hover td { background: #f8fafc; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 数字签名 › 数字签名技术</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">数字签名</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hour-tag">🕐 第5小时</span>
+  <h1>数字签名技术</h1>
+  <p class="one-liner">数字签名就像盖私章——用私钥盖章(签名)，用公钥验章，证明"是我签的，没被改过"。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 签名流程</div>
+  <div class="tab" onclick="switchTab(this,'verify')">🔍 验证流程</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'compare')">📊 对比</div>
+</div>
+
+<!-- Tab: 签名流程动画 -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playSignAnimation()">▶ 播放</button>
+    <p style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:8px;">签名过程：文件 → Hash摘要 → 私钥加密 → 签名</p>
+    <div class="flow-row">
+      <div class="box file-box" id="s1">📄 原始文件<span class="step-label">待签名</span></div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box hash-box" id="s2">🔢 Hash摘要<span class="step-label">SHA-256</span></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="box key-box" id="s3">🔐 私钥加密<span class="step-label">加密摘要</span></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="box sign-box" id="s4">✅ 数字签名<span class="step-label">完成!</span></div>
+    </div>
+    <div class="feature-badges" id="featureBadges">
+      <span class="badge b1">🤝 可信</span>
+      <span class="badge b2">🛡️ 不可伪造</span>
+      <span class="badge b3">🔁 不可重用</span>
+      <span class="badge b4">📝 不可改变</span>
+      <span class="badge b5">⚖️ 不可抵赖</span>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: 验证流程动画 -->
+<div id="verify" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playVerifyAnimation()">▶ 播放</button>
+    <p style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:8px;">验证过程：签名 → 公钥解密 → 摘要A &nbsp;vs&nbsp; 文件Hash → 摘要B</p>
+    <div class="flow-row">
+      <div class="box sign-box" id="v1">✅ 签名<span class="step-label">收到</span></div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box key-box" id="v2">🔓 公钥解密<span class="step-label">得到摘要A</span></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="box hash-box" id="v3">🆚 对比摘要B<span class="step-label">文件Hash</span></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="box verify-box" id="v4">🔍 是否一致?<span class="step-label">验证结果</span></div>
+    </div>
+    <p id="verifyResult" style="text-align:center;font-size:14px;font-weight:600;margin-top:12px;color:#15803d;opacity:0;transition:opacity 0.5s;">✅ 摘要一致 → 签名有效！文件未被篡改</p>
+  </div>
+</div>
+
+<!-- Tab: 伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 数字签名 = 公钥加密 + 数字摘要(Hash)</span>
+
+<span class="cm">// ===== 签名过程 =====</span>
+<span class="kw">function</span> <span class="fn">sign</span>(file, privateKey) {
+    hash = <span class="fn">SHA256</span>(file)           <span class="cm">// ① 对文件做Hash摘要</span>
+    signature = <span class="fn">Encrypt</span>(hash, privateKey)  <span class="cm">// ② 用私钥加密摘要</span>
+    <span class="kw">return</span> signature               <span class="cm">// ③ 得到数字签名</span>
+}
+
+<span class="cm">// ===== 验证过程 =====</span>
+<span class="kw">function</span> <span class="fn">verify</span>(file, signature, publicKey) {
+    hashA = <span class="fn">Decrypt</span>(signature, publicKey)  <span class="cm">// ① 公钥解密签名 → 摘要A</span>
+    hashB = <span class="fn">SHA256</span>(file)                  <span class="cm">// ② 对文件重新做Hash → 摘要B</span>
+    <span class="kw">return</span> hashA == hashB                 <span class="cm">// ③ 对比：一致则有效</span>
+}
+
+<span class="cm">// 💡 优化：先做摘要再签名（大幅提升速度）</span>
+<span class="cm">// 💡 摘要泄露 ≠ 文件泄露（安全！）</span></pre>
+</div>
+
+<!-- Tab: 对称 vs 公钥签名对比 -->
+<div id="compare" class="tab-content">
+  <div class="anim-area" style="min-height:auto;">
+    <table class="compare-table">
+      <thead>
+        <tr><th>对比维度</th><th>🔑 对称签名</th><th>🔐 公钥签名</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>参与方</td><td>仅限两方</td><td>任意多方</td></tr>
+        <tr><td>仲裁人</td><td style="color:#dc2626;font-weight:600;">需要 ⚠️</td><td style="color:#15803d;font-weight:600;">不需要 ✅</td></tr>
+        <tr><td>重复验证</td><td style="color:#dc2626;">不可重复</td><td style="color:#15803d;">可重复多次</td></tr>
+        <tr><td>密钥类型</td><td>共享密钥</td><td>公钥/私钥对</td></tr>
+        <tr><td>安全性</td><td>较低（密钥共享）</td><td>较高（私钥不暴露）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>数字签名 = <span class="hl">公钥加密</span> + <span class="hl">数字摘要(Hash)</span>。
+  实际应用中<span class="hl">先对文件做Hash摘要</span>，再对摘要进行私钥签名，这样大大提升签名速度，且摘要泄露不影响文件保密性。
+  数字签名必须满足<span class="hl">5个条件</span>：可信、不可伪造、不可重用、不可改变、不可抵赖。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📝 电子合同签名</span>
+  <span class="tag-item">💿 软件发布签名</span>
+  <span class="tag-item">📧 电子邮件签名(PGP)</span>
+  <span class="tag-item">🔗 区块链交易签名</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>防抵赖、防伪造、防篡改</li>
+      <li>公钥签名无需仲裁，可多方验证</li>
+      <li>先摘要再签名大幅提升速度</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 注意</h4>
+    <ul>
+      <li>对称签名需仲裁人，仅限两方</li>
+      <li>私钥泄露则签名可被伪造</li>
+      <li>不加密文件本身（需配合加密）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">数字签名</span>
+    <span class="keyword">数字摘要</span>
+    <span class="keyword">Hash</span>
+    <span class="keyword">公钥加密</span>
+    <span class="keyword">私钥签名</span>
+    <span class="keyword">不可抵赖</span>
+    <span class="keyword">不可伪造</span>
+    <span class="keyword">不可重用</span>
+    <span class="keyword">不可改变</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>SEC-04 对称加密</strong> — 对称签名的密钥基础</li>
+    <li><strong>SEC-05 公钥加密</strong> — 数字签名的核心组件之一</li>
+    <li><strong>SEC-10 数字摘要</strong> — 数字签名的另一核心组件(Hash)</li>
+    <li><strong>实际应用</strong>：电子合同、软件发布、PGP邮件、区块链交易</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playSignAnimation() {
+  // Reset
+  ['s1','s2','s3','s4'].forEach(id => document.getElementById(id).classList.remove('active-step'));
+  document.querySelectorAll('#featureBadges .badge').forEach(b => b.classList.remove('show'));
+
+  const steps = ['s1','s2','s3','s4'];
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active-step');
+      setTimeout(() => document.getElementById(id).classList.remove('active-step'), 600);
+    }, i * 500);
+  });
+  // Show feature badges after flow
+  setTimeout(() => {
+    document.querySelectorAll('#featureBadges .badge').forEach((b, i) => {
+      setTimeout(() => b.classList.add('show'), i * 200);
+    });
+  }, steps.length * 500);
+}
+
+function playVerifyAnimation() {
+  ['v1','v2','v3','v4'].forEach(id => document.getElementById(id).classList.remove('active-step'));
+  document.getElementById('verifyResult').style.opacity = '0';
+
+  const steps = ['v1','v2','v3','v4'];
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active-step');
+      setTimeout(() => document.getElementById(id).classList.remove('active-step'), 600);
+    }, i * 500);
+  });
+  setTimeout(() => {
+    document.getElementById('verifyResult').style.opacity = '1';
+  }, steps.length * 500 + 200);
+}
+
+// Auto-play on load
+window.addEventListener('load', () => setTimeout(playSignAnimation, 500));
+</script>
+</body>
+</html>

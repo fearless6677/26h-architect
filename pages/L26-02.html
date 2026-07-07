@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文六段式框架与字数要求 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+
+/* ── 导航 ── */
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+
+/* ── 容器 ── */
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+
+/* ── Tab ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── 动画区 ── */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; position: relative; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* ── 论文结构图 ── */
+.essay-flow { display: flex; flex-direction: column; gap: 0; align-items: center; margin: 16px 0; }
+.essay-step { display: flex; align-items: stretch; width: 100%; max-width: 760px; gap: 0; opacity: 0; transform: translateX(-20px); transition: all 0.5s ease; }
+.essay-step.visible { opacity: 1; transform: translateX(0); }
+.essay-step.highlight .step-box { transform: scale(1.02); box-shadow: 0 0 20px rgba(37,99,235,0.25); }
+.step-num { width: 56px; min-width: 56px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #fff; }
+.step-box { flex: 1; background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; transition: all 0.3s; position: relative; overflow: hidden; }
+.step-box::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 10px 0 0 10px; }
+.step-title { font-size: 15px; font-weight: 700; color: #1e293b; min-width: 120px; }
+.step-desc { font-size: 13px; color: #64748b; flex: 1; }
+.step-words { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; white-space: nowrap; }
+.step-arrow { display: flex; justify-content: center; padding: 2px 0; }
+.step-arrow svg { width: 20px; height: 18px; }
+
+/* 各段颜色 */
+.s-abstract .step-num { background: #6366f1; }
+.s-abstract .step-box::before { background: #6366f1; }
+.s-abstract .step-words { background: #eef2ff; color: #4f46e5; }
+.s-abstract .step-box { border-color: #c7d2fe; }
+
+.s-bg .step-num { background: #2563eb; }
+.s-bg .step-box::before { background: #2563eb; }
+.s-bg .step-words { background: #eff6ff; color: #1d4ed8; }
+.s-bg .step-box { border-color: #bfdbfe; }
+
+.s-trans .step-num { background: #0891b2; }
+.s-trans .step-box::before { background: #0891b2; }
+.s-trans .step-words { background: #ecfeff; color: #0e7490; }
+.s-trans .step-box { border-color: #a5f3fc; }
+
+.s-theory .step-num { background: #059669; }
+.s-theory .step-box::before { background: #059669; }
+.s-theory .step-words { background: #ecfdf5; color: #047857; }
+.s-theory .step-box { border-color: #a7f3d0; }
+
+.s-practice .step-num { background: #d97706; }
+.s-practice .step-box::before { background: #d97706; }
+.s-practice .step-words { background: #fffbeb; color: #b45309; }
+.s-practice .step-box { border-color: #fde68a; }
+
+.s-end .step-num { background: #dc2626; }
+.s-end .step-box::before { background: #dc2626; }
+.s-end .step-words { background: #fef2f2; color: #b91c1c; }
+.s-end .step-box { border-color: #fecaca; }
+
+/* 总字数条 */
+.total-bar { margin-top: 18px; display: flex; align-items: center; gap: 10px; max-width: 760px; width: 100%; }
+.total-bar-label { font-size: 13px; font-weight: 700; color: #475569; white-space: nowrap; }
+.total-bar-track { flex: 1; height: 18px; background: #f1f5f9; border-radius: 9px; overflow: hidden; display: flex; }
+.tb-seg { height: 100%; transition: width 0.8s ease; }
+.total-bar-val { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; }
+
+/* ── 代码区 ── */
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .hl { color: #fbbf24; }
+
+/* ── 通用 ── */
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+
+/* ── 优缺点 ── */
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+
+/* ── 关联 ── */
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #2563eb; text-decoration: none; font-size: 13px; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+
+/* ── 考试框 ── */
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ── 示例卡片 ── */
+.example-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+@media(max-width: 640px) { .example-cards { grid-template-columns: 1fr; } }
+.example-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; transition: box-shadow 0.2s; }
+.example-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.example-card h5 { font-size: 13px; color: #2563eb; margin-bottom: 6px; }
+.example-card p { font-size: 12px; color: #64748b; line-height: 1.7; }
+
+/* ── 5W2H 小卡 ── */
+.why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+@media(max-width: 640px) { .why-grid { grid-template-columns: repeat(2, 1fr); } }
+.why-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center; transition: all 0.3s; }
+.why-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+.why-card .why-letter { font-size: 20px; font-weight: 800; color: #2563eb; }
+.why-card .why-label { font-size: 11px; color: #94a3b8; }
+.why-card .why-desc { font-size: 12px; color: #475569; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 论文写作 › 论文六段式框架与字数要求</span>
+</nav>
+
+<div class="container">
+
+<!-- ── 页头 ── -->
+<div class="page-header">
+  <span class="category-tag">论文写作</span>
+  <span class="exam-tag">⭐ 考试权重：高</span>
+  <span class="hour-tag">📖 第26小时</span>
+  <h1>论文六段式框架与字数要求</h1>
+  <p class="one-liner">摘要(290-320字) → 项目背景(5W2H) → 过渡 → 理论(400-600字) → 实践(1000-1200字) → 结尾(300-400字)</p>
+</div>
+
+<!-- ── Tab ── -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 结构动画</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 写作模板</div>
+  <div class="tab" onclick="switchTab(this,'5w2h')">📐 5W2H详解</div>
+</div>
+
+<!-- ═══════════ Tab1: 动画 ═══════════ -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放演示</button>
+
+    <div class="essay-flow">
+
+      <div class="essay-step s-abstract" data-idx="0">
+        <div class="step-num">①</div>
+        <div class="step-box">
+          <span class="step-title">摘 要</span>
+          <span class="step-desc">项目背景 → 技术简介 → 效果简述（不分段）</span>
+          <span class="step-words">290 ~ 320字</span>
+        </div>
+      </div>
+      <div class="step-arrow"><svg viewBox="0 0 20 18"><path d="M10 2 L10 14 M5 10 L10 16 L15 10" stroke="#cbd5e1" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+
+      <div class="essay-step s-bg" data-idx="1">
+        <div class="step-num">②</div>
+        <div class="step-box">
+          <span class="step-title">项目背景</span>
+          <span class="step-desc">采用 5W2H 模式展开（Why / When / Where / Who / What / How much / How）</span>
+          <span class="step-words">400 ~ 500字</span>
+        </div>
+      </div>
+      <div class="step-arrow"><svg viewBox="0 0 20 18"><path d="M10 2 L10 14 M5 10 L10 16 L15 10" stroke="#cbd5e1" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+
+      <div class="essay-step s-trans" data-idx="2">
+        <div class="step-num">③</div>
+        <div class="step-box">
+          <span class="step-title">过 渡</span>
+          <span class="step-desc">承上启下，自然引出下文理论与实践</span>
+          <span class="step-words">≈ 100字</span>
+        </div>
+      </div>
+      <div class="step-arrow"><svg viewBox="0 0 20 18"><path d="M10 2 L10 14 M5 10 L10 16 L15 10" stroke="#cbd5e1" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+
+      <div class="essay-step s-theory" data-idx="3">
+        <div class="step-num">④</div>
+        <div class="step-box">
+          <span class="step-title">理 论</span>
+          <span class="step-desc">紧扣题干第二小问，论述基本概念和原理</span>
+          <span class="step-words">400 ~ 600字</span>
+        </div>
+      </div>
+      <div class="step-arrow"><svg viewBox="0 0 20 18"><path d="M10 2 L10 14 M5 10 L10 16 L15 10" stroke="#cbd5e1" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+
+      <div class="essay-step s-practice" data-idx="4">
+        <div class="step-num">⑤</div>
+        <div class="step-box">
+          <span class="step-title">实 践 ⭐</span>
+          <span class="step-desc">最重要部分！采用 Why + How 结构，提炼小标题</span>
+          <span class="step-words">1000 ~ 1200字</span>
+        </div>
+      </div>
+      <div class="step-arrow"><svg viewBox="0 0 20 18"><path d="M10 2 L10 14 M5 10 L10 16 L15 10" stroke="#cbd5e1" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+
+      <div class="essay-step s-end" data-idx="5">
+        <div class="step-num">⑥</div>
+        <div class="step-box">
+          <span class="step-title">结 尾</span>
+          <span class="step-desc">呼应论点、项目效果、个人收获与展望</span>
+          <span class="step-words">300 ~ 400字</span>
+        </div>
+      </div>
+
+      <!-- 总字数条 -->
+      <div class="total-bar">
+        <span class="total-bar-label">正文总计</span>
+        <div class="total-bar-track" id="totalTrack"></div>
+        <span class="total-bar-val">2200 ~ 2800字</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ Tab2: 写作模板 ═══════════ -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ═══════════ 论文六段式模板 ═══════════</span>
+<span class="cm">// 正文总字数：<span class="hl">2200 ~ 2800字</span></span>
+
+<span class="kw">一、摘要</span> <span class="cm">// 290~320字，不分段</span>
+   <span class="st">项目背景介绍</span> → <span class="st">项目技术简介</span> → <span class="st">项目效果简述</span>
+   <span class="cm">// 一段写完，不另起段落</span>
+
+<span class="kw">二、项目背景</span> <span class="cm">// 400~500字</span>
+   <span class="fn">Why</span>    — 项目由来，为什么要做
+   <span class="fn">When</span>   — 项目起止时间
+   <span class="fn">Where</span>  — 项目所在地 / 单位
+   <span class="fn">Who</span>    — 甲方乙方、我的角色
+   <span class="fn">What</span>   — 建设内容概述
+   <span class="fn">How much</span> — 规模、预算
+   <span class="fn">How</span>    — 采用的技术方法
+   <span class="cm">// 💡 这段可复用于不同题目！</span>
+
+<span class="kw">三、过渡</span> <span class="cm">// ≈100字</span>
+   <span class="st">承上启下，引出理论与实践内容</span>
+
+<span class="kw">四、理论部分</span> <span class="cm">// 400~600字</span>
+   <span class="fn">紧扣题干第二小问</span>
+   → 基本概念定义
+   → 核心原理阐述
+   → 技术选型依据
+
+<span class="kw">五、实践部分</span> <span class="cm">// 1000~1200字，<span class="hl">最重要！</span></span>
+   <span class="fn">Why</span>  — 为什么要用这个技术/方法
+   <span class="fn">How</span>  — 具体怎么做的（提炼小标题）
+   ├── 小标题1：具体做法 + 遇到的问题 + 解决方案
+   ├── 小标题2：具体做法 + 遇到的问题 + 解决方案
+   └── 小标题3：具体做法 + 遇到的问题 + 解决方案
+
+<span class="kw">六、结尾</span> <span class="cm">// 300~400字</span>
+   → 呼应论点（回应题目要求）
+   → 项目效果（数据说话）
+   → 个人收获与不足
+   → 未来展望</pre>
+</div>
+
+<!-- ═══════════ Tab3: 5W2H ═══════════ -->
+<div id="5w2h" class="tab-content">
+  <div class="explain">
+    <strong>5W2H</strong> 是项目背景段的核心框架，确保信息<span class="hl">完整不遗漏</span>。
+  </div>
+  <div class="why-grid">
+    <div class="why-card"><div class="why-letter">W</div><div class="why-label">Why</div><div class="why-desc">项目由来<br>为什么要做</div></div>
+    <div class="why-card"><div class="why-letter">W</div><div class="why-label">When</div><div class="why-desc">起止时间<br>关键里程碑</div></div>
+    <div class="why-card"><div class="why-letter">W</div><div class="why-label">Where</div><div class="why-desc">项目地点<br>所属单位</div></div>
+    <div class="why-card"><div class="why-letter">W</div><div class="why-label">Who</div><div class="why-desc">甲方乙方<br>我的角色</div></div>
+    <div class="why-card"><div class="why-letter">W</div><div class="why-label">What</div><div class="why-desc">建设内容<br>系统功能</div></div>
+    <div class="why-card"><div class="why-letter">H</div><div class="why-label">How much</div><div class="why-desc">规模预算<br>投入资源</div></div>
+    <div class="why-card"><div class="why-letter">H</div><div class="why-label">How</div><div class="why-desc">技术方法<br>实施路线</div></div>
+  </div>
+  <div class="explain" style="margin-top:12px;">
+    <strong>💡 记忆技巧：</strong>7个要素对应论文的"项目概况"段落，写好后<span class="hl">可复用于不同题目</span>，只需微调侧重点。
+  </div>
+</div>
+
+<!-- ── 核心解释 ── -->
+<div class="explain">
+  <strong>核心：</strong>论文由六部分组成，其中<span class="hl">实践部分(1000-1200字)最重要</span>，占正文近一半篇幅，采用 Why+How 结构并提炼小标题。
+  正文总字数控制在 <span class="hl">2200~2800字</span>。
+</div>
+
+<!-- ── 示例卡片 ── -->
+<div class="example-cards">
+  <div class="example-card">
+    <h5>📝 摘要三段式写法</h5>
+    <p>项目背景介绍 → 项目技术简介 → 项目效果简述<br><em>（一段完成，不分段）</em></p>
+  </div>
+  <div class="example-card">
+    <h5>📐 5W2H 速记</h5>
+    <p>Why(由来) / When(时间) / Where(地点) / Who(甲乙方) / What(建设内容) / How much(规模预算) / How(技术方法)</p>
+  </div>
+</div>
+
+<!-- ── 标签 ── -->
+<div class="tag-list">
+  <span class="tag-item">📖 摘要290-320字</span>
+  <span class="tag-item">📖 正文2200-2800字</span>
+  <span class="tag-item">📐 5W2H框架</span>
+  <span class="tag-item">🔗 过渡承上启下</span>
+  <span class="tag-item">📚 理论部分紧扣题干</span>
+  <span class="tag-item">⭐ 实践部分Why+How</span>
+</div>
+
+<!-- ── 优缺点 ── -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>项目背景可复用于不同题目</li>
+      <li>结构清晰便于阅卷</li>
+      <li>字数分配明确，不易超标或不足</li>
+      <li>实践部分占主体，突出技术深度</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ── 考试关键词 ── -->
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">摘要290-320字</span>
+    <span class="keyword">正文2200-2800字</span>
+    <span class="keyword">5W2H</span>
+    <span class="keyword">过渡</span>
+    <span class="keyword">理论部分</span>
+    <span class="keyword">实践部分</span>
+    <span class="keyword">Why+How</span>
+  </div>
+</div>
+
+<!-- ── 关联知识 ── -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="L26-01.html">L26-01</a> — 前置知识，论文写作基础</li>
+    <li><a href="L26-03.html">L26-03</a> — 后续知识，深化论文写作技巧</li>
+    <li><a href="L26-04.html">L26-04</a> — 后续知识，论文实战练习</li>
+  </ul>
+</div>
+
+</div><!-- /container -->
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* ── 字数条 ── */
+function renderBar() {
+  const track = document.getElementById('totalTrack');
+  const segs = [
+    { label:'摘要', pct: 305/2800*100, color:'#6366f1' },
+    { label:'背景', pct: 450/2800*100, color:'#2563eb' },
+    { label:'过渡', pct: 100/2800*100, color:'#0891b2' },
+    { label:'理论', pct: 500/2800*100, color:'#059669' },
+    { label:'实践', pct:1100/2800*100, color:'#d97706' },
+    { label:'结尾', pct: 350/2800*100, color:'#dc2626' },
+  ];
+  track.innerHTML = segs.map(s =>
+    `<div class="tb-seg" style="width:${s.pct}%;background:${s.color}" title="${s.label}"></div>`
+  ).join('');
+}
+
+/* ── 动画 ── */
+function playAnimation() {
+  const steps = document.querySelectorAll('.essay-step');
+  steps.forEach(s => { s.classList.remove('visible','highlight'); });
+  steps.forEach((s, i) => {
+    setTimeout(() => {
+      s.classList.add('visible');
+      s.classList.add('highlight');
+      setTimeout(() => s.classList.remove('highlight'), 600);
+    }, i * 350);
+  });
+}
+
+window.addEventListener('load', () => {
+  renderBar();
+  setTimeout(playAnimation, 400);
+});
+</script>
+</body>
+</html>

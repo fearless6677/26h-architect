@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>访问控制技术（ACM/ACL/能力表/授权关系表） · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 访问控制 › 访问控制技术（ACM/ACL/能力表/授权关系表）</span></nav>
+<div class="ct">
+<div><span class="tag c">访问控制</span><span class="tag e">高频</span>
+<h1>访问控制技术（ACM/ACL/能力表/授权关系表）</h1><p class="ol">访问控制就是规定"谁能对什么东西做什么操作"——ACL是最常用的实现方式。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>访问控制技术包括主体（发起访问的实体）、客体（被访问的资源）和控制策略三个要素。访问控制包括认证、控制策略实现和审计三方面，审计的目的是防止滥用权力。具体实现技术有4种：①访问控制矩阵(ACM)是基础理论模型但元素多时实现困难；②访问控制表(ACL)按客体(列)保存，是最流行、使用最多的技术；③能力表按主体(行)保存；④授权关系表只保存非空元素，适合稀疏矩阵，常用于安全数据库。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">访问控制三要素: 主体 + 客体 + 控制策略
+
+实现技术(4种):
+ 1. 访问控制矩阵(ACM): 主体为行,客体为列 → 全面但元素多时困难
+ 2. 访问控制表(ACL):  按列(客体)保存   → 最流行,使用最多
+ 3. 能力表(Capabilities): 按行(主体)保存
+ 4. 授权关系表:  只存非空元素 → 适合稀疏矩阵,常用于安全数据库
+
+审计: 防止滥用权力</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>ACL：Linux文件系统的rwx权限，按文件(客体)列出每个用户的权限</li><li>能力表：用户登录时携带的"通行证"，记录自己能访问哪些资源</li><li>授权关系表：数据库中的用户-角色-权限关系表</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>ACL最流行，应用广泛</li><li>授权关系表节省存储空间</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>ACM矩阵元素过多时实现困难</li><li>ACL在用户量大时管理复杂</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">主体</span><span class="k">客体</span><span class="k">控制策略</span><span class="k">访问控制矩阵</span><span class="k">ACM</span><span class="k">访问控制表</span><span class="k">ACL</span><span class="k">能力表</span><span class="k">授权关系表</span><span class="k">审计</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="SEC-07.html">SEC-07</a></li><li><a href="SEC-01.html">SEC-01</a></li></ul></div>
+</div></body></html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>层次化网络设计与网络安全控制技术 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 三层架构动画样式 */
+.layer-stack { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 16px 0; }
+.layer-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 32px; border-radius: 10px; font-size: 14px; font-weight: 600; text-align: center; transition: all 0.4s ease; width: 100%; max-width: 400px; position: relative; }
+.layer-box .sub { font-size: 11px; font-weight: 400; opacity: 0.8; margin-top: 2px; }
+.layer-access { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.layer-aggregation { background: #fefce8; border: 2px solid #eab308; color: #a16207; }
+.layer-core { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.layer-box.active-layer { transform: scale(1.05); box-shadow: 0 0 20px rgba(37,99,235,0.3); }
+.connector-v { width: 4px; height: 28px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.connector-v .flow-v { position: absolute; left: 0; top: -14px; width: 4px; height: 14px; background: linear-gradient(180deg, transparent, #3b82f6, transparent); animation: flowDown 1.2s linear infinite; }
+@keyframes flowDown { 0% { top: -14px; } 100% { top: 28px; } }
+
+/* 安全控制部分 */
+.security-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+.sec-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; font-size: 12px; transition: all 0.3s; cursor: default; }
+.sec-card:hover { border-color: #3b82f6; box-shadow: 0 2px 8px rgba(37,99,235,0.12); transform: translateY(-2px); }
+.sec-card .icon { font-size: 22px; margin-bottom: 4px; }
+.sec-card .sec-title { font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+.sec-card .sec-desc { color: #64748b; font-size: 11px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+.section-label { font-size: 13px; color: #64748b; font-weight: 600; text-align: center; margin: 8px 0 4px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 通信系统架构 › 层次化网络设计与网络安全控制技术</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">通信系统架构</span>
+  <span class="exam-tag">⭐ 高频选择题/案例分析</span>
+  <h1>层次化网络设计与网络安全控制技术</h1>
+  <p class="one-liner">层次化网络设计分为接入层、汇聚层、核心层三层，设计应从接入层开始向上规划；网络安全控制包括防火墙、VPN、访问控制、安全隔离和安全协议。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 知识速记</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <p class="section-label">▼ 层次化网络设计（从接入层开始规划）</p>
+    <div class="layer-stack">
+      <div class="layer-box layer-core" id="l-core">
+        🔵 核心层
+        <div class="sub">高速转发 · 骨干传输</div>
+      </div>
+      <div class="connector-v"><div class="flow-v" style="animation-delay:.2s"></div></div>
+      <div class="layer-box layer-aggregation" id="l-agg">
+        🟡 汇聚层
+        <div class="sub">策略控制 · 路由聚合 · ACL</div>
+      </div>
+      <div class="connector-v"><div class="flow-v" style="animation-delay:.5s"></div></div>
+      <div class="layer-box layer-access" id="l-acc">
+        🟢 接入层
+        <div class="sub">用户接入 · 端口安全 · VLAN划分</div>
+      </div>
+    </div>
+
+    <p class="section-label" style="margin-top:20px">▼ 网络安全控制五大技术</p>
+    <div class="security-grid">
+      <div class="sec-card" id="s1">
+        <div class="icon">🧱</div>
+        <div class="sec-title">防火墙</div>
+        <div class="sec-desc">包过滤 / 应用网关 / 代理</div>
+      </div>
+      <div class="sec-card" id="s2">
+        <div class="icon">🔒</div>
+        <div class="sec-title">VPN</div>
+        <div class="sec-desc">公共网络 → 私有专网</div>
+      </div>
+      <div class="sec-card" id="s3">
+        <div class="icon">🔑</div>
+        <div class="sec-title">访问控制</div>
+        <div class="sec-desc">DAC / MAC / RBAC / TBAC</div>
+      </div>
+      <div class="sec-card" id="s4">
+        <div class="icon">🛡️</div>
+        <div class="sec-title">安全隔离</div>
+        <div class="sec-desc">子网 / 物理 / VLAN / 逻辑</div>
+      </div>
+      <div class="sec-card" id="s5">
+        <div class="icon">🔐</div>
+        <div class="sec-title">安全协议</div>
+        <div class="sec-desc">SSL / HTTPS / SET（FTP不是!）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ===== 层次化网络设计 ===== 三层模型</span>
+<span class="kw">设计原则（自底向上!）：</span>
+
+  <span class="fn">1. 接入层</span>  → 用户接入网络（交换机端口、VLAN划分）
+      ↓ 先搞清楚谁要接入
+  <span class="fn">2. 汇聚层</span>  → 策略控制（ACL、路由聚合、安全策略）
+      ↓ 再定规则
+  <span class="fn">3. 核心层</span>  → 高速转发（骨干传输、快速交换）
+      ↓ 最后选核心设备
+
+<span class="cm">// ⚠️ 关键：从接入层开始向上规划，不是先设计核心层！</span>
+<span class="cm">// ⚠️ 严格控制层次结构，不能随意加入额外连接</span>
+
+<span class="cm">// ===== 网络安全控制 =====</span>
+<span class="kw">安全控制五大技术：</span>
+
+  <span class="st">① 防火墙</span> ── 网络间的安全屏障
+     ├── 包过滤（网络层/传输层）
+     ├── 应用层网关（应用层代理）
+     └── 代理服务（转发+检查）
+
+  <span class="st">② VPN</span> ── 公共网络上建私有隧道
+     优点：成本低、接入方便、可扩展性强
+
+  <span class="st">③ 访问控制</span> ── 谁能做什么
+     ├── <span class="fn">DAC</span> - 自主访问控制（资源所有者决定）
+     ├── <span class="fn">MAC</span> - 强制访问控制（系统强制，敏感度标签）
+     ├── <span class="fn">RBAC</span> - 基于角色的访问控制
+     ├── TBAC - 基于任务的访问控制
+     └── OBAC - 基于对象的访问控制
+
+  <span class="st">④ 安全隔离</span> ── 隔离保护
+     子网隔离 / 物理隔离 / VLAN隔离 / 逻辑隔离
+
+  <span class="st">⑤ 安全协议</span> ── 加密传输
+     <span class="fn">✅ SSL、HTTPS、SET → 是安全协议</span>
+     <span class="cm">❌ FTP → 不是安全协议！（明文传输）</span>
+
+<span class="cm">// 🌿 绿色网络 = 精简 + 重用 + 回收</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>网络设计分<span class="hl">三层</span>（接入→汇聚→核心），必须<span class="hl">从接入层开始向上规划</span>。
+  安全控制五件套：<span class="hl">防火墙、VPN、访问控制、安全隔离、安全协议</span>。记住 FTP 不是安全协议！
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏢 企业网三层架构</span>
+  <span class="tag-item">🧱 防火墙三种类型</span>
+  <span class="tag-item">🔑 DAC/MAC/RBAC访问控制</span>
+  <span class="tag-item">🔐 SSL/HTTPS/SET安全协议</span>
+  <span class="tag-item">🌿 绿色网络：精简+重用+回收</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>层次化设计降低成本，充分利用模块化设备</li>
+      <li>VPN成本低、接入方便、可扩展性强</li>
+      <li>绿色网络设计采用精简、重用、回收思路</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点/注意</h4>
+    <ul>
+      <li>不能在设计中随意加入额外连接，灵活性受限</li>
+      <li>防火墙体系结构复杂（硬件/软件/嵌入式）</li>
+      <li>子域间路由冗余设计易形成环路</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">层次化网络设计</span>
+    <span class="keyword">核心层</span>
+    <span class="keyword">汇聚层</span>
+    <span class="keyword">接入层</span>
+    <span class="keyword">从接入层开始规划</span>
+    <span class="keyword">防火墙</span>
+    <span class="keyword">VPN</span>
+    <span class="keyword">DAC</span>
+    <span class="keyword">MAC</span>
+    <span class="keyword">RBAC</span>
+    <span class="keyword">安全隔离</span>
+    <span class="keyword">SSL</span>
+    <span class="keyword">FTP不是安全协议</span>
+    <span class="keyword">绿色网络</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>网络基础（20-1）</strong> = 网络协议与分层模型，层次化设计的前置知识</li>
+    <li><strong>网络存储（20-4）</strong> = 存储区域网络，常与网络设计一起出题</li>
+    <li><strong>防火墙 vs 入侵检测</strong>：防火墙是"门"（事前拦截），IDS是"监控"（事后发现）</li>
+    <li><strong>VPN三种类型</strong>：内联网VPN、外联网VPN、远程访问VPN</li>
+    <li><strong>访问控制对比</strong>：DAC（自主，灵活） vs MAC（强制，严格） vs RBAC（角色，管理方便）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // 层次化设计动画：从接入层→汇聚层→核心层
+  const layers = ['l-acc', 'l-agg', 'l-core'];
+  layers.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('active-layer');
+      setTimeout(() => el.classList.remove('active-layer'), 600);
+    }, i * 500);
+  });
+
+  // 安全控制卡片依次高亮
+  const secCards = ['s1', 's2', 's3', 's4', 's5'];
+  secCards.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.style.borderColor = '#3b82f6';
+      el.style.boxShadow = '0 0 12px rgba(37,99,235,0.25)';
+      el.style.transform = 'translateY(-3px)';
+      setTimeout(() => {
+        el.style.borderColor = '#e2e8f0';
+        el.style.boxShadow = 'none';
+        el.style.transform = 'translateY(0)';
+      }, 500);
+    }, 1800 + i * 250);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

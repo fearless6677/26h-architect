@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSI七层模型与TCP/IP四层模型 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Layer stack styles */
+.layer-stack { display: flex; flex-direction: column; gap: 0; align-items: center; margin: 12px 0; }
+.layer { display: flex; align-items: center; justify-content: center; width: 100%; padding: 10px 16px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.4s ease; border: 2px solid transparent; position: relative; }
+.layer .layer-name { min-width: 100px; }
+.layer .layer-desc { font-weight: 400; font-size: 12px; color: #64748b; margin-left: 12px; flex: 1; text-align: left; }
+.layer.l7 { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; border-radius: 12px 12px 0 0; }
+.layer.l6 { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+.layer.l5 { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
+.layer.l4 { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+.layer.l3 { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+.layer.l2 { background: #f5f3ff; border-color: #c4b5fd; color: #6d28d9; }
+.layer.l1 { background: #fdf2f8; border-color: #f9a8d4; color: #be185d; border-radius: 0 0 12px 12px; }
+.layer.active { transform: scale(1.03); box-shadow: 0 0 16px rgba(37,99,235,0.3); z-index: 2; }
+
+/* TCP/IP mapping */
+.tcpip-row { display: flex; align-items: stretch; gap: 0; margin: 16px 0; }
+.tcpip-col { flex: 1; display: flex; flex-direction: column; gap: 0; }
+.tcpip-col .col-header { text-align: center; font-weight: 700; font-size: 14px; padding: 8px; border-radius: 8px 8px 0 0; color: #fff; }
+.tcpip-col.osi .col-header { background: #2563eb; }
+.tcpip-col.tcp .col-header { background: #059669; }
+.tcpip-col .col-body { border: 2px solid #e2e8f0; border-radius: 0 0 8px 8px; padding: 4px; min-height: 200px; display: flex; flex-direction: column; gap: 2px; }
+.tcpip-col .col-body .mini-layer { padding: 6px 8px; font-size: 11px; border-radius: 4px; text-align: center; font-weight: 600; transition: all 0.3s; }
+.tcpip-col.osi .mini-layer { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.tcpip-col.tcp .mini-layer { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+.mini-layer.active { transform: scale(1.05); box-shadow: 0 0 8px rgba(37,99,235,0.3); }
+.arrow-area { display: flex; align-items: center; justify-content: center; min-width: 40px; font-size: 20px; color: #94a3b8; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+.compare-section { margin: 16px 0; }
+.compare-section h4 { color: #1e293b; font-size: 14px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 网络协议 › OSI七层模型与TCP/IP四层模型</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">网络协议</span>
+  <span class="exam-tag">🔥 必考</span>
+  <span class="hour-tag">🕐 第3小时</span>
+  <h1>OSI七层模型与TCP/IP四层模型</h1>
+  <p class="one-liner">OSI七层：应用→表示→会话→传输→网络→数据链路→物理；TCP/IP四层：应用→传输→网际→硬件</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'compare')">📊 模型对比</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放数据封装</button>
+    <div class="layer-stack" id="layerStack">
+      <div class="layer l7" data-step="0"><span class="layer-name">⑦ 应用层</span><span class="layer-desc">直接为终端用户服务，提供应用接口（HTTP/DNS）</span></div>
+      <div class="layer l6" data-step="1"><span class="layer-name">⑥ 表示层</span><span class="layer-desc">数据编码转换、加密压缩，使不同终端可互通信</span></div>
+      <div class="layer l5" data-step="2"><span class="layer-name">⑤ 会话层</span><span class="layer-desc">建立/维护/终止会话，安全验证，同步</span></div>
+      <div class="layer l4" data-step="3"><span class="layer-name">④ 传输层</span><span class="layer-desc">端到端传输，TCP保证无差错按序，服务访问点=<b>端口</b></span></div>
+      <div class="layer l3" data-step="4"><span class="layer-name">③ 网络层</span><span class="layer-desc">源→目的传输，路由选择，虚电路/数据报（IP/ICMP）</span></div>
+      <div class="layer l2" data-step="5"><span class="layer-name">② 数据链路层</span><span class="layer-desc">点到点帧传输，差错控制，流量控制（MAC/LLC）</span></div>
+      <div class="layer l1" data-step="6"><span class="layer-name">① 物理层</span><span class="layer-desc">比特流传输，机械/电气/功能/规程特性</span></div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#94a3b8;margin-top:8px;">数据从上到下封装，每层加头部；从下到上解封装</p>
+  </div>
+</div>
+
+<div id="compare" class="tab-content">
+  <div class="anim-area">
+    <div class="compare-section">
+      <h4>OSI七层 vs TCP/IP四层 映射关系</h4>
+      <div class="tcpip-row">
+        <div class="tcpip-col osi">
+          <div class="col-header">OSI 七层</div>
+          <div class="col-body">
+            <div class="mini-layer" data-group="app">应用层</div>
+            <div class="mini-layer" data-group="app">表示层</div>
+            <div class="mini-layer" data-group="app">会话层</div>
+            <div class="mini-layer" data-group="trans">传输层</div>
+            <div class="mini-layer" data-group="net">网络层</div>
+            <div class="mini-layer" data-group="hw">数据链路层</div>
+            <div class="mini-layer" data-group="hw">物理层</div>
+          </div>
+        </div>
+        <div class="arrow-area">→<br><span style="font-size:11px;color:#64748b;">合并</span></div>
+        <div class="tcpip-col tcp">
+          <div class="col-header">TCP/IP 四层</div>
+          <div class="col-body">
+            <div class="mini-layer" data-group="app" style="flex:3;">应用层（含上三层）</div>
+            <div class="mini-layer" data-group="trans">传输层</div>
+            <div class="mini-layer" data-group="net">网际层</div>
+            <div class="mini-layer" data-group="hw" style="flex:2;">硬件层<br><span style="font-size:10px;font-weight:400;">(网络接口层)</span></div>
+          </div>
+        </div>
+      </div>
+      <button class="play-btn" onclick="playCompare()" style="position:relative;margin-top:8px;">▶ 高亮映射</button>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// OSI七层模型（从上到下）</span>
+<span class="kw">OSI</span> = {
+  <span class="st">应用层</span>:   <span class="fn">"直接为终端用户服务, 提供应用接口"</span>,
+  <span class="st">表示层</span>:   <span class="fn">"数据编码转换, 使不同终端可互通信"</span>,
+  <span class="st">会话层</span>:   <span class="fn">"建立维护会话, 安全验证, 同步"</span>,
+  <span class="st">传输层</span>:   <span class="fn">"端到端传输, TCP保证无差错按序传输, 端口"</span>,
+  <span class="st">网络层</span>:   <span class="fn">"源到目的传输, 路由选择, 虚电路/数据报"</span>,
+  <span class="st">数据链路层</span>: <span class="fn">"点到点帧传输, 差错控制, 流量控制"</span>,
+  <span class="st">物理层</span>:   <span class="fn">"比特流传输, 机械/电气/功能/规程特性"</span>
+}
+
+<span class="cm">// TCP/IP四层: 应用层 → 传输层 → 网际层 → 硬件层</span>
+<span class="cm">// TCP/IP把OSI上面三层(应用+表示+会话)合并为"应用层"</span>
+
+<span class="cm">// 数据封装过程（发送方自上而下）</span>
+<span class="kw">function</span> <span class="fn">encapsulate</span>(data) {
+  data = <span class="fn">应用层</span>.addHeader(data, <span class="st">"HTTP头"</span>)     <span class="cm">// 报文</span>
+  data = <span class="fn">表示层</span>.encode(data)                   <span class="cm">// 编码/加密</span>
+  data = <span class="fn">会话层</span>.addSession(data)               <span class="cm">// 会话标识</span>
+  data = <span class="fn">传输层</span>.addHeader(data, <span class="st">"TCP头,端口80"</span>) <span class="cm">// 段(Segment)</span>
+  data = <span class="fn">网络层</span>.addHeader(data, <span class="st">"IP头,路由"</span>)   <span class="cm">// 包(Packet)</span>
+  data = <span class="fn">数据链路层</span>.addHeader(data, <span class="st">"帧头MAC"</span>) <span class="cm">// 帧(Frame)</span>
+  data = <span class="fn">物理层</span>.toBits(data)                   <span class="cm">// 比特流(Bits)</span>
+  <span class="kw">return</span> data  <span class="cm">// → 发送到物理介质</span>
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>OSI/RM七层模型从上到下为：应用层（处理网络应用）、表示层（管理数据表示方式）、会话层（建立维护会话）、传输层（<span class="hl">端到端传输，服务访问点为端口</span>）、网络层（源到目的节点传输）、数据链路层（点到点帧传输）、物理层（传输比特流）。TCP/IP四层模型将上面三层<span class="hl">合并为应用层</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🌐 HTTP/FTP/SMTP → 应用层</span>
+  <span class="tag-item">🔒 SSL/TLS → 表示层</span>
+  <span class="tag-item">🔌 TCP/UDP → 传输层（端口）</span>
+  <span class="tag-item">📍 IP/ICMP → 网络层</span>
+  <span class="tag-item">🔗 MAC/交换机 → 数据链路层</span>
+  <span class="tag-item">⚡ 光纤/网线 → 物理层</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>分层模型清晰定义各层职责</li>
+      <li>层间解耦便于实现和维护</li>
+      <li>标准化程度高，利于互操作</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点（OSI的不足）</h4>
+    <ul>
+      <li>层次过多，实现复杂效率低</li>
+      <li>会话层/表示层实际功能常被合并</li>
+      <li>理论模型，实际应用以TCP/IP为主</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">OSI七层</span>
+    <span class="keyword">TCP/IP四层</span>
+    <span class="keyword">应用层</span>
+    <span class="keyword">传输层</span>
+    <span class="keyword">网络层</span>
+    <span class="keyword">数据链路层</span>
+    <span class="keyword">物理层</span>
+    <span class="keyword">端口</span>
+    <span class="keyword">端到端</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="tcp_udp_compare.html"><strong>TCP与UDP对比</strong></a> = 传输层两大协议，面向连接 vs 无连接</li>
+    <li><a href="application_protocols.html"><strong>常见应用层协议</strong></a> = HTTP/FTP/SMTP/DNS等各层协议详解</li>
+    <li><a href="network_devices.html"><strong>网络设备</strong></a> = 各层对应设备：路由器(网络层)、交换机(数据链路层)、集线器(物理层)</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+  const layers = document.querySelectorAll('#layerStack .layer');
+  layers.forEach(l => l.classList.remove('active'));
+  // 自上而下封装
+  layers.forEach((layer, i) => {
+    setTimeout(() => {
+      layer.classList.add('active');
+      setTimeout(() => layer.classList.remove('active'), 400);
+    }, i * 500);
+  });
+  animTimer = setTimeout(() => {
+    // 自下而上解封装
+    for (let i = layers.length - 1; i >= 0; i--) {
+      setTimeout(() => {
+        layers[i].classList.add('active');
+        setTimeout(() => layers[i].classList.remove('active'), 400);
+      }, (layers.length - 1 - i) * 500);
+    }
+  }, layers.length * 500 + 300);
+}
+
+function playCompare() {
+  const groups = ['app', 'trans', 'net', 'hw'];
+  const colors = { app: '#fca5a5', trans: '#86efac', net: '#93c5fd', hw: '#f9a8d4' };
+  const minis = document.querySelectorAll('.mini-layer');
+  minis.forEach(m => { m.style.background = ''; m.style.transform = ''; m.style.boxShadow = ''; });
+  groups.forEach((g, gi) => {
+    setTimeout(() => {
+      document.querySelectorAll(`.mini-layer[data-group="${g}"]`).forEach(m => {
+        m.style.background = colors[g];
+        m.style.transform = 'scale(1.08)';
+        m.style.boxShadow = '0 0 10px ' + colors[g];
+        setTimeout(() => {
+          m.style.transform = '';
+          m.style.boxShadow = '';
+        }, 800);
+      });
+    }, gi * 900);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

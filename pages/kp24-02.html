@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>最大流量问题 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Graph animation styles */
+.graph-canvas { width: 100%; max-width: 600px; margin: 0 auto; position: relative; height: 320px; }
+.node { position: absolute; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; z-index: 2; transition: all 0.4s ease; }
+.node.source { background: #dbeafe; border: 3px solid #2563eb; color: #1d4ed8; }
+.node.sink { background: #dcfce7; border: 3px solid #16a34a; color: #15803d; }
+.node.mid { background: #f1f5f9; border: 3px solid #94a3b8; color: #475569; }
+.node.active { transform: scale(1.15); box-shadow: 0 0 18px rgba(37,99,235,0.5); border-color: #2563eb; }
+.edge-label { position: absolute; font-size: 11px; font-weight: 700; color: #64748b; background: #fff; padding: 1px 5px; border-radius: 8px; z-index: 3; border: 1px solid #e2e8f0; transition: all 0.3s; }
+.edge-label.used { color: #dc2626; background: #fef2f2; border-color: #fca5a5; }
+.edge-label.dead { color: #cbd5e1; background: #f8fafc; border-color: #e2e8f0; text-decoration: line-through; }
+svg.edges { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+svg.edges line { stroke: #cbd5e1; stroke-width: 2.5; transition: all 0.4s; }
+svg.edges line.active { stroke: #2563eb; stroke-width: 3.5; filter: drop-shadow(0 0 4px rgba(37,99,235,0.4)); }
+svg.edges line.dead { stroke: #e2e8f0; stroke-width: 1.5; stroke-dasharray: 6 4; }
+svg.edges line .flow-dot { fill: #2563eb; }
+.path-info { text-align: center; font-size: 13px; color: #475569; margin-top: 12px; min-height: 24px; }
+.path-info .path-name { color: #2563eb; font-weight: 700; }
+.path-info .path-flow { color: #dc2626; font-weight: 700; }
+.path-info .total-flow { color: #16a34a; font-weight: 700; font-size: 15px; }
+.step-log { max-width: 600px; margin: 12px auto 0; font-size: 12px; color: #64748b; }
+.step-log div { padding: 2px 0; border-bottom: 1px dashed #e2e8f0; }
+.step-log .done { color: #16a34a; font-weight: 600; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 10; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 图论 › 最大流量问题</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">图论</span>
+  <span class="exam-tag">≈ 2分 · 选择题</span>
+  <h1>最大流量问题（KP24-02）</h1>
+  <p class="one-liner">运输网络中从源点到汇点的最大运输能力，逐路径求最小值并扣除剩余流量</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" id="playBtn" onclick="playAnimation()">▶ 播放迭代</button>
+    <div class="graph-canvas" id="graphCanvas">
+      <svg class="edges" id="svgEdges"></svg>
+      <!-- Nodes will be placed by JS -->
+    </div>
+    <div class="path-info" id="pathInfo">点击"播放迭代"观看逐路径求解过程</div>
+    <div class="step-log" id="stepLog"></div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 最大流量 —— 逐路径找最小容量，扣除已用流量</span>
+<span class="kw">function</span> <span class="fn">maxFlow</span>(network, source, sink) {
+    totalFlow = <span class="num">0</span>
+
+    <span class="kw">while</span> (<span class="fn">findPath</span>(network, source, sink)) {   <span class="cm">// 重复找可达路径</span>
+        path = <span class="fn">findPath</span>(network, source, sink)
+        pathFlow = <span class="fn">min</span>(path.各边剩余容量)     <span class="cm">// 路径流量 = 瓶颈</span>
+
+        <span class="kw">for</span> (edge <span class="kw">in</span> path) {
+            edge.剩余容量 -= pathFlow           <span class="cm">// 扣除已用流量</span>
+            <span class="kw">if</span> (edge.剩余容量 == <span class="num">0</span>)
+                edge.断开()                     <span class="cm">// 容量耗尽 → 边断开</span>
+        }
+        totalFlow += pathFlow                   <span class="cm">// 累加到总流量</span>
+    }
+
+    <span class="kw">return</span> totalFlow                            <span class="cm">// 无路径可达 → 结束</span>
+}
+
+<span class="cm">// 示例：节点①→⑥</span>
+<span class="cm">// 路径①③⑤⑥ = min(…) = 10</span>
+<span class="cm">// 路径①②⑤⑥ = min(…) = 6</span>
+<span class="cm">// 路径①④⑥   = min(…) = 5</span>
+<span class="cm">// 路径①④③⑤⑥ = 1, 路径①④②⑤⑥ = 1</span>
+<span class="cm">// 总流量 = 10+6+5+1+1 = 23 万吨/小时</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>在运输网络中找从源点到汇点的<span class="hl">最大运输能力</span>。
+  方法：逐条找出可行路径，每条路径流量 = 该路径各段容量的<span class="hl">最小值</span>（瓶颈决定流量）。
+  算完一条后<span class="hl">扣除已用流量</span>（剩余为0的边断开），重复直到无路径可达。总最大流量 = 各路径流量之和。本质是特殊的<span class="hl">线性规划</span>问题。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🚰 管道/运输网络</span>
+  <span class="tag-item">📊 线性规划特例</span>
+  <span class="tag-item">🔁 逐路径迭代求解</span>
+  <span class="tag-item">⛓️ 瓶颈 = 路径最小容量</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>思路清晰，逐步迭代易于理解</li>
+      <li>适用于管道、运输等实际网络问题</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>需要手动逐步迭代，计算过程繁琐</li>
+      <li>路径选择和流量扣除容易出错</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">最大流量</span>
+    <span class="keyword">运输网</span>
+    <span class="keyword">路径流量</span>
+    <span class="keyword">剩余流量</span>
+    <span class="keyword">扣除流量</span>
+    <span class="keyword">线性规划</span>
+    <span class="keyword">道路运输能力</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>线性规划（KP24-01）</strong> = 最大流量的理论本质，最大流是特殊的线性规划</li>
+    <li><strong>最小费用最大流（KP24-03）</strong> = 在最大流基础上考虑运输费用最优</li>
+    <li><strong>网络流</strong> = 最大流量问题的更一般化框架</li>
+    <li><strong>关键路径法</strong> = 同属网络图论，但关注时间而非流量</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+// ---- Graph Data (simplified 6-node network) ----
+const nodes = [
+  { id: '①', x: 60,  y: 140, cls: 'source', label: '①' },
+  { id: '②', x: 220, y: 40,  cls: 'mid',    label: '②' },
+  { id: '③', x: 220, y: 240, cls: 'mid',    label: '③' },
+  { id: '④', x: 380, y: 40,  cls: 'mid',    label: '④' },
+  { id: '⑤', x: 380, y: 240, cls: 'mid',    label: '⑤' },
+  { id: '⑥', x: 530, y: 140, cls: 'sink',   label: '⑥' },
+];
+
+// Edges: [fromId, toId, capacity]
+const edgeData = [
+  ['①','②', 8],  ['①','③', 12], ['①','④', 7],
+  ['②','⑤', 9],  ['②','④', 3],
+  ['③','⑤', 8],
+  ['④','⑥', 8],  ['④','③', 4],
+  ['⑤','⑥', 15],
+];
+
+// Iteration steps: [pathNodeIds, flowValue]
+const steps = [
+  { path: ['①','③','⑤','⑥'], flow: 10 },
+  { path: ['①','②','⑤','⑥'], flow: 6  },
+  { path: ['①','④','⑥'],      flow: 5  },
+  { path: ['①','④','③','⑤','⑥'], flow: 1 },
+  { path: ['①','④','②','⑤','⑥'], flow: 1 },
+];
+
+// ---- Render graph ----
+const canvas = document.getElementById('graphCanvas');
+const svg = document.getElementById('svgEdges');
+const nodeMap = {};
+
+nodes.forEach(n => {
+  const el = document.createElement('div');
+  el.className = 'node ' + n.cls;
+  el.id = 'node-' + n.id;
+  el.textContent = n.label;
+  el.style.left = (n.x - 22) + 'px';
+  el.style.top = (n.y - 22) + 'px';
+  canvas.appendChild(el);
+  nodeMap[n.id] = n;
+});
+
+// Track remaining capacity per edge key "from-to"
+const remaining = {};
+const edgeLines = {};
+const edgeLabels = {};
+
+edgeData.forEach(([f, t, cap]) => {
+  const key = f + '-' + t;
+  remaining[key] = cap;
+
+  const nf = nodeMap[f], nt = nodeMap[t];
+  // SVG line
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', nf.x); line.setAttribute('y1', nf.y);
+  line.setAttribute('x2', nt.x); line.setAttribute('y2', nt.y);
+  line.id = 'edge-' + key;
+  svg.appendChild(line);
+  edgeLines[key] = line;
+
+  // Capacity label at midpoint
+  const mx = (nf.x + nt.x) / 2, my = (nf.y + nt.y) / 2;
+  const lbl = document.createElement('div');
+  lbl.className = 'edge-label';
+  lbl.id = 'lbl-' + key;
+  lbl.textContent = cap;
+  lbl.style.left = (mx - 10) + 'px';
+  lbl.style.top = (my - 10) + 'px';
+  canvas.appendChild(lbl);
+  edgeLabels[key] = lbl;
+});
+
+// ---- Animation ----
+let running = false;
+
+function playAnimation() {
+  if (running) return;
+  running = true;
+  document.getElementById('playBtn').textContent = '⏳ 运行中';
+
+  // Reset
+  edgeData.forEach(([f, t, cap]) => {
+    const key = f + '-' + t;
+    remaining[key] = cap;
+    edgeLines[key].classList.remove('active', 'dead');
+    edgeLabels[key].textContent = cap;
+    edgeLabels[key].classList.remove('used', 'dead');
+  });
+  nodes.forEach(n => {
+    document.getElementById('node-' + n.id).classList.remove('active');
+  });
+  document.getElementById('stepLog').innerHTML = '';
+  document.getElementById('pathInfo').innerHTML = '点击"播放迭代"观看逐路径求解过程';
+
+  let totalFlow = 0;
+  let delay = 300;
+
+  steps.forEach((step, si) => {
+    const pathKeys = [];
+    for (let i = 0; i < step.path.length - 1; i++) {
+      pathKeys.push(step.path[i] + '-' + step.path[i + 1]);
+    }
+
+    // Phase 1: highlight path nodes
+    step.path.forEach((nid, ni) => {
+      setTimeout(() => {
+        document.getElementById('node-' + nid).classList.add('active');
+      }, delay);
+      delay += 200;
+    });
+
+    // Phase 2: highlight edges
+    pathKeys.forEach((key, ki) => {
+      setTimeout(() => {
+        edgeLines[key].classList.add('active');
+      }, delay);
+      delay += 150;
+    });
+
+    // Phase 3: show path info
+    setTimeout(() => {
+      totalFlow += step.flow;
+      document.getElementById('pathInfo').innerHTML =
+        '第' + (si + 1) + '条路径：<span class="path-name">' + step.path.join('→') +
+        '</span> 流量 = <span class="path-flow">' + step.flow +
+        '</span> 万吨/小时 &nbsp;|&nbsp; 累计 = <span class="total-flow">' + totalFlow + '</span>';
+    }, delay);
+    delay += 400;
+
+    // Phase 4: deduct capacity
+    pathKeys.forEach(key => {
+      remaining[key] -= step.flow;
+      const lbl = edgeLabels[key];
+      if (remaining[key] <= 0) {
+        remaining[key] = 0;
+        lbl.textContent = '0';
+        lbl.classList.add('dead');
+        lbl.classList.remove('used');
+        edgeLines[key].classList.add('dead');
+        edgeLines[key].classList.remove('active');
+      } else {
+        lbl.textContent = remaining[key];
+        lbl.classList.add('used');
+      }
+    });
+
+    // Log
+    setTimeout(() => {
+      const logEl = document.getElementById('stepLog');
+      const d = document.createElement('div');
+      d.textContent = '路径 ' + step.path.join('→') + '：流量=' + step.flow + '，累计=' + totalFlow;
+      if (si === steps.length - 1) {
+        d.classList.add('done');
+        d.textContent += ' ✅ 无更多路径，结束';
+      }
+      logEl.appendChild(d);
+    }, delay);
+    delay += 300;
+
+    // Remove active from nodes
+    step.path.forEach(nid => {
+      setTimeout(() => {
+        document.getElementById('node-' + nid).classList.remove('active');
+      }, delay);
+    });
+    pathKeys.forEach(key => {
+      setTimeout(() => {
+        edgeLines[key].classList.remove('active');
+      }, delay);
+    });
+    delay += 200;
+  });
+
+  // Final
+  setTimeout(() => {
+    document.getElementById('pathInfo').innerHTML =
+      '🎉 求解完成！总最大流量 = <span class="total-flow">' + totalFlow + '</span> 万吨/小时';
+    document.getElementById('playBtn').textContent = '▶ 重新播放';
+    running = false;
+  }, delay);
+}
+
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

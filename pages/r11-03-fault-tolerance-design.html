@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件可靠性设计技术 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 可靠性设计 › 软件可靠性设计技术</span></nav>
+<div class="ct">
+<div><span class="tag c">可靠性设计</span><span class="tag e">必考</span>
+<h1>软件可靠性设计技术</h1><p class="ol">通过容错、检错、降复杂度和系统配置提升软件可靠性</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>软件可靠性设计四大技术：(1)容错设计(恢复块/N版本程序/冗余)——自动处理故障；(2)检错设计——代价低但需人工干预，需考虑检测对象、检测延时、实现方法、处理方式四要素；(3)降低复杂度设计——简化结构、缩短代码、优化数据流；(4)系统配置技术——双机热备(热备/互备/双工)和服务器集群(故障自动接管)。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// 容错设计技术
+recovery_block():
+  try block_A(primary)
+  if fail: try block_B(backup)
+  if fail: try block_C(fallback)
+
+n_version_programming():
+  result_A = version_A(input)
+  result_B = version_B(input)  
+  result_C = version_C(input)
+  output = majority_vote(result_A, result_B, result_C)
+
+redundancy_design():
+  if primary_system.fail():
+    switch_to(backup_system)  // 不同路径/算法
+
+// 双机热备三种模式
+hot_standby():  // 一台工作，一台后备(Active/Standby)
+mutual_backup(): // 两台各跑独立应用，互为后备(Active/Active)
+dual_active():   // 两台同时跑相同应用，互为后备</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>恢复块：主模块崩溃后自动切换到备用模块，如数据库主从切换</li><li>N版本程序：航天飞控用3个独立团队编写的版本进行多数表决</li><li>双机热备模式(Active/Standby)：主服务器宕机后备机自动接管，数据库数据同步写入</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>容错设计可自动处理故障，无需人工干预</li><li>N版本程序可防止单版本设计缺陷</li><li>双机热备RTO极短</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>容错和冗余设计成本高</li><li>N版本程序需独立团队开发，代价大</li><li>检错技术不能自动解决故障</li><li>冗余系统需保证数据一致性</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">恢复块</span><span class="k">N版本程序</span><span class="k">多数表决</span><span class="k">冗余设计</span><span class="k">检错技术</span><span class="k">检测对象</span><span class="k">检测延时</span><span class="k">双机热备</span><span class="k">心跳</span><span class="k">双机互备</span><span class="k">双机双工</span><span class="k">服务器集群</span><span class="k">自动接管</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="r11-01-software-reliability-def.html">r11-01-software-reliability-def</a></li><li><span style="color:#94a3b8;font-size:12px">[r11-04-reliability-management]</span></li></ul></div>
+</div></body></html>

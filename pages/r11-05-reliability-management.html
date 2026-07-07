@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件可靠性管理 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 180px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.example-box { background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.example-box h4 { color: #0369a1; margin-bottom: 8px; }
+.example-box li { font-size: 13px; color: #475569; margin: 6px 0; }
+
+.lifecycle-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.stage-box { display: inline-flex; flex-direction: column; align-items: center; padding: 14px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 90px; position: relative; }
+.stage-box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.stage-box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.stage-box.active { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.stage-box .stage-label { font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 400; }
+.arrow { width: 32px; height: 3px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.arrow .flow { position: absolute; top: 0; left: -18px; width: 18px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: arrowFlow 1.2s linear infinite; }
+@keyframes arrowFlow { 0% { left: -18px; } 100% { left: 32px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 可靠性管理 › 软件可靠性管理</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">可靠性管理</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <span class="hour-tag">📚 第11小时</span>
+  <h1>软件可靠性管理</h1>
+  <p class="one-liner">软件可靠性管理贯穿全生命周期各阶段</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="lifecycle-row">
+      <div class="stage-box blue" id="s1">需求<span class="stage-label">定目标</span></div>
+      <div class="arrow"><div class="flow"></div></div>
+      <div class="stage-box blue" id="s2">设计<span class="stage-label">容错设计</span></div>
+      <div class="arrow"><div class="flow" style="animation-delay:.2s"></div></div>
+      <div class="stage-box blue" id="s3">编码<span class="stage-label">规范审查</span></div>
+      <div class="arrow"><div class="flow" style="animation-delay:.4s"></div></div>
+      <div class="stage-box blue" id="s4">测试<span class="stage-label">收集数据</span></div>
+      <div class="arrow"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="stage-box blue" id="s5">运行<span class="stage-label">监控增长</span></div>
+      <div class="arrow"><div class="flow" style="animation-delay:.8s"></div></div>
+      <div class="stage-box green" id="s6">维护<span class="stage-label">失效分析</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 可靠性管理贯穿全生命周期</span>
+<span class="fn">reliability_management</span>():
+  <span class="st">需求阶段</span>: 确定可靠性目标(可用度/MTBF等)
+  <span class="st">设计阶段</span>: 可靠性设计(容错/检错/降复杂度)
+  <span class="st">编码阶段</span>: 编码规范、代码审查、复杂度控制
+  <span class="st">测试阶段</span>: 可靠性测试、数据收集
+  <span class="st">运行阶段</span>: 失效监控、可靠性增长
+  <span class="st">维护阶段</span>: 失效分析、可靠性再评估</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>软件可靠性管理<span class="hl">贯穿软件全生命周期</span>，从需求阶段的可靠性目标确定，到设计、编码、测试、运行、维护各阶段均需实施相应的可靠性管控措施。管理目的是确保软件在整个生命周期中<span class="hl">持续满足可靠性目标</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📋 需求: MTBF≥2000小时</span>
+  <span class="tag-item">🎯 设计: N版本程序容错</span>
+  <span class="tag-item">🔍 测试: 失效数据模型分析</span>
+  <span class="tag-item">📈 运行: 可靠性增长模型</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>系统化管理确保可靠性目标落地</li>
+      <li>各阶段协同可最大化可靠性收益</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>管理成本较高</li>
+      <li>需要跨阶段协调和持续投入</li>
+    </ul>
+  </div>
+</div>
+
+<div class="example-box">
+  <h4>💡 实际应用示例</h4>
+  <ul>
+    <li><strong>需求阶段</strong>：定义 MTBF ≥ 2000小时，可用度 ≥ 99.9%</li>
+    <li><strong>设计阶段</strong>：采用 N版本程序设计实现容错</li>
+    <li><strong>测试阶段</strong>：收集失效数据用于可靠性模型分析</li>
+  </ul>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">全生命周期</span>
+    <span class="keyword">可靠性目标</span>
+    <span class="keyword">需求</span>
+    <span class="keyword">设计</span>
+    <span class="keyword">编码</span>
+    <span class="keyword">测试</span>
+    <span class="keyword">运行</span>
+    <span class="keyword">维护</span>
+    <span class="keyword">可靠性增长</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="r11-01-software-reliability-def.html"><strong>软件可靠性定义</strong></a> = 可靠性的基础概念（MTBF/MTTR/可用度）</li>
+    <li><a href="r11-03-fault-tolerance-design.html"><strong>容错设计技术</strong></a> = 设计阶段的具体可靠性技术（N版本/恢复块）</li>
+    <li><strong>可靠性模型</strong> = 用于量化评估软件可靠性的数学模型</li>
+    <li><strong>可靠性增长模型</strong> = 运行阶段通过测试和修复提升可靠性</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  for (let i = 1; i <= 6; i++) {
+    setTimeout(() => {
+      const el = document.getElementById('s' + i);
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 500);
+    }, (i - 1) * 400);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

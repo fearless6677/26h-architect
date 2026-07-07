@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>诺兰信息系统发展阶段模型 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Stage timeline animation */
+.stage-timeline { display: flex; align-items: flex-start; justify-content: center; gap: 0; margin: 20px 0; flex-wrap: wrap; padding: 10px 0; }
+.stage { display: flex; flex-direction: column; align-items: center; position: relative; transition: all 0.4s ease; }
+.stage-num { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; border: 3px solid #cbd5e1; background: #fff; color: #94a3b8; transition: all 0.4s ease; z-index: 2; }
+.stage-label { margin-top: 8px; font-size: 12px; font-weight: 600; color: #94a3b8; text-align: center; transition: all 0.4s ease; white-space: nowrap; }
+.stage-sub { font-size: 11px; color: #b0b8c4; text-align: center; margin-top: 2px; transition: all 0.4s ease; }
+.stage-connector { width: 40px; height: 3px; background: #e2e8f0; margin-top: 23px; position: relative; overflow: hidden; border-radius: 2px; }
+.stage-connector .arrow-flow { position: absolute; top: 0; left: -16px; width: 16px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: stageFlow 1.5s linear infinite; }
+@keyframes stageFlow { 0% { left: -16px; } 100% { left: 40px; } }
+.stage.active .stage-num { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; transform: scale(1.15); box-shadow: 0 0 16px rgba(37,99,235,0.35); }
+.stage.active .stage-label { color: #1d4ed8; }
+.stage.done .stage-num { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+.stage.done .stage-label { color: #15803d; }
+.stage.done .stage-sub { color: #16a34a; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Examples list */
+.example-list { margin: 12px 0; }
+.example-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; transition: all 0.3s; }
+.example-item:hover { border-color: #93c5fd; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
+.example-stage { font-size: 12px; font-weight: 700; color: #fff; background: #3b82f6; padding: 2px 10px; border-radius: 12px; white-space: nowrap; }
+.example-text { font-size: 13px; color: #475569; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 信息系统基础 › 诺兰信息系统发展阶段模型</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">信息系统基础</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>诺兰信息系统发展阶段模型</h1>
+  <p class="one-liner">诺兰把信息系统发展分为初始→传播→控制→集成→数据管理→成熟6个阶段。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放演进</button>
+    <div class="stage-timeline">
+      <div class="stage" id="s1">
+        <div class="stage-num">1</div>
+        <div class="stage-label">初始</div>
+        <div class="stage-sub">Initial</div>
+      </div>
+      <div class="stage-connector"><div class="arrow-flow"></div></div>
+      <div class="stage" id="s2">
+        <div class="stage-num">2</div>
+        <div class="stage-label">传播</div>
+        <div class="stage-sub">Spread</div>
+      </div>
+      <div class="stage-connector"><div class="arrow-flow" style="animation-delay:.3s"></div></div>
+      <div class="stage" id="s3">
+        <div class="stage-num">3</div>
+        <div class="stage-label">控制</div>
+        <div class="stage-sub">Control</div>
+      </div>
+      <div class="stage-connector"><div class="arrow-flow" style="animation-delay:.6s"></div></div>
+      <div class="stage" id="s4">
+        <div class="stage-num">4</div>
+        <div class="stage-label">集成</div>
+        <div class="stage-sub">Integration</div>
+      </div>
+      <div class="stage-connector"><div class="arrow-flow" style="animation-delay:.9s"></div></div>
+      <div class="stage" id="s5">
+        <div class="stage-num">5</div>
+        <div class="stage-label">数据管理</div>
+        <div class="stage-sub">Data Mgmt</div>
+      </div>
+      <div class="stage-connector"><div class="arrow-flow" style="animation-delay:1.2s"></div></div>
+      <div class="stage" id="s6">
+        <div class="stage-num">6</div>
+        <div class="stage-label">成熟</div>
+        <div class="stage-sub">Maturity</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 诺兰6阶段模型 —— 评估组织信息化水平</span>
+<span class="kw">enum</span> <span class="fn">NolanStage</span> {
+    <span class="st">① 初始</span>     <span class="cm">// 刚引入计算机，零星使用</span>
+    <span class="st">② 传播</span>     <span class="cm">// 各部门纷纷开发应用</span>
+    <span class="st">③ 控制</span>     <span class="cm">// 管理层开始统筹控制</span>
+    <span class="st">④ 集成</span>     <span class="cm">// 系统互联互通</span>
+    <span class="st">⑤ 数据管理</span>  <span class="cm">// 以数据为核心统一管理</span>
+    <span class="st">⑥ 成熟</span>     <span class="cm">// 信息系统全面融入业务</span>
+}
+
+<span class="cm">// 核心：渐进演化，不可跳跃（理论上）</span>
+<span class="cm">// 用途：评估组织当前处于哪个阶段</span>
+<span class="cm">// 提出者：Richard L. Nolan（理查德·诺兰）</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>理查德·诺兰（Richard L. Nolan）提出信息系统发展的<span class="hl">6阶段模型</span>：
+  ①初始期（刚引入计算机）→ ②传播期（各部门纷纷开发应用）→ ③控制期（管理层开始统筹控制）→ ④集成期（系统互联互通）→ ⑤数据管理期（以数据为核心统一管理）→ ⑥成熟期（信息系统全面融入业务）。
+  该模型用于<span class="hl">评估组织信息化水平</span>，是考试选择题高频考点。
+</div>
+
+<div class="example-list">
+  <div class="example-item">
+    <span class="example-stage">初始期</span>
+    <span class="example-text">🖥️ 公司刚买几台电脑打字</span>
+  </div>
+  <div class="example-item">
+    <span class="example-stage">传播期</span>
+    <span class="example-text">📦 各部门各自买软件</span>
+  </div>
+  <div class="example-item">
+    <span class="example-stage">集成期</span>
+    <span class="example-text">🔗 公司统一上ERP集成所有部门</span>
+  </div>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📊 评估信息化水平</span>
+  <span class="tag-item">📈 渐进演化</span>
+  <span class="tag-item">🎯 考试高频考点</span>
+  <span class="tag-item">👤 Richard L. Nolan</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>为组织信息化水平提供评估框架</li>
+      <li>帮助判断当前应投入的方向</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>阶段划分较理想化</li>
+      <li>不同行业可能跳跃式发展</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">诺兰</span>
+    <span class="keyword">6个阶段</span>
+    <span class="keyword">初始-传播-控制-集成-数据管理-成熟</span>
+    <span class="keyword">Richard L. Nolan</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="h04-01.html" style="color:#2563eb;text-decoration:none;">📄 h04-01 信息系统基础概述</a></li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function resetStages() {
+  for (let i = 1; i <= 6; i++) {
+    const el = document.getElementById('s' + i);
+    el.classList.remove('active', 'done');
+  }
+}
+
+function playAnimation() {
+  resetStages();
+  for (let i = 1; i <= 6; i++) {
+    setTimeout(() => {
+      // Mark previous as done
+      if (i > 1) {
+        document.getElementById('s' + (i - 1)).classList.remove('active');
+        document.getElementById('s' + (i - 1)).classList.add('done');
+      }
+      // Mark current as active
+      document.getElementById('s' + i).classList.add('active');
+      // After last stage, mark it done too
+      if (i === 6) {
+        setTimeout(() => {
+          document.getElementById('s6').classList.remove('active');
+          document.getElementById('s6').classList.add('done');
+        }, 600);
+      }
+    }, (i - 1) * 700);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

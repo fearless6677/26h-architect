@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络设备与工作层级 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* --- Layer animation styles --- */
+.layer-stack { display: flex; flex-direction: column; gap: 6px; max-width: 680px; margin: 16px auto; }
+.layer-row { display: flex; align-items: center; gap: 12px; opacity: 0.5; transition: all 0.4s ease; border-radius: 8px; padding: 10px 16px; }
+.layer-row.highlight { opacity: 1; transform: scale(1.03); box-shadow: 0 0 18px rgba(37,99,235,0.25); }
+.layer-label { font-size: 12px; font-weight: 700; color: #fff; min-width: 80px; text-align: center; padding: 4px 8px; border-radius: 6px; flex-shrink: 0; }
+.layer-label.l3 { background: #ef4444; }
+.layer-label.l2 { background: #f59e0b; }
+.layer-label.l1 { background: #3b82f6; }
+.layer-devices { display: flex; gap: 10px; flex-wrap: wrap; }
+.dev-box { background: #fff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: #334155; transition: all 0.35s; min-width: 100px; text-align: center; }
+.dev-box.pulse { transform: scale(1.1); border-color: #2563eb; box-shadow: 0 0 12px rgba(37,99,235,0.45); }
+.dev-box .en { display: block; font-size: 11px; color: #94a3b8; font-weight: 400; margin-top: 2px; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+/* --- Route protocol diagram --- */
+.proto-diagram { display: flex; justify-content: center; gap: 24px; margin: 18px 0; flex-wrap: wrap; align-items: center; }
+.as-box { background: #fff; border: 2px dashed #94a3b8; border-radius: 12px; padding: 16px 22px; text-align: center; min-width: 140px; transition: all 0.4s; }
+.as-box.glow { border-color: #2563eb; box-shadow: 0 0 14px rgba(37,99,235,0.3); }
+.as-box h5 { font-size: 13px; color: #1e293b; margin-bottom: 4px; }
+.as-box .proto { font-size: 11px; color: #64748b; }
+.as-box .proto span { display: inline-block; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 4px; padding: 1px 6px; font-weight: 600; color: #1d4ed8; font-size: 11px; margin: 2px; }
+.bgp-link { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bgp-link .arrow { font-size: 22px; color: #dc2626; animation: blink 1.2s ease-in-out infinite; }
+.bgp-link .label { font-size: 11px; color: #dc2626; font-weight: 700; }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 组网技术 › 网络设备与工作层级</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">组网技术</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>网络设备与工作层级</h1>
+  <p class="one-liner">集线器/中继器→物理层；网桥/交换机→数据链路层；路由器/防火墙→网络层</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'route')">🌐 路由协议</div>
+</div>
+
+<!-- ======================== 动画演示 ======================== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:12px;">点击播放：逐层高亮网络设备对应关系</p>
+    <div class="layer-stack">
+      <!-- Layer 7~4 简化 -->
+      <div class="layer-row" id="row-upper">
+        <div class="layer-label" style="background:#94a3b8;">应用-传输层</div>
+        <div class="layer-devices">
+          <div class="dev-box" style="color:#94a3b8;">网关 / 负载均衡器</div>
+        </div>
+      </div>
+      <!-- Layer 3 -->
+      <div class="layer-row" id="row-l3">
+        <div class="layer-label l3">网络层 L3</div>
+        <div class="layer-devices">
+          <div class="dev-box" id="d-router">路由器<span class="en">Router</span></div>
+          <div class="dev-box" id="d-fw">防火墙<span class="en">Firewall</span></div>
+        </div>
+      </div>
+      <!-- Layer 2 -->
+      <div class="layer-row" id="row-l2">
+        <div class="layer-label l2">数据链路层 L2</div>
+        <div class="layer-devices">
+          <div class="dev-box" id="d-bridge">网桥<span class="en">Bridge</span></div>
+          <div class="dev-box" id="d-switch">交换机<span class="en">Switch</span></div>
+        </div>
+      </div>
+      <!-- Layer 1 -->
+      <div class="layer-row" id="row-l1">
+        <div class="layer-label l1">物理层 L1</div>
+        <div class="layer-devices">
+          <div class="dev-box" id="d-hub">集线器<span class="en">Hub</span></div>
+          <div class="dev-box" id="d-rep">中继器<span class="en">Repeater</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== 伪代码 ======================== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 网络设备与工作层级</span>
+<span class="st">物理层</span>:       <span class="fn">Hub</span>(集线器), <span class="fn">Repeater</span>(中继器)
+<span class="st">数据链路层</span>:   <span class="fn">Bridge</span>(网桥), <span class="fn">Switch</span>(交换机)
+<span class="st">网络层</span>:       <span class="fn">Router</span>(路由器), <span class="fn">Firewall</span>(防火墙)
+
+<span class="cm">// 路由协议分类</span>
+<span class="kw">IGP</span>: 自治系统(AS)内部路由协议
+<span class="kw">EGP</span>: 自治系统(AS)之间路由协议
+<span class="kw">BGP</span>: Internet上唯一的网关协议(AS间)</pre>
+</div>
+
+<!-- ======================== 路由协议 ======================== -->
+<div id="route" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playRouteAnim()">▶ 播放</button>
+    <p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:8px;">自治系统间通过 BGP 路由</p>
+    <div class="proto-diagram">
+      <div class="as-box" id="as1">
+        <h5>AS 1</h5>
+        <div class="proto"><span>OSPF</span></div>
+        <p style="font-size:11px;color:#64748b;margin-top:4px;">IGP 内部</p>
+      </div>
+      <div class="bgp-link">
+        <span class="arrow">⟷</span>
+        <span class="label">BGP</span>
+      </div>
+      <div class="as-box" id="as2">
+        <h5>AS 2</h5>
+        <div class="proto"><span>EIGRP</span></div>
+        <p style="font-size:11px;color:#64748b;margin-top:4px;">IGP 内部</p>
+      </div>
+      <div class="bgp-link">
+        <span class="arrow">⟷</span>
+        <span class="label">BGP</span>
+      </div>
+      <div class="as-box" id="as3">
+        <h5>AS 3</h5>
+        <div class="proto"><span>RIP</span></div>
+        <p style="font-size:11px;color:#64748b;margin-top:4px;">IGP 内部</p>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#94a3b8;margin-top:8px;">IGP = AS内部（OSPF / EIGRP / RIP）｜ EGP / BGP = AS之间</p>
+  </div>
+</div>
+
+<!-- ======================== 核心解释 ======================== -->
+<div class="explain">
+  <strong>核心：</strong>网络设备按 OSI 层级划分：集线器和中继器工作在<span class="hl">物理层</span>（只放大信号）；网桥和交换机工作在<span class="hl">数据链路层</span>（按 MAC 转发帧，可隔离冲突域）；路由器和防火墙工作在<span class="hl">网络层</span>（按 IP 选路）。路由协议分 IGP（AS 内部）、EGP（AS 之间）和 BGP（Internet 上唯一的网关协议）。
+</div>
+
+<!-- ======================== 实例标签 ======================== -->
+<div class="tag-list">
+  <span class="tag-item">🔀 交换机工作在数据链路层，可隔离冲突域</span>
+  <span class="tag-item">🌐 BGP 是 Internet 上唯一的 AS 间路由协议</span>
+  <span class="tag-item">📡 集线器/中继器只放大信号，不识别帧</span>
+  <span class="tag-item">🛡️ 防火墙工作在网络层，按 IP 过滤</span>
+</div>
+
+<!-- ======================== 优缺点 ======================== -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优势</h4>
+    <ul>
+      <li>分层设备各司其职，职责清晰</li>
+      <li>交换机隔离冲突域，提升网络性能</li>
+      <li>路由器实现异种网络互连</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 注意</h4>
+    <ul>
+      <li>集线器不隔离冲突域，所有端口共享带宽</li>
+      <li>交换机不隔离广播域（需 VLAN）</li>
+      <li>路由器配置复杂，成本较高</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======================== 考试关键词 ======================== -->
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">集线器</span>
+    <span class="keyword">中继器</span>
+    <span class="keyword">物理层</span>
+    <span class="keyword">网桥</span>
+    <span class="keyword">交换机</span>
+    <span class="keyword">数据链路层</span>
+    <span class="keyword">路由器</span>
+    <span class="keyword">网络层</span>
+    <span class="keyword">IGP</span>
+    <span class="keyword">EGP</span>
+    <span class="keyword">BGP</span>
+    <span class="keyword">自治系统AS</span>
+  </div>
+</div>
+
+<!-- ======================== 关联知识 ======================== -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>OSI 七层模型</strong> = 网络设备分层的基础理论框架</li>
+    <li><strong>路由协议</strong> = IGP（OSPF/RIP）与 EGP（BGP）的分类体系</li>
+    <li><strong>STP 生成树协议</strong> = 交换机在数据链路层防环的关键协议</li>
+    <li><strong>VLAN</strong> = 交换机划分广播域，弥补二层不足</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---- Layer animation ---- */
+let animTimer = null;
+function playAnimation() {
+  if (animTimer) { clearInterval(animTimer); resetLayers(); }
+  const rows = ['row-l1','row-l2','row-l3'];
+  const deviceGroups = [
+    ['d-hub','d-rep'],
+    ['d-bridge','d-switch'],
+    ['d-router','d-fw']
+  ];
+  let step = 0;
+  const tick = () => {
+    resetLayers();
+    const idx = step % 3;
+    document.getElementById(rows[idx]).classList.add('highlight');
+    deviceGroups[idx].forEach(did => {
+      document.getElementById(did).classList.add('pulse');
+    });
+    step++;
+  };
+  tick();
+  animTimer = setInterval(tick, 1600);
+  // stop after full cycle
+  setTimeout(() => { clearInterval(animTimer); animTimer = null; }, 1600 * 6);
+}
+function resetLayers() {
+  ['row-upper','row-l1','row-l2','row-l3'].forEach(id => document.getElementById(id).classList.remove('highlight'));
+  ['d-hub','d-rep','d-bridge','d-switch','d-router','d-fw'].forEach(id => document.getElementById(id).classList.remove('pulse'));
+}
+
+/* ---- Route protocol animation ---- */
+function playRouteAnim() {
+  const boxes = ['as1','as2','as3'];
+  let i = 0;
+  boxes.forEach(id => document.getElementById(id).classList.remove('glow'));
+  const iv = setInterval(() => {
+    document.getElementById(boxes[i]).classList.add('glow');
+    i++;
+    if (i >= boxes.length) { clearInterval(iv); }
+  }, 500);
+}
+
+/* Auto-play on load */
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文写作六大部分常见问题清单 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fff7ed; color: #c2410c; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 26px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all .2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Animation area */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; overflow: hidden; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Paper flow */
+.paper-flow { display: flex; align-items: flex-start; justify-content: center; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+.paper-part { display: flex; flex-direction: column; align-items: center; gap: 6px; transition: all .3s; opacity: .5; }
+.paper-part.lit { opacity: 1; }
+.paper-part.lit .part-box { transform: scale(1.06); box-shadow: 0 0 18px rgba(37,99,235,0.25); }
+.part-box { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center; min-width: 76px; transition: all .35s; cursor: default; }
+.part-box.c1 { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.part-box.c2 { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.part-box.c3 { background: #fefce8; border: 2px solid #eab308; color: #854d0e; }
+.part-box.c4 { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.part-box.c5 { background: #fff1f2; border: 2px solid #f43f5e; color: #be123c; }
+.part-box.c6 { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.part-arrow { color: #94a3b8; font-size: 22px; line-height: 46px; padding: 0 6px; user-select: none; }
+
+.problem-list { margin-top: 10px; min-height: 82px; padding: 12px 16px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 13px; color: #475569; text-align: center; transition: all .3s; }
+.problem-list.show { border-color: #3b82f6; background: #f8fbff; }
+.problem-list .p-tag { display: inline-block; background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; padding: 2px 10px; border-radius: 14px; font-size: 12px; margin: 3px 4px; animation: popIn .35s ease; }
+@keyframes popIn { from { opacity: 0; transform: translateY(-6px) scale(.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Code area */
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .warn { color: #fbbf24; }
+
+/* Explain */
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+
+/* Tag list */
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+
+/* Pros only */
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.pros h4 { color: #15803d; margin-bottom: 8px; }
+.pros li { font-size: 13px; color: #475569; margin: 4px 0; }
+
+/* Related section */
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #0369a1; text-decoration: none; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+
+/* Exam box */
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Detail checklist cards */
+.checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.check-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; transition: all .25s; }
+.check-card:hover { border-color: #93c5fd; box-shadow: 0 4px 14px rgba(37,99,235,0.08); transform: translateY(-2px); }
+.check-card h4 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.check-card ul { padding-left: 18px; }
+.check-card li { font-size: 13px; color: #475569; margin: 3px 0; }
+.cc1 h4 { color: #1d4ed8; } .cc2 h4 { color: #15803d; } .cc3 h4 { color: #854d0e; }
+.cc4 h4 { color: #7e22ce; } .cc5 h4 { color: #be123c; } .cc6 h4 { color: #c2410c; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 论文写作 › 六大部分常见问题清单</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">论文写作</span>
+  <span class="exam-tag">⭐ 中频 · SA-26-05</span>
+  <h1>论文写作六大部分常见问题清单</h1>
+  <p class="one-liner">论文六大部分各有常见扣分陷阱，需逐一排查避免</p>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 流程演示</div>
+  <div class="tab" onclick="switchTab(this,'checklist')">📋 详细清单</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 自查伪代码</div>
+</div>
+
+<!-- 动画演示 -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 逐部分排查</button>
+    <div class="paper-flow">
+      <div class="paper-part" data-idx="0">
+        <div class="part-box c1">📄 摘要</div>
+      </div>
+      <span class="part-arrow">→</span>
+      <div class="paper-part" data-idx="1">
+        <div class="part-box c2">🏗️ 项目背景</div>
+      </div>
+      <span class="part-arrow">→</span>
+      <div class="paper-part" data-idx="2">
+        <div class="part-box c3">🔗 过渡</div>
+      </div>
+      <span class="part-arrow">→</span>
+      <div class="paper-part" data-idx="3">
+        <div class="part-box c4">📚 理论</div>
+      </div>
+      <span class="part-arrow">→</span>
+      <div class="paper-part" data-idx="4">
+        <div class="part-box c5">⚙️ 实践</div>
+      </div>
+      <span class="part-arrow">→</span>
+      <div class="paper-part" data-idx="5">
+        <div class="part-box c6">🏁 结尾</div>
+      </div>
+    </div>
+    <div class="problem-list" id="problemList">点击上方按钮，逐一排查每部分的常见问题 ↓</div>
+  </div>
+</div>
+
+<!-- 详细清单 -->
+<div id="checklist" class="tab-content">
+  <div class="checklist-grid">
+    <div class="check-card cc1">
+      <h4>📄 摘要</h4>
+      <ul>
+        <li>❌ 项目背景缺失，读者不知道在做什么</li>
+        <li>❌ 理论不足，没有点出用了什么理论/方法</li>
+        <li>❌ 草草收尾，总结句敷衍</li>
+        <li>❌ 字数不够（一般 300～500 字）</li>
+        <li>❌ <strong>分段</strong>（摘要应一整段，不拆段）</li>
+      </ul>
+    </div>
+    <div class="check-card cc2">
+      <h4>🏗️ 项目背景</h4>
+      <ul>
+        <li>❌ 正文不介绍项目，直接开写理论</li>
+        <li>❌ 非软件项目（如硬件、网络工程）</li>
+        <li>❌ 项目太陈旧（超过 3 年）</li>
+        <li>❌ 虚构项目，经不起追问</li>
+        <li>❌ 技术过旧，没有亮点</li>
+        <li>❌ "帽子太多"，堆砌无关背景</li>
+        <li>❌ 背景与所用理论不匹配</li>
+      </ul>
+    </div>
+    <div class="check-card cc3">
+      <h4>🔗 过渡</h4>
+      <ul>
+        <li>❌ 缺少过渡句，章节之间突兀跳跃</li>
+        <li>❌ 过渡生硬，套模板痕迹明显</li>
+      </ul>
+    </div>
+    <div class="check-card cc4">
+      <h4>📚 理论</h4>
+      <ul>
+        <li>❌ <strong>超 700 字</strong>，大段抄书喧宾夺主</li>
+        <li>❌ 理论缺失，全文看不出用了什么方法</li>
+        <li>❌ 未响应题干，题干要求 A 理论却写了 B</li>
+        <li>❌ 理论与实践混杂，分不清哪段在说什么</li>
+        <li>❌ 概念不清，术语用错</li>
+        <li>❌ 简单罗列，缺少与项目的关联分析</li>
+        <li>❌ 论点未讲完就换话题</li>
+      </ul>
+    </div>
+    <div class="check-card cc5">
+      <h4>⚙️ 实践</h4>
+      <ul>
+        <li>❌ 篇幅太短，实践才是论文核心</li>
+        <li>❌ 纯理论空谈，没有具体做法</li>
+        <li>❌ 知识点错误，暴露基础不牢</li>
+        <li>❌ 未围绕论点，写到哪算哪</li>
+        <li>❌ <strong>只 Why 不 How</strong>——只说为什么，不说怎么做</li>
+        <li>❌ 过于微观，陷入代码/配置细节</li>
+        <li>❌ 技术不当，用了不该用的工具</li>
+      </ul>
+    </div>
+    <div class="check-card cc6">
+      <h4>🏁 结尾</h4>
+      <ul>
+        <li>❌ 未呼应论点，首尾脱节</li>
+        <li>❌ 问题滔滔不绝，写成"检讨书"</li>
+        <li>❌ 单薄或冗长，把握不好度</li>
+        <li>❌ <strong>前后矛盾</strong>，与摘要或正文冲突</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 论文自查清单 —— 提交前逐段扫描</span>
+<span class="kw">function</span> <span class="fn">reviewPaper</span>(paper) {
+    <span class="kw">const</span> issues = [];
+
+    <span class="cm">// 1. 摘要</span>
+    <span class="kw">if</span> (paper.abstract.hasParagraphs())  issues.<span class="fn">push</span>(<span class="warn">"摘要不能分段！"</span>);
+    <span class="kw">if</span> (paper.abstract.words &lt; 300)      issues.<span class="fn">push</span>(<span class="warn">"摘要字数不够"</span>);
+    <span class="kw">if</span> (!paper.abstract.hasTheory())      issues.<span class="fn">push</span>(<span class="warn">"摘要缺少理论/方法"</span>);
+
+    <span class="cm">// 2. 项目背景</span>
+    <span class="kw">if</span> (paper.background.isTooOld())      issues.<span class="fn">push</span>(<span class="warn">"项目太陈旧"</span>);
+    <span class="kw">if</span> (!paper.background.isSoftware())   issues.<span class="fn">push</span>(<span class="warn">"必须写软件项目"</span>);
+
+    <span class="cm">// 3. 过渡</span>
+    <span class="kw">if</span> (paper.transitions.count === 0)    issues.<span class="fn">push</span>(<span class="warn">"缺少过渡句"</span>);
+
+    <span class="cm">// 4. 理论</span>
+    <span class="kw">if</span> (paper.theory.words &gt; 700)         issues.<span class="fn">push</span>(<span class="warn">"理论超 700 字！"</span>);
+    <span class="kw">if</span> (!paper.theory.matchPrompt())       issues.<span class="fn">push</span>(<span class="warn">"理论未响应题干"</span>);
+
+    <span class="cm">// 5. 实践 —— 最常扣分</span>
+    <span class="kw">if</span> (paper.practice.onlyWhyNoHow())    issues.<span class="fn">push</span>(<span class="warn">"只 Why 不 How！"</span>);
+    <span class="kw">if</span> (paper.practice.tooShort())        issues.<span class="fn">push</span>(<span class="warn">"实践篇幅太短"</span>);
+
+    <span class="cm">// 6. 结尾</span>
+    <span class="kw">if</span> (paper.conclusion.conflictsWith(paper.abstract))
+        issues.<span class="fn">push</span>(<span class="warn">"前后矛盾！"</span>);
+
+    <span class="kw">return</span> issues;
+}
+<span class="cm">// 关键：提交前跑一遍 reviewPaper()，所有 warn 清零再交！</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>论文六大部分<span class="hl">每段都有常见扣分陷阱</span>。
+  摘要不能分段、理论不能超 700 字、实践必须写 How 不能只写 Why、结尾必须<span class="hl">呼应论点、前后一致</span>。
+  写完论文后<span class="hl">对照清单逐条自查</span>，是性价比最高的提分手段。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📄 摘要不分段</span>
+  <span class="tag-item">📚 理论 ≤ 700 字</span>
+  <span class="tag-item">⚙️ 必须写 How</span>
+  <span class="tag-item">🏁 首尾呼应</span>
+  <span class="tag-item">🔗 过渡要自然</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 使用建议</h4>
+    <ul>
+      <li>对照清单自查可有效提分</li>
+      <li>写完论文逐部分扫描，消灭低级错误</li>
+      <li>重点关注高频扣分项：摘要分段、实践只 Why 不 How</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">六类常见问题</span>
+    <span class="keyword">摘要分段</span>
+    <span class="keyword">理论超700字</span>
+    <span class="keyword">只Why不How</span>
+    <span class="keyword">前后矛盾</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="SA-26-02.html">SA-26-02</a> — 论文结构与写作总纲</li>
+    <li><a href="SA-26-03.html">SA-26-03</a> — 论文各部分写法详解</li>
+    <li><strong>记忆口诀</strong>：摘不分段，理不过七，实践要 How，结尾要应</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+const problems = [
+  ['项目背景缺失', '理论不足', '草草收尾', '字数不够', '❗分段'],
+  ['正文不介绍', '非软件项目', '太陈旧', '虚构', '技术过旧', '帽子太多', '与理论不匹配'],
+  ['缺少过渡句', '过渡生硬'],
+  ['超700字', '缺失', '未响应题干', '与实践混杂', '概念不清', '简单罗列', '论点未讲完就换'],
+  ['篇幅太短', '纯理论空谈', '知识点错误', '未围绕论点', '❗只Why不How', '过于微观', '技术不当'],
+  ['未呼应论点', '问题滔滔不绝', '单薄或冗长', '❗前后矛盾']
+];
+
+function playAnimation() {
+  const parts = document.querySelectorAll('.paper-part');
+  const list = document.getElementById('problemList');
+
+  parts.forEach(p => p.classList.remove('lit'));
+  list.classList.remove('show');
+  list.innerHTML = '点击按钮开始排查…';
+
+  let idx = 0;
+  function next() {
+    if (idx >= parts.length) {
+      list.innerHTML = '✅ 全部排查完毕！提交前确认以上问题都已避免。';
+      list.classList.add('show');
+      return;
+    }
+    // light up current
+    parts[idx].classList.add('lit');
+    // show problems
+    list.innerHTML = '<strong style="color:#1e40af">正在检查：' +
+      parts[idx].querySelector('.part-box').textContent.trim() +
+      '</strong><br>';
+    const tags = problems[idx];
+    tags.forEach((t, i) => {
+      setTimeout(() => {
+        const span = document.createElement('span');
+        span.className = 'p-tag';
+        span.textContent = t;
+        list.appendChild(span);
+      }, i * 180);
+    });
+    setTimeout(() => {
+      list.classList.add('show');
+    }, 100);
+
+    idx++;
+    setTimeout(next, tags.length * 180 + 900);
+  }
+
+  setTimeout(next, 300);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

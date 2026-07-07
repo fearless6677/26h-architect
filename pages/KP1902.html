@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式处理器五大分类与看门狗机制 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 嵌入式硬件架构 › 嵌入式处理器五大分类与看门狗机制</span></nav>
+<div class="ct">
+<div><span class="tag c">嵌入式硬件架构</span><span class="tag e">高</span>
+<h1>嵌入式处理器五大分类与看门狗机制</h1><p class="ol">嵌入式处理器分为MPU、MCU、DSP、GPU、SoC五类，DSP采用哈佛结构，SoC支持片内再编程</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>嵌入式处理器分为五大类：(1)微处理器(MPU)：体积小、重量轻、成本低、可靠性高，但技术保密性差；(2)微控制器(MCU)：单片化、体积小、功耗低、成本低、可靠性更高；(3)信号处理器(DSP)：系统结构和指令采用特殊设计，通常采用哈佛结构，编译效率高、指令执行速度快；(4)图形处理器(GPU)：专注于浮点运算，弥补CPU运算速度不足；(5)片上系统(SoC)：采用片内再编程技术，可使片上系统内硬件功能像软件一样通过编程配置，实时灵活修改和开发。此外还需掌握看门狗(WatchDog)原理：计数器自动计数，程序定期重置，系统卡死时计数器溢出触发复位重启。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">ES-19-02</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>MPU应用：通用嵌入式计算场景</li><li>MCU应用：家电控制、传感器节点（单片化低功耗）</li><li>DSP应用：音频/视频信号处理（哈佛结构高执行速度）</li><li>GPU应用：图形渲染、AI推理加速（浮点运算）</li><li>SoC应用：智能手机芯片（片内再编程，硬件功能可编程配置）</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>分类清晰，五类处理器各有特点易于对比记忆</li><li>SoC的片内再编程灵活性是重要考点</li><li>看门狗原理是案例题常考知识点</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>MPU技术保密性差</li><li>MCU通用性较弱</li><li>DSP应用范围相对专业，需特殊架构设计</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">MPU</span><span class="k">MCU</span><span class="k">DSP</span><span class="k">GPU</span><span class="k">SoC</span><span class="k">哈佛结构</span><span class="k">片内再编程</span><span class="k">浮点运算</span><span class="k">看门狗</span><span class="k">WatchDog</span><span class="k">嵌入式处理器分类</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="KP1901.html">KP1901</a></li><li><a href="KP1903.html">KP1903</a></li><li><a href="KP1904.html">KP1904</a></li></ul></div>
+</div></body></html>

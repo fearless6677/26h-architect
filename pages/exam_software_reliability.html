@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件可靠性设计技术 · 系统架构设计师</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}.nav .bc{color:#64748b;font-size:13px;margin-left:12px}.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}li{font-size:13px;color:#475569;margin:4px 0}.kw{display:flex;gap:8px;flex-wrap:wrap}.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}.rel h4{color:#0369a1;margin-bottom:8px}</style>
+</head><body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 真题高频考点 › 软件可靠性设计技术</span></nav>
+<div class="ct">
+<div><span class="tag c">真题高频考点</span><span class="tag e">高频考点</span>
+<h1>软件可靠性设计技术</h1><p class="ol">可靠性计算（串并联可靠度）、容错设计（N版本程序、恢复块、冗余）和检错技术是高频考点</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>(1)可靠性基本指标：可靠度（规定条件下规定时间内不失效的概率）、失效率（单位时间失效概率）、MTBF（平均无失效时间）、MTTR（平均修复时间）；(2)组合模型：串联系统R=R1×R2×...×Rn，并联系统R=1-(1-R1)×(1-R2)×...×(1-Rn)；(3)容错设计技术：恢复块设计（运行文本+备份文本，动态冗余）、N版本程序设计（N个独立设计的版本同时执行，多数表决）、冗余设计（不同路径/算法的备份模块）；(4)检错技术：代价低于容错但不能自动解决故障，实现方式有判断返回结果、计算运行时间、置状态标志位；(5)降低复杂度设计：简化软件结构提高可靠性。</p></div>
+
+<div class="s"><h3>📌 真题举例</h3><ul><li>2010年：嵌入式系统故障分类（硬件/应用/操作系统），滤波算法（门限/递减/递增/周期），容错算法（N+1备份/冷备/温备/热备）</li><li>2011年：串联系统4个模块可靠度0.99^4=0.96，动态冗余后并联可靠度计算</li><li>2013年论文题：论软件可靠性设计技术的应用，FMEA故障模式影响分析</li></ul></div>
+
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">可靠度</span><span class="k">失效率</span><span class="k">串联</span><span class="k">并联</span><span class="k">容错设计</span><span class="k">N版本程序</span><span class="k">恢复块</span><span class="k">冗余</span><span class="k">检错技术</span><span class="k">FMEA</span></div></div>
+
+</div></body></html>

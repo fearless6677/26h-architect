@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云原生架构原则 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 280px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.exam-box .weight { font-size: 13px; color: #b45309; margin-top: 8px; font-weight: 600; }
+
+/* 七大原则动画 */
+.principle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin: 12px 0; }
+.principle-card { display: flex; flex-direction: column; align-items: center; padding: 14px 10px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; border: 2px solid transparent; transition: all 0.4s ease; cursor: default; opacity: 0.7; }
+.principle-card .icon { font-size: 28px; margin-bottom: 6px; }
+.principle-card .label { font-size: 12px; color: #475569; margin-top: 4px; }
+.principle-card.c1 { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+.principle-card.c2 { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+.principle-card.c3 { background: #fefce8; border-color: #eab308; color: #854d0e; }
+.principle-card.c4 { background: #fef2f2; border-color: #ef4444; color: #b91c1c; }
+.principle-card.c5 { background: #f5f3ff; border-color: #8b5cf6; color: #6d28d9; }
+.principle-card.c6 { background: #ecfeff; border-color: #06b6d4; color: #0e7490; }
+.principle-card.c7 { background: #fff1f2; border-color: #f43f5e; color: #be123c; }
+.principle-card.glow { transform: scale(1.08); box-shadow: 0 0 20px rgba(37,99,235,0.3); opacity: 1; }
+
+.center-core { text-align: center; margin: 16px 0 8px; padding: 12px; background: linear-gradient(135deg, #dbeafe, #ede9fe); border-radius: 10px; border: 1px solid #a5b4fc; }
+.center-core .core-text { font-size: 13px; color: #1e40af; font-weight: 600; }
+.center-core .core-sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 云原生架构内涵 › 云原生架构原则</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">云原生架构内涵</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hour-tag">📕 第17小时 17.1节</span>
+  <h1>云原生架构原则</h1>
+  <p class="one-liner">云原生架构七大原则：服务化、弹性、可观测、韧性、自动化、零信任、架构持续演进。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="center-core">
+      <div class="core-text">🎯 核心目标：最大化剥离非业务代码，让云设施接管非功能特性</div>
+      <div class="core-sub">弹性 · 韧性 · 安全 · 可观测性 · 灰度 → 全部交给云</div>
+    </div>
+
+    <div class="principle-grid">
+      <div class="principle-card c1" id="p1">
+        <span class="icon">🧩</span>
+        服务化
+        <span class="label">模块按生命周期分离</span>
+      </div>
+      <div class="principle-card c2" id="p2">
+        <span class="icon">📈</span>
+        弹性
+        <span class="label">随业务量自动伸缩</span>
+      </div>
+      <div class="principle-card c3" id="p3">
+        <span class="icon">🔭</span>
+        可观测
+        <span class="label">日志/链路/度量</span>
+      </div>
+      <div class="principle-card c4" id="p4">
+        <span class="icon">🛡️</span>
+        韧性
+        <span class="label">异常时抵御能力</span>
+      </div>
+      <div class="principle-card c5" id="p5">
+        <span class="icon">🤖</span>
+        自动化
+        <span class="label">交付与运维自动化</span>
+      </div>
+      <div class="principle-card c6" id="p6">
+        <span class="icon">🔐</span>
+        零信任
+        <span class="label">不信任任何人/设备</span>
+      </div>
+      <div class="principle-card c7" id="p7">
+        <span class="icon">🔄</span>
+        持续演进
+        <span class="label">架构具备演进能力</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 云原生架构七大原则 —— 伪代码速记</span>
+
+<span class="kw">class</span> <span class="fn">CloudNativeArch</span> {
+    <span class="cm">// 核心：最大化剥离非业务代码，让云设施接管非功能特性</span>
+
+    <span class="cm">// 原则① 服务化 —— 不同生命周期模块分离</span>
+    <span class="kw">principle</span> <span class="fn">服务化</span>() { 微服务拆分, 接口隔离 }
+
+    <span class="cm">// 原则② 弹性 —— 部署规模随业务量自动伸缩</span>
+    <span class="kw">principle</span> <span class="fn">弹性</span>() { <span class="kw">if</span> 业务量↑ → auto_scale_up() }
+
+    <span class="cm">// 原则③ 可观测 —— 日志 + 链路跟踪 + 度量</span>
+    <span class="kw">principle</span> <span class="fn">可观测</span>() { logging + tracing + metrics }
+
+    <span class="cm">// 原则④ 韧性 —— 组件异常时软件抵御能力</span>
+    <span class="kw">principle</span> <span class="fn">韧性</span>() { 熔断 + 降级 + 重试 + 限流 }
+
+    <span class="cm">// 原则⑤ 所有过程自动化 —— CI/CD + IaC</span>
+    <span class="kw">principle</span> <span class="fn">自动化</span>() { 交付自动化 + 运维自动化 }
+
+    <span class="cm">// 原则⑥ 零信任 —— 不信任网络内外部任何人/设备/系统</span>
+    <span class="kw">principle</span> <span class="fn">零信任</span>() { 认证 + 授权, <span class="st">"永不信任, 始终验证"</span> }
+
+    <span class="cm">// 原则⑦ 架构持续演进 —— 架构具备持续演进能力</span>
+    <span class="kw">principle</span> <span class="fn">持续演进</span>() { 渐进式改进, 避免大爆炸重构 }
+}
+
+<span class="cm">// ⚠️ 考试陷阱：接口隔离原则是面向对象设计原则，不属于云原生！</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>云原生架构是基于云原生技术的一组<span class="hl">架构原则和设计模式</span>的集合，
+  旨在将云应用中的<span class="hl">非业务代码部分进行最大化剥离</span>，让云设施接管应用中的非功能特性（如弹性、韧性、安全、可观测性、灰度等）。
+  七大原则涵盖从服务化拆分到持续演进的完整体系。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🛒 弹性：电商大促自动扩容，活动结束自动缩容</span>
+  <span class="tag-item">⚠️ 陷阱：接口隔离原则是OOP原则，非云原生！</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>业务代码与非功能特性解耦</li>
+      <li>高度自动化</li>
+      <li>敏捷交付</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 局限</h4>
+    <ul>
+      <li>无法接管所有非功能特性</li>
+      <li>需要架构持续投入演进</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">服务化原则</span>
+    <span class="keyword">弹性原则</span>
+    <span class="keyword">可观测原则</span>
+    <span class="keyword">韧性原则</span>
+    <span class="keyword">零信任原则</span>
+    <span class="keyword">架构持续演进</span>
+    <span class="keyword">非业务代码剥离</span>
+  </div>
+  <div class="weight">📊 分值：2~4分（单选）+ 案例/论文</div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="17-2.html" style="color:#0369a1;text-decoration:none;font-weight:600;">17-2 云原生架构设计模式</a> — 原则落地为具体模式（如Sidecar、Service Mesh等）</li>
+    <li><a href="17-3.html" style="color:#0369a1;text-decoration:none;font-weight:600;">17-3 云原生技术体系</a> — 容器、微服务、DevOps等技术支撑原则实现</li>
+    <li><a href="17-5.html" style="color:#0369a1;text-decoration:none;font-weight:600;">17-5 云原生架构实践案例</a> — 原则在实际项目中的综合运用</li>
+    <li><strong>记忆口诀</strong>：「服弹观韧自零演」—— 服务化、弹性、可观测、韧性、自动化、零信任、持续演进</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+
+function playAnimation() {
+  if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+  const cards = [];
+  for (let i = 1; i <= 7; i++) cards.push(document.getElementById('p' + i));
+
+  // Reset
+  cards.forEach(c => c.classList.remove('glow'));
+
+  // Sequential glow
+  cards.forEach((c, idx) => {
+    setTimeout(() => {
+      c.classList.add('glow');
+      setTimeout(() => c.classList.remove('glow'), 600);
+    }, idx * 450);
+  });
+
+  // Final: all glow together
+  animTimer = setTimeout(() => {
+    cards.forEach(c => c.classList.add('glow'));
+    setTimeout(() => cards.forEach(c => c.classList.remove('glow')), 1500);
+  }, 7 * 450 + 200);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

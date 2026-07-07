@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构定义与生命周期 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .br { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Lifecycle animation */
+.lifecycle-track { display: flex; align-items: stretch; justify-content: space-between; gap: 0; margin: 20px 0; position: relative; }
+.lifecycle-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.lifecycle-node { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid #cbd5e1; background: #fff; transition: all 0.4s ease; }
+.lifecycle-node.active { border-color: #2563eb; background: #eff6ff; transform: scale(1.15); box-shadow: 0 0 20px rgba(37,99,235,0.3); }
+.lifecycle-label { font-size: 12px; color: #64748b; margin-top: 8px; text-align: center; font-weight: 600; transition: color 0.3s; }
+.lifecycle-node.active + .lifecycle-label, .lifecycle-step.active-step .lifecycle-label { color: #1d4ed8; }
+.lifecycle-arrow { position: absolute; top: 28px; left: 50%; width: 100%; height: 3px; background: #cbd5e1; z-index: 0; }
+.lifecycle-arrow .flow-dot { position: absolute; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; opacity: 0; }
+.lifecycle-desc { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-top: 16px; font-size: 13px; color: #1e40af; min-height: 48px; transition: all 0.3s; text-align: center; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+
+/* Three elements card */
+.three-elements { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+.element-card { flex: 1; min-width: 160px; background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; transition: all 0.3s; }
+.element-card:hover { border-color: #3b82f6; transform: translateY(-4px); box-shadow: 0 8px 24px rgba(37,99,235,0.12); }
+.element-card .icon { font-size: 28px; margin-bottom: 8px; }
+.element-card h5 { color: #1e293b; font-size: 14px; margin-bottom: 4px; }
+.element-card p { color: #64748b; font-size: 12px; }
+
+/* Example cards */
+.example-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.example-card { background: linear-gradient(135deg, #faf5ff, #f0f9ff); border: 1px solid #c4b5fd; border-radius: 8px; padding: 14px; }
+.example-card h5 { color: #6d28d9; font-size: 13px; margin-bottom: 6px; }
+.example-card p { color: #475569; font-size: 12px; }
+@media (max-width: 600px) { .example-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 架构基础 › 软件架构定义与生命周期</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">架构基础</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>软件架构定义与生命周期</h1>
+  <p class="one-liner">软件架构是系统结构(构件+属性+关系)的描述，贯穿全生命周期</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 生命周期动画</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'elements')">🧩 三要素</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playLifecycle()">▶ 播放</button>
+    <div style="text-align:center;font-size:13px;color:#64748b;margin-bottom:8px;">软件生命周期各阶段的架构工作</div>
+    <div class="lifecycle-track" id="lifecycleTrack">
+      <div class="lifecycle-step" data-idx="0">
+        <div class="lifecycle-node" id="lc0">📋</div>
+        <div class="lifecycle-label">需求分析</div>
+      </div>
+      <div class="lifecycle-step" data-idx="1">
+        <div class="lifecycle-node" id="lc1">✏️</div>
+        <div class="lifecycle-label">设计</div>
+      </div>
+      <div class="lifecycle-step" data-idx="2">
+        <div class="lifecycle-node" id="lc2">⚙️</div>
+        <div class="lifecycle-label">实现</div>
+      </div>
+      <div class="lifecycle-step" data-idx="3">
+        <div class="lifecycle-node" id="lc3">🔗</div>
+        <div class="lifecycle-label">构件组装</div>
+      </div>
+      <div class="lifecycle-step" data-idx="4">
+        <div class="lifecycle-node" id="lc4">🚀</div>
+        <div class="lifecycle-label">部署</div>
+      </div>
+      <div class="lifecycle-step" data-idx="5">
+        <div class="lifecycle-node" id="lc5">🔄</div>
+        <div class="lifecycle-label">后开发</div>
+      </div>
+    </div>
+    <div class="lifecycle-desc" id="lifecycleDesc">点击 ▶ 查看各阶段架构工作</div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 软件架构核心三要素</span>
+<span class="kw">Structure</span> = <span class="br">{</span>
+  <span class="fn">构件</span>: [<span class="st">模块</span>, <span class="st">类</span>, <span class="st">中间件</span>],       <span class="cm">// 系统的构建块</span>
+  <span class="fn">外部可见属性</span>: 构件对外暴露的特性,   <span class="cm">// 不是内部细节!</span>
+  <span class="fn">关系</span>: 构件间相互作用              <span class="cm">// 连接子/调用关系</span>
+<span class="br">}</span>
+
+<span class="cm">// 各生命周期阶段架构工作</span>
+<span class="kw">LifecycleSA</span> = <span class="br">{</span>
+  <span class="fn">需求分析</span>: <span class="st">"问题空间→解空间, 关注可追踪性"</span>,
+  <span class="fn">设计</span>:   <span class="st">"SA模型描述, ADL, 多视图(4+1模型)"</span>,
+  <span class="fn">实现</span>:   <span class="st">"SA→实现转换, SA测试"</span>,
+  <span class="fn">构件组装</span>: <span class="st">"复用构件互联, 检测失配"</span>,
+  <span class="fn">部署</span>:   <span class="st">"软硬件架构视图, 部署方案评估"</span>,
+  <span class="fn">后开发</span>:  <span class="st">"动态SA, 架构恢复与重建"</span>
+<span class="br">}</span></pre>
+</div>
+
+<div id="elements" class="tab-content">
+  <div class="three-elements">
+    <div class="element-card">
+      <div class="icon">🧱</div>
+      <h5>构件</h5>
+      <p>模块、类、中间件等系统的基本构建单元</p>
+    </div>
+    <div class="element-card">
+      <div class="icon">👁️</div>
+      <h5>外部可见属性</h5>
+      <p>构件对外暴露的接口、性能等特性（非内部实现细节）</p>
+    </div>
+    <div class="element-card">
+      <div class="icon">🔗</div>
+      <h5>关系</h5>
+      <p>构件间的相互作用，通过连接子（Connector）实现</p>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>本质：</strong>架构 ≠ 代码结构。架构关注的是<span class="hl">外部可见行为</span>，不是内部实现。
+    两个内部实现完全不同但对外表现一致的系统，可以拥有<span class="hl">相同的架构</span>。
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心定义：</strong>软件架构是指系统的<span class="hl">一个或多个结构</span>，包括软件构件（模块、类、中间件）、
+  构件的<span class="hl">外部可见属性</span>及其<span class="hl">相互关系</span>。
+  架构贯穿整个软件生命周期，在需求、设计、实现、组装、部署、后开发各阶段发挥不同作用。
+  架构设计是<span class="hl">降低成本、改进质量、按时按需交付</span>的关键因素。
+</div>
+
+<div class="example-grid">
+  <div class="example-card">
+    <h5>📐 4+1 视图模型</h5>
+    <p>逻辑视图 + 进程视图 + 物理视图 + 开发视图 + 场景视图<br>— 多角度完整描述架构</p>
+  </div>
+  <div class="example-card">
+    <h5>🗣️ ADL 架构描述语言</h5>
+    <p>Unicon, Rapide, Darwin, Wright, Acme, XYZ/ADL, ABC/ADL<br>— 形式化描述架构结构</p>
+  </div>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏗️ 架构 = 结构 + 行为</span>
+  <span class="tag-item">📐 4+1视图(逻辑+进程+物理+开发+场景)</span>
+  <span class="tag-item">🗣️ ADL形式化描述</span>
+  <span class="tag-item">🔄 贯穿全生命周期</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 架构设计的价值</h4>
+    <ul>
+      <li>满足系统品质（性能、安全、可用性）</li>
+      <li>使受益人达成一致</li>
+      <li>支持计划编制</li>
+      <li>指导开发团队实施</li>
+      <li>管理复杂性</li>
+      <li>为复用奠基</li>
+      <li>降低维护费用</li>
+      <li>支持冲突分析</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 易混淆点</h4>
+    <ul>
+      <li>架构 ≠ 详细设计（架构关注构件间，不关注构件内）</li>
+      <li>架构 ≠ 代码结构（关注外部可见，非内部实现）</li>
+      <li>架构决策应尽早做出（越晚改动代价越大）</li>
+      <li>ADL ≠ 编程语言（是形式化描述工具）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">构件</span>
+    <span class="keyword">外部可见属性</span>
+    <span class="keyword">连接子</span>
+    <span class="keyword">ADL</span>
+    <span class="keyword">多视图</span>
+    <span class="keyword">4+1模型</span>
+    <span class="keyword">生命周期</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>ABSD（架构驱动方法）</strong> — 基于架构的软件设计，SA 是核心驱动力</li>
+    <li><strong>架构风格</strong> — 管道-过滤器、分层、事件驱动等，定义构件与关系的通用模式</li>
+    <li><strong>DSSA</strong> — 特定领域软件架构，在特定领域内复用架构知识</li>
+    <li><strong>质量属性</strong> — 架构决策直接影响性能、可用性、安全性等质量属性</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+const lifecycleData = [
+  { title: '需求分析', desc: '问题空间→解空间映射，关注需求的可追踪性，确保架构能满足业务需求' },
+  { title: '设计', desc: '建立SA模型，使用ADL描述架构，采用多视图（4+1模型）从不同角度展现系统' },
+  { title: '实现', desc: '将架构设计转换为代码实现，进行SA测试验证架构正确性' },
+  { title: '构件组装', desc: '复用已有构件进行互联，检测接口失配（mismatch），确保构件协作正常' },
+  { title: '部署', desc: '建立软硬件架构视图，评估部署方案，确保运行环境匹配架构需求' },
+  { title: '后开发', desc: '动态架构调整，架构恢复（从代码反推架构），架构重建与演化' }
+];
+
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playLifecycle() {
+  const desc = document.getElementById('lifecycleDesc');
+  const nodes = document.querySelectorAll('.lifecycle-node');
+  const steps = document.querySelectorAll('.lifecycle-step');
+
+  // Reset
+  nodes.forEach(n => n.classList.remove('active'));
+  steps.forEach(s => s.classList.remove('active-step'));
+  desc.textContent = '点击 ▶ 查看各阶段架构工作';
+
+  lifecycleData.forEach((item, i) => {
+    setTimeout(() => {
+      // Clear previous
+      nodes.forEach(n => n.classList.remove('active'));
+      steps.forEach(s => s.classList.remove('active-step'));
+      // Activate current
+      nodes[i].classList.add('active');
+      steps[i].classList.add('active-step');
+      desc.textContent = `【${item.title}】${item.desc}`;
+    }, i * 1200);
+  });
+
+  // Final summary
+  setTimeout(() => {
+    nodes.forEach(n => n.classList.add('active'));
+    steps.forEach(s => s.classList.add('active-step'));
+    desc.textContent = '✅ 架构贯穿整个软件生命周期，是降低成本、改进质量、按时交付的关键！';
+  }, lifecycleData.length * 1200 + 400);
+}
+
+window.addEventListener('load', () => setTimeout(playLifecycle, 800));
+</script>
+</body>
+</html>

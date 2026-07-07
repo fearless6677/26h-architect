@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMM/CMMI成熟度模型 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› CMM/CMMI成熟度模型 › CMM/CMMI成熟度模型</span></nav>
+<div class="ct">
+<div><span class="tag c">CMM/CMMI成熟度模型</span><span class="tag e">高频</span>
+<h1>CMM/CMMI成熟度模型</h1><p class="ol">CMMI是评估软件开发团队'成熟度'的5级阶梯，从混乱到持续优化。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>CMMI(软件能力成熟度模型集成)在CMM基础上发展而来，将软件过程改进分为5个等级：初始级→已管理级→已定义级→量化管理级→优化级。核心考点：量化管理级与已定义级的区别在于对过程性能的可预测性——量化管理级能用统计方法预测过程和产品质量。CMM是概念模型，框架刚性但解释和实现有弹性。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// CMMI五个成熟度等级(从低到高)
+Level 1: 初始级     → 无序，靠个人能力
+Level 2: 已管理级   → 项目级管理
+Level 3: 已定义级   → 组织级标准过程
+Level 4: 量化管理级 → 过程和产品质量可预测(关键区分点)
+Level 5: 优化级     → 持续改进
+
+// Level 4 vs Level 3 核心区别
+Level 3: 有标准流程，但结果不完全可预测
+Level 4: 用统计方法管理，过程性能可预测</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>初始级：项目管理混乱，成功靠个人英雄</li><li>已管理级：项目有计划和跟踪，但各项目管理方式不同</li><li>已定义级：组织有统一的标准过程，所有项目都遵循</li><li>量化管理级：用统计数据量化管理过程和产品质量</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>提供明确的过程改进路径</li><li>帮助组织系统提升软件质量</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>模型框架刚性，不能随意改变</li><li>实施成本高，需要大量文档</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">CMM</span><span class="k">CMMI</span><span class="k">成熟度等级</span><span class="k">初始级</span><span class="k">已管理级</span><span class="k">已定义级</span><span class="k">量化管理级</span><span class="k">优化级</span><span class="k">过程性能可预测</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="sw_process_models.html">软件过程模型</a></li><li><span style="color:#94a3b8;font-size:12px">[软件质量管理]</span></li><li><a href="project_management.html">软件项目管理</a></li></ul></div>
+</div></body></html>

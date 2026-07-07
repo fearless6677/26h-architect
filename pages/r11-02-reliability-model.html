@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件可靠性建模方法 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all .2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.example-box { background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.example-box h4 { color: #0369a1; margin-bottom: 8px; }
+.example-box p { font-size: 13px; color: #475569; margin: 4px 0; }
+
+/* 10方法网格 */
+.method-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+.method-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; transition: all .35s ease; cursor: default; position: relative; overflow: hidden; }
+.method-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 4px 0 0 4px; transition: background .3s; }
+.method-card:nth-child(1)::before { background: #3b82f6; } .method-card:nth-child(2)::before { background: #8b5cf6; }
+.method-card:nth-child(3)::before { background: #06b6d4; } .method-card:nth-child(4)::before { background: #22c55e; }
+.method-card:nth-child(5)::before { background: #f59e0b; } .method-card:nth-child(6)::before { background: #ef4444; }
+.method-card:nth-child(7)::before { background: #ec4899; } .method-card:nth-child(8)::before { background: #14b8a6; }
+.method-card:nth-child(9)::before { background: #6366f1; } .method-card:nth-child(10)::before { background: #f97316; }
+.method-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); border-color: #93c5fd; }
+.method-card .m-num { font-size: 11px; color: #94a3b8; font-weight: 700; }
+.method-card .m-name { font-size: 14px; font-weight: 700; color: #1e293b; margin: 2px 0 4px; }
+.method-card .m-desc { font-size: 12px; color: #64748b; line-height: 1.6; }
+
+/* 影响因素 */
+.factor-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 16px 0; }
+.factor-box { display: flex; flex-direction: column; align-items: center; padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; min-width: 100px; transition: all .35s; }
+.factor-box.env { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.factor-box.scale { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.factor-box.struct { background: #fdf4ff; border: 2px solid #a855f7; color: #7e22ce; }
+.factor-box.dev { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.factor-box.invest { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.factor-box .f-icon { font-size: 22px; margin-bottom: 4px; }
+.factor-box:hover { transform: scale(1.06); }
+
+/* 核心流程动画 */
+.flow-center { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 16px 0; }
+.flow-model { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.flow-step { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all .4s; opacity: 0.5; }
+.flow-step.active { opacity: 1; transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.35); }
+.flow-step.s1 { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.flow-step.s2 { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.flow-step.s3 { background: #fdf4ff; border: 2px solid #a855f7; color: #7e22ce; }
+.flow-arrow { font-size: 18px; color: #94a3b8; transition: color .3s; }
+.flow-arrow.active { color: #2563eb; }
+.result-box { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 2px solid #3b82f6; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 700; color: #1e40af; text-align: center; transition: all .5s; opacity: 0; transform: translateY(8px); }
+.result-box.show { opacity: 1; transform: translateY(0); }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background .2s; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 可靠性建模 › 软件可靠性建模方法</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">可靠性建模</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hour-tag">📖 第11小时</span>
+  <h1>软件可靠性建模方法</h1>
+  <p class="one-liner">用数学模型描述软件失效行为以预测可靠性</p>
+</div>
+
+<!-- ========== 动画演示 ========== -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'methods')">📊 10种方法</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <p style="font-size:13px;color:#64748b;text-align:center;margin-bottom:12px;">影响因素 → 建模流程 → 可靠性预测</p>
+
+    <!-- 影响因素 -->
+    <div class="factor-row">
+      <div class="factor-box env" id="f1"><span class="f-icon">🌐</span>运行环境</div>
+      <div class="factor-box scale" id="f2"><span class="f-icon">📐</span>软件规模</div>
+      <div class="factor-box struct" id="f3"><span class="f-icon">🏗️</span>内部结构</div>
+      <div class="factor-box dev" id="f4"><span class="f-icon">⚙️</span>开发方法</div>
+      <div class="factor-box invest" id="f5"><span class="f-icon">💰</span>投入资源</div>
+    </div>
+
+    <!-- 建模流程 -->
+    <div class="flow-center">
+      <div class="flow-model">
+        <div class="flow-step s1" id="ms1">📥 收集失效数据</div>
+        <span class="flow-arrow" id="a1">→</span>
+        <div class="flow-step s2" id="ms2">📐 选择数学模型</div>
+        <span class="flow-arrow" id="a2">→</span>
+        <div class="flow-step s3" id="ms3">📈 参数估计与拟合</div>
+      </div>
+      <div class="result-box" id="result">🎯 预测软件可靠性 R(t)</div>
+    </div>
+  </div>
+
+  <div class="example-box">
+    <h4>💡 种子法示例</h4>
+    <p>植入 <strong>10</strong> 个已知缺陷 → 测试发现 <strong>8</strong> 个已知 + <strong>30</strong> 个未知</p>
+    <p>估算总缺陷 ≈ 10 × (8+30) / 8 = <strong>47.5 个</strong></p>
+  </div>
+
+  <div class="example-box">
+    <h4>💡 NHPP模型示例</h4>
+    <p>适用于<strong>可靠性增长测试阶段</strong>，失效率随测试时间递减。</p>
+    <p>发现并修复缺陷越多，后续失效率越低 → 可靠性逐步增长。</p>
+  </div>
+</div>
+
+<!-- ========== 10种方法 ========== -->
+<div id="methods" class="tab-content">
+  <div class="method-grid">
+    <div class="method-card"><span class="m-num">#01</span><div class="m-name">种子法</div><div class="m-desc">植入已知缺陷，根据发现比例反推总缺陷数</div></div>
+    <div class="method-card"><span class="m-num">#02</span><div class="m-name">失效率类模型</div><div class="m-desc">如Jelinski-Moranda模型，描述失效率随时间变化</div></div>
+    <div class="method-card"><span class="m-num">#03</span><div class="m-name">曲线拟合类</div><div class="m-desc">用数学曲线拟合历史失效数据，外推预测</div></div>
+    <div class="method-card"><span class="m-num">#04</span><div class="m-name">可靠性增长模型</div><div class="m-desc">测试中修复缺陷，可靠性逐步提升的建模</div></div>
+    <div class="method-card"><span class="m-num">#05</span><div class="m-name">程序结构分析</div><div class="m-desc">分析模块复杂度、耦合度评估可靠性</div></div>
+    <div class="method-card"><span class="m-num">#06</span><div class="m-name">输入域分类</div><div class="m-desc">按输入类别划分，分别估计各类可靠性</div></div>
+    <div class="method-card"><span class="m-num">#07</span><div class="m-name">执行路径分析</div><div class="m-desc">分析程序执行路径覆盖来评估可靠性</div></div>
+    <div class="method-card"><span class="m-num">#08</span><div class="m-name">NHPP 非齐次泊松</div><div class="m-desc">失效率随时间变化的泊松过程，适合增长测试</div></div>
+    <div class="method-card"><span class="m-num">#09</span><div class="m-name">马尔可夫模型</div><div class="m-desc">状态转移概率建模，适合有状态切换的场景</div></div>
+    <div class="method-card"><span class="m-num">#10</span><div class="m-name">贝叶斯分析</div><div class="m-desc">结合先验知识与观测数据，后验更新可靠性估计</div></div>
+  </div>
+</div>
+
+<!-- ========== 伪代码 ========== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 10种建模方法 —— 各有适用场景</span>
+<span class="fn">seed_method</span>()         <span class="cm">// 种子法：植入已知缺陷反推总数</span>
+<span class="fn">failure_rate_model</span>()  <span class="cm">// 失效率类：如Jelinski-Moranda模型</span>
+<span class="fn">curve_fitting</span>()       <span class="cm">// 曲线拟合类</span>
+<span class="fn">reliability_growth</span>()  <span class="cm">// 可靠性增长模型</span>
+<span class="fn">structure_analysis</span>()  <span class="cm">// 程序结构分析</span>
+<span class="fn">input_domain_class</span>()  <span class="cm">// 输入域分类</span>
+<span class="fn">path_analysis</span>()       <span class="cm">// 执行路径分析</span>
+<span class="fn">NHPP</span>()                <span class="cm">// 非齐次泊松过程</span>
+<span class="fn">markov_model</span>()        <span class="cm">// 马尔可夫过程</span>
+<span class="fn">bayesian_model</span>()      <span class="cm">// 贝叶斯分析</span>
+
+<span class="cm">// 选择模型三要素：</span>
+<span class="cm">//   1. 假设适用性 — 模型前提是否匹配实际场景</span>
+<span class="cm">//   2. 预测能力   — 能否准确预测未来失效行为</span>
+<span class="cm">//   3. 简便性     — 数据需求与计算复杂度是否可行</span></pre>
+</div>
+
+<!-- 核心解释 -->
+<div class="explain">
+  <strong>核心：</strong>软件可靠性建模是通过<span class="hl">数学方法</span>对软件失效行为进行描述和预测。
+  影响因素包括<span class="hl">运行环境、软件规模、内部结构、开发方法与投入</span>。
+  10种建模方法各有适用场景，选择模型需考虑<span class="hl">假设适用性、预测能力和简便性</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🌱 种子法：植入缺陷反推</span>
+  <span class="tag-item">📉 失效率模型：J-M模型</span>
+  <span class="tag-item">📈 可靠性增长：NHPP</span>
+  <span class="tag-item">🔀 马尔可夫：状态转移</span>
+  <span class="tag-item">🎲 贝叶斯：先验+观测</span>
+  <span class="tag-item">🧩 结构分析：模块复杂度</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>用数学量化可靠性，避免主观猜测</li>
+      <li>可预测未来失效趋势，指导测试策略</li>
+      <li>多种方法可选，灵活适配不同场景</li>
+      <li>支持可靠性增长评估，衡量测试效果</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点/挑战</h4>
+    <ul>
+      <li>模型假设可能与实际不符</li>
+      <li>需要足够的失效数据支撑</li>
+      <li>不同模型结果可能差异大</li>
+      <li>软件失效不像硬件那样有明确物理规律</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">种子法</span>
+    <span class="keyword">失效率类</span>
+    <span class="keyword">曲线拟合</span>
+    <span class="keyword">可靠性增长</span>
+    <span class="keyword">NHPP</span>
+    <span class="keyword">马尔可夫</span>
+    <span class="keyword">贝叶斯</span>
+    <span class="keyword">运行环境</span>
+    <span class="keyword">软件规模</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong><a href="r11-01-software-reliability-def.html" style="color:#0369a1;">软件可靠性定义 (r11-01)</a></strong> = 本节点的前置概念：什么是软件可靠性</li>
+    <li><strong><a href="r11-06-reliability-evaluation.html" style="color:#0369a1;">可靠性评估 (r11-06)</a></strong> = 建模之后的下一步：用模型结果进行评估决策</li>
+    <li><strong>vs 硬件可靠性</strong>：软件不会"磨损"，失效源于设计缺陷而非老化</li>
+    <li><strong>NHPP vs 马尔可夫</strong>：NHPP关注失效率变化趋势，马尔可夫关注状态间转移概率</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  if (animTimer) { clearInterval(animTimer); animTimer = null; }
+  // Reset
+  ['f1','f2','f3','f4','f5'].forEach(id => document.getElementById(id).style.transform = '');
+  ['ms1','ms2','ms3'].forEach(id => document.getElementById(id).classList.remove('active'));
+  ['a1','a2'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('result').classList.remove('show');
+
+  let step = 0;
+  const sequence = [
+    () => { document.getElementById('f1').style.transform = 'scale(1.08)'; },
+    () => { document.getElementById('f2').style.transform = 'scale(1.08)'; },
+    () => { document.getElementById('f3').style.transform = 'scale(1.08)'; },
+    () => { document.getElementById('f4').style.transform = 'scale(1.08)'; },
+    () => { document.getElementById('f5').style.transform = 'scale(1.08)'; },
+    () => {
+      // Reset factors, start flow
+      ['f1','f2','f3','f4','f5'].forEach(id => document.getElementById(id).style.transform = '');
+      document.getElementById('ms1').classList.add('active');
+    },
+    () => { document.getElementById('a1').classList.add('active'); },
+    () => { document.getElementById('ms2').classList.add('active'); },
+    () => { document.getElementById('a2').classList.add('active'); },
+    () => { document.getElementById('ms3').classList.add('active'); },
+    () => { document.getElementById('result').classList.add('show'); }
+  ];
+
+  sequence.forEach((fn, i) => setTimeout(fn, i * 350));
+  animTimer = setTimeout(() => { animTimer = null; }, sequence.length * 350 + 200);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

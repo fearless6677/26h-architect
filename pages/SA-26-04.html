@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范文赏析——ATAM架构评估实践论文 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #fae8ff; color: #a21caf; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .code-tag { display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #7c3aed; background: #faf5ff; }
+.tab.active { color: #7c3aed; border-bottom-color: #7c3aed; font-weight: 600; background: #faf5ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .tt { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #7c3aed; } .explain .hl { color: #dc2626; font-weight: 600; } .explain .hl2 { color: #2563eb; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Phase flow */
+.phase-flow { display: flex; align-items: stretch; justify-content: center; gap: 6px; margin: 20px 0 8px; flex-wrap: wrap; }
+.phase-card { flex: 1; min-width: 160px; background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 10px; text-align: center; transition: all 0.35s ease; position: relative; }
+.phase-card .phase-num { display: inline-block; width: 26px; height: 26px; line-height: 26px; background: #ede9fe; color: #7c3aed; border-radius: 50%; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.phase-card .phase-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.phase-card .phase-desc { font-size: 11px; color: #64748b; line-height: 1.5; }
+.phase-card.active { border-color: #7c3aed; transform: translateY(-4px); box-shadow: 0 8px 20px rgba(124,58,237,0.18); background: linear-gradient(135deg, #faf5ff, #ede9fe); }
+.phase-card.active .phase-num { background: #7c3aed; color: #fff; }
+.phase-arrow { align-self: center; color: #cbd5e1; font-size: 18px; }
+
+/* Examples section */
+.example-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+.example-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; transition: all 0.3s; }
+.example-card:hover { border-color: #c084fc; box-shadow: 0 4px 12px rgba(124,58,237,0.1); }
+.example-card .etype { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 6px; font-weight: 600; }
+.example-card .etype.risk { background: #fee2e2; color: #b91c1c; }
+.example-card .etype.sens { background: #dbeafe; color: #1d4ed8; }
+.example-card .etype.trade { background: #fef3c7; color: #92400e; }
+.example-card .etext { font-size: 13px; color: #475569; line-height: 1.6; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #7c3aed; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #6d28d9; }
+
+.structure-box { background: #faf5ff; border: 1px solid #ddd6fe; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.structure-box h4 { color: #7c3aed; margin-bottom: 10px; font-size: 14px; }
+.structure-box .layer { padding: 6px 12px; margin: 4px 0; background: #fff; border-left: 3px solid #a78bfa; border-radius: 4px; font-size: 13px; color: #334155; }
+.structure-box .layer strong { color: #7c3aed; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 论文写作 › 范文赏析——ATAM架构评估实践论文</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">论文写作</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="code-tag">SA-26-04</span>
+  <h1>范文赏析——ATAM架构评估实践论文</h1>
+  <p class="one-liner">范文以银行绩效考核平台为例，用ATAM评估方法识别风险点、敏感点和权衡点，展示完整写作范式</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 四阶段流程</div>
+  <div class="tab" onclick="switchTab(this,'structure')">📑 范文结构</div>
+  <div class="tab" onclick="switchTab(this,'examples')">💡 关键示例</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="phase-flow">
+      <div class="phase-card" id="ph1">
+        <div class="phase-num">1</div>
+        <div class="phase-title">描述介绍</div>
+        <div class="phase-desc">项目背景与ATAM方法<br/>5W2H 展开</div>
+      </div>
+      <div class="phase-arrow">➜</div>
+      <div class="phase-card" id="ph2">
+        <div class="phase-num">2</div>
+        <div class="phase-title">调查分析</div>
+        <div class="phase-desc">识别风险点 / 敏感点 / 权衡点<br/>构建效用树</div>
+      </div>
+      <div class="phase-arrow">➜</div>
+      <div class="phase-card" id="ph3">
+        <div class="phase-num">3</div>
+        <div class="phase-title">测试验证</div>
+        <div class="phase-desc">各质量场景测试<br/>问题解决方案</div>
+      </div>
+      <div class="phase-arrow">➜</div>
+      <div class="phase-card" id="ph4">
+        <div class="phase-num">4</div>
+        <div class="phase-title">报告总结</div>
+        <div class="phase-desc">评估结论与改进建议<br/>系统稳定运行一年</div>
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>核心流程：</strong>ATAM论文遵循<span class="hl">四个阶段</span>的线性结构：先描述项目背景（银行绩效考核平台），再调查分析质量属性并识别<span class="hl2">风险点/敏感点/权衡点</span>，然后针对性测试验证，最后输出评估报告。
+  </div>
+</div>
+
+<div id="structure" class="tab-content">
+  <div class="structure-box">
+    <h4>📝 范文完整结构（可直接模仿）</h4>
+    <div class="layer"><strong>【摘要】</strong>项目背景（银行绩效考核平台）+ 技术方法（ATAM）+ 效果（稳定运行一年）</div>
+    <div class="layer"><strong>【一、项目背景】</strong>用 5W2H 描述：Who/What/When/Where/Why/How/How much</div>
+    <div class="layer"><strong>【二、质量属性分析】</strong>性能、可用性、安全性、可修改性、可靠性、易用性</div>
+    <div class="layer"><strong>【三、阶段一：描述介绍】</strong>ATAM方法介绍 + 评估团队组建 + 效用树构建</div>
+    <div class="layer"><strong>【四、阶段二：调查分析】</strong>识别风险点、敏感点、权衡点（重点段落）</div>
+    <div class="layer"><strong>【五、阶段三：测试】</strong>针对风险的质量场景测试 + 解决方案落地</div>
+    <div class="layer"><strong>【六、阶段四：报告】</strong>评估结论、遗留风险、改进建议</div>
+    <div class="layer"><strong>【结尾】</strong>效果总结 + 不足与展望</div>
+  </div>
+  <pre class="code-area"><span class="cm">// 论文摘要模板 —— 三句话搞定</span>
+<span class="kw">摘要</span> = {
+  <span class="st">"项目背景"</span>: <span class="tt">"银行绩效考核平台"</span>,       <span class="cm">// 什么项目</span>
+  <span class="st">"技术方法"</span>: <span class="tt">"ATAM架构评估"</span>,            <span class="cm">// 用什么技术</span>
+  <span class="st">"实践效果"</span>: <span class="tt">"系统稳定运行一年"</span>           <span class="cm">// 取得了什么效果</span>
+}
+
+<span class="cm">// 正文展开 —— 四阶段骨架</span>
+<span class="kw">function</span> <span class="fn">ATAM论文</span>(项目) {
+  <span class="fn">阶段一</span>(<span class="st">"描述介绍"</span>);   <span class="cm">// 项目介绍 + ATAM方法</span>
+  <span class="fn">阶段二</span>(<span class="st">"调查分析"</span>);   <span class="cm">// 识别风险/敏感/权衡点 ← 核心！</span>
+  <span class="fn">阶段三</span>(<span class="st">"测试"</span>);       <span class="cm">// 质量场景验证</span>
+  <span class="fn">阶段四</span>(<span class="st">"报告"</span>);       <span class="cm">// 输出评估报告</span>
+}
+
+<span class="cm">// 调查分析核心：效用树 Utility Tree</span>
+<span class="kw">效用树</span> = {
+  <span class="fn">根</span>: <span class="st">"系统效用"</span>,
+  <span class="fn">子节点</span>: [<span class="st">"性能"</span>, <span class="st">"可用性"</span>, <span class="st">"安全性"</span>, <span class="st">"可修改性"</span>],
+  <span class="fn">叶子</span>:   [<span class="st">"风险点"</span>, <span class="st">"敏感点"</span>, <span class="st">"权衡点"</span>]   <span class="cm">// ← 考试关键词</span>
+}</pre>
+</div>
+
+<div id="examples" class="tab-content">
+  <div class="explain">
+    <strong>ATAM三大关键发现：</strong>调查分析阶段的核心产出，也是<span class="hl">论文得分点</span>。必须结合项目实际，不能空谈理论。
+  </div>
+  <div class="example-grid">
+    <div class="example-card">
+      <span class="etype risk">🔴 风险点 Risk</span>
+      <div class="etext"><strong>业务逻辑未达成共识</strong>，可能导致不同模块重复实现相同逻辑，增加维护成本和出错概率。</div>
+    </div>
+    <div class="example-card">
+      <span class="etype sens">🔵 敏感点 Sensitivity</span>
+      <div class="etext"><strong>查询响应时间要求</strong>直接影响集群节点数量和缓存策略的设计决策。</div>
+    </div>
+    <div class="example-card">
+      <span class="etype trade">🟡 权衡点 Tradeoff</span>
+      <div class="etext"><strong>加密级别变更</strong>同时影响安全性和性能——提高加密级别增强安全但降低响应速度。</div>
+    </div>
+  </div>
+  <div class="explain" style="margin-top:16px;">
+    <strong>写作技巧：</strong>每个点都要<span class="hl2">结合具体架构决策</span>说明。风险点 = 可能出问题的地方；敏感点 = 某个参数变化显著影响某质量属性；权衡点 = 影响多个质量属性的决策。
+  </div>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📖 ATAM = 架构权衡分析方法</span>
+  <span class="tag-item">🏦 案例：银行绩效考核平台</span>
+  <span class="tag-item">🌳 效用树 Utility Tree</span>
+  <span class="tag-item">📝 论文四阶段：描述→分析→测试→报告</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 范文可借鉴之处</h4>
+    <ul>
+      <li>范文结构可直接模仿，写作脉络清晰</li>
+      <li>质量效用树方法实用，便于组织质量属性</li>
+      <li>四阶段展开逻辑严密，符合ATAM方法论</li>
+      <li>风险/敏感/权衡点都有项目实例支撑</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 写作注意</h4>
+    <ul>
+      <li>不能只抄结构，要换自己的项目案例</li>
+      <li>质量属性分析必须结合具体架构决策</li>
+      <li>权衡点要体现"鱼与熊掌"的取舍关系</li>
+      <li>结尾要有反思不足，不能只写优点</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">ATAM</span>
+    <span class="keyword">质量属性</span>
+    <span class="keyword">风险点</span>
+    <span class="keyword">敏感点</span>
+    <span class="keyword">权衡点</span>
+    <span class="keyword">效用树</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>SA-26-01</strong> = 论文写作总论：结构框架与通用技巧</li>
+    <li><strong>SA-26-02</strong> = 范文赏析——软件架构设计论文：另一种写作范式</li>
+    <li><strong>ATAM vs SAAM</strong>：ATAM侧重质量属性权衡，SAAM侧重场景验证</li>
+    <li><strong>效用树</strong>：ATAM核心工具，把质量属性分解为具体可测量的场景</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  if (animTimer) { clearInterval(animTimer); animTimer = null; }
+  const phases = ['ph1', 'ph2', 'ph3', 'ph4'];
+  phases.forEach(id => document.getElementById(id).classList.remove('active'));
+
+  let i = 0;
+  function step() {
+    phases.forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById(phases[i]).classList.add('active');
+    i = (i + 1) % phases.length;
+  }
+  step();
+  animTimer = setInterval(step, 1200);
+
+  setTimeout(() => { clearInterval(animTimer); animTimer = null; }, 6000);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

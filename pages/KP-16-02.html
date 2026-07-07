@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表现层设计模式：MVC、MVP与MVVM · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .code-tag { display: inline-block; background: #f1f5f9; color: #475569; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.35s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .type { color: #38bdf8; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+
+/* Model switching */
+.model-nav { display: flex; gap: 8px; margin-bottom: 16px; justify-content: center; }
+.model-btn { padding: 6px 18px; border-radius: 20px; border: 2px solid #cbd5e1; background: #fff; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.25s; }
+.model-btn.active-mvc { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+.model-btn.active-mvp { border-color: #8b5cf6; background: #f5f3ff; color: #6d28d9; }
+.model-btn.active-mvvm { border-color: #10b981; background: #ecfdf5; color: #047857; }
+
+.diagram-box { display: flex; align-items: center; justify-content: center; min-height: 280px; position: relative; }
+.d-box { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; min-width: 90px; min-height: 64px; transition: all 0.4s ease; position: relative; }
+.d-box .sub { font-size: 11px; font-weight: 400; color: #64748b; margin-top: 4px; }
+.d-box.controller { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.d-box.model { background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; }
+.d-box.view { background: #dbeafe; border: 2px solid #3b82f6; color: #1e40af; }
+.d-box.presenter { background: #ede9fe; border: 2px solid #8b5cf6; color: #5b21b6; }
+.d-box.viewmodel { background: #d1fae5; border: 2px solid #10b981; color: #065f46; }
+.d-box.highlight { transform: scale(1.12); box-shadow: 0 0 20px rgba(37,99,235,0.35); z-index: 2; }
+
+.arrow { font-size: 22px; color: #94a3b8; margin: 0 8px; transition: all 0.3s; display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
+.arrow .label { font-size: 10px; color: #64748b; font-weight: 400; }
+.arrow.active { color: #2563eb; transform: scale(1.15); }
+.arrow.active .label { color: #2563eb; }
+.arrow.bidir { color: #10b981; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+.model-desc { margin-top: 16px; padding: 12px 16px; background: #fff; border-radius: 8px; border-left: 4px solid #3b82f6; font-size: 13px; color: #475569; transition: border-color 0.3s; }
+.model-desc.mvp-desc { border-left-color: #8b5cf6; }
+.model-desc.mvvm-desc { border-left-color: #10b981; }
+.model-desc strong { color: #1e293b; }
+
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Evolution timeline */
+.timeline { display: flex; align-items: stretch; gap: 0; margin: 20px 0; }
+.timeline-item { flex: 1; padding: 12px 16px; text-align: center; position: relative; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; transition: all 0.3s; }
+.timeline-item:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.timeline-item .era { font-size: 11px; color: #94a3b8; }
+.timeline-item .name { font-size: 15px; font-weight: 700; margin: 4px 0; }
+.timeline-item .name.c-blue { color: #2563eb; }
+.timeline-item .name.c-purple { color: #7c3aed; }
+.timeline-item .name.c-green { color: #059669; }
+.timeline-item .detail { font-size: 11px; color: #64748b; }
+.timeline-connector { display: flex; align-items: center; color: #cbd5e1; font-size: 18px; padding: 0 2px; }
+
+/* Comparison table */
+.compare-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+.compare-table th { background: #f1f5f9; color: #475569; padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+.compare-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #475569; }
+.compare-table tr:hover td { background: #fafbfc; }
+.compare-table .dim { font-weight: 600; color: #1e293b; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 表现层设计模式 › MVC / MVP / MVVM</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">表现层设计模式</span>
+  <span class="exam-tag">⭐ 单选2~3分 / 案例5分</span>
+  <span class="code-tag">SA-16-02</span>
+  <h1>MVC / MVP / MVVM</h1>
+  <p class="one-liner">三种表现层设计模式的演进与对比 —— 从耦合到解耦</p>
+</div>
+
+<!-- Evolution Timeline -->
+<div class="timeline">
+  <div class="timeline-item">
+    <div class="era">经典</div>
+    <div class="name c-blue">MVC</div>
+    <div class="detail">输入·处理·输出分离</div>
+  </div>
+  <div class="timeline-connector">→</div>
+  <div class="timeline-item">
+    <div class="era">改进</div>
+    <div class="name c-purple">MVP</div>
+    <div class="detail">View与Model完全分离</div>
+  </div>
+  <div class="timeline-connector">→</div>
+  <div class="timeline-item">
+    <div class="era">现代</div>
+    <div class="name c-green">MVVM</div>
+    <div class="detail">DataBinding 双向绑定</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 架构动画</div>
+  <div class="tab" onclick="switchTab(this,'compare')">📊 对比表格</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- TAB: Animation -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放数据流</button>
+    <div class="model-nav">
+      <button class="model-btn active-mvc" id="btn-mvc" onclick="showModel('mvc')">MVC</button>
+      <button class="model-btn" id="btn-mvp" onclick="showModel('mvp')">MVP</button>
+      <button class="model-btn" id="btn-mvvm" onclick="showModel('mvvm')">MVVM</button>
+    </div>
+
+    <!-- MVC Diagram -->
+    <div class="diagram-box" id="diagram-mvc">
+      <div class="d-box controller" id="mvc-c">Controller<span class="sub">接收输入</span></div>
+      <span class="arrow" id="mvc-a1">→<span class="label">调用</span></span>
+      <div class="d-box model" id="mvc-m">Model<span class="sub">业务数据+逻辑</span></div>
+      <span class="arrow" id="mvc-a2">→<span class="label">更新</span></span>
+      <div class="d-box view" id="mvc-v">View<span class="sub">用户界面</span></div>
+    </div>
+
+    <!-- MVP Diagram -->
+    <div class="diagram-box" id="diagram-mvp" style="display:none;">
+      <div class="d-box view" id="mvp-v">View<span class="sub">仅显示 UI</span></div>
+      <span class="arrow bidir" id="mvp-a1">⇄<span class="label">接口</span></span>
+      <div class="d-box presenter" id="mvp-p">Presenter<span class="sub">交互逻辑</span></div>
+      <span class="arrow bidir" id="mvp-a2">⇄<span class="label">数据</span></span>
+      <div class="d-box model" id="mvp-m">Model<span class="sub">业务逻辑</span></div>
+    </div>
+
+    <!-- MVVM Diagram -->
+    <div class="diagram-box" id="diagram-mvvm" style="display:none;">
+      <div class="d-box view" id="mvvm-v">View<span class="sub">纯 UI 模板</span></div>
+      <span class="arrow bidir" id="mvvm-a1" style="color:#10b981;">⇄<span class="label">DataBinding</span></span>
+      <div class="d-box viewmodel" id="mvvm-vm">ViewModel<span class="sub">状态+绑定+转换</span></div>
+      <span class="arrow bidir" id="mvvm-a2">⇄<span class="label">数据</span></span>
+      <div class="d-box model" id="mvvm-m">Model<span class="sub">业务数据</span></div>
+    </div>
+
+    <div class="model-desc" id="desc-box">
+      <strong>MVC：</strong>Controller 接收用户输入，调用 Model 处理业务逻辑，再更新 View 显示结果。View 可直接访问 Model（<span style="color:#dc2626;">耦合较高</span>）。
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Compare -->
+<div id="compare" class="tab-content">
+  <table class="compare-table">
+    <thead>
+      <tr><th>维度</th><th style="color:#2563eb;">MVC</th><th style="color:#7c3aed;">MVP</th><th style="color:#059669;">MVVM</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="dim">中间层</td><td>Controller</td><td>Presenter</td><td>ViewModel</td></tr>
+      <tr><td class="dim">View↔Model 通信</td><td>可直连（耦合）</td><td>必须经 Presenter</td><td>必须经 ViewModel</td></tr>
+      <tr><td class="dim">数据绑定</td><td>无</td><td>手动同步</td><td>双向自动绑定</td></tr>
+      <tr><td class="dim">可测试性</td><td>一般</td><td>Presenter 可脱离 UI 测试 ✅</td><td>ViewModel 可脱离 UI 测试 ✅</td></tr>
+      <tr><td class="dim">复用性</td><td>Controller 复用有限</td><td>Presenter 可复用多个视图 ✅</td><td>ViewModel 可复用 ✅</td></tr>
+      <tr><td class="dim">代表框架</td><td>Struts2</td><td>Android (传统)</td><td>Vue.js / WPF</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB: Code -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ====== MVC ====== Struts2 风格</span>
+<span class="kw">class</span> <span class="type">UserAction</span> {               <span class="cm">// Controller (Action)</span>
+    <span class="kw">private</span> <span class="type">User</span> user;           <span class="cm">// Model (POJO)</span>
+    <span class="kw">public</span> <span class="fn">execute</span>() {
+        user.<span class="fn">save</span>();              <span class="cm">// 调用 Model</span>
+        <span class="kw">return</span> <span class="st">"success"</span>;        <span class="cm">// → View (JSP)</span>
+    }
+}
+
+<span class="cm">// ====== MVP ====== Android 风格</span>
+<span class="kw">interface</span> <span class="type">IView</span> { <span class="fn">showData</span>(data); }
+<span class="kw">class</span> <span class="type">Presenter</span> {
+    <span class="kw">private</span> <span class="type">IView</span> view;          <span class="cm">// 持有 View 接口引用</span>
+    <span class="kw">private</span> <span class="type">Model</span> model;
+    <span class="kw">public</span> <span class="fn">loadData</span>() {
+        <span class="kw">var</span> data = model.<span class="fn">fetch</span>();
+        view.<span class="fn">showData</span>(data);     <span class="cm">// 通过接口更新 UI</span>
+    }
+}
+
+<span class="cm">// ====== MVVM ====== Vue.js 风格</span>
+&lt;<span class="type">template</span>&gt;
+  &lt;input <span class="fn">v-model</span>=<span class="st">"username"</span> /&gt;  <span class="cm">// 双向绑定！</span>
+  &lt;p&gt;{{ greeting }}&lt;/p&gt;
+&lt;/<span class="type">template</span>&gt;
+&lt;<span class="type">script</span>&gt;
+<span class="kw">export default</span> {
+    data() { <span class="kw">return</span> { username: <span class="st">''</span> } },
+    computed: {
+        <span class="fn">greeting</span>() { <span class="kw">return</span> <span class="st">`Hello, ${<span class="kw">this</span>.username}`</span>; }
+    }
+}
+&lt;/<span class="type">script</span>&gt;</pre>
+</div>
+
+<div class="explain">
+  <strong>演进核心：</strong>从 MVC 的"View 可直连 Model" → MVP 的"View 与 Model 完全隔离，经 Presenter 中转" → MVVM 的"通过 <span class="hl">DataBinding 双向绑定</span>，View 与 Model 只能经 ViewModel 通信"。每一步都在追求<span class="hl">更彻底的解耦</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏛️ Struts2（MVC）</span>
+  <span class="tag-item">📱 Android Presenter（MVP）</span>
+  <span class="tag-item">💚 Vue.js 响应式（MVVM）</span>
+  <span class="tag-item">🪟 WPF / Silverlight（MVVM）</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>允许多种用户界面扩展</li>
+      <li>易于维护</li>
+      <li>增加应用可扩展性、强壮性、灵活性</li>
+      <li>MVP 支持 Presenter 复用和单元测试</li>
+      <li>MVVM 实现 View 与 Model 完全解耦</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点 / 注意事项</h4>
+    <ul>
+      <li>MVC 中 View 可直接访问 Model，耦合较高</li>
+      <li>MVP 的 Presenter 逻辑可能过于臃肿</li>
+      <li>MVVM 的 DataBinding 实现复杂度高，调试困难</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">MVC</span>
+    <span class="keyword">MVP</span>
+    <span class="keyword">MVVM</span>
+    <span class="keyword">Controller</span>
+    <span class="keyword">Model</span>
+    <span class="keyword">View</span>
+    <span class="keyword">Presenter</span>
+    <span class="keyword">ViewModel</span>
+    <span class="keyword">DataBinding</span>
+    <span class="keyword">双向绑定</span>
+  </div>
+  <p style="font-size:12px;color:#92400e;margin-top:8px;">💡 分值：单选 2~3 分，案例 5 分</p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="KP-16-01.html"><strong>KP-16-01</strong></a> — 表现层设计模式概述（前置知识）</li>
+    <li><a href="KP-16-03.html"><strong>KP-16-03</strong></a> — 表现层设计模式补充（后续知识）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function showModel(type) {
+  ['mvc','mvp','mvvm'].forEach(m => {
+    document.getElementById('diagram-' + m).style.display = m === type ? 'flex' : 'none';
+    const btn = document.getElementById('btn-' + m);
+    btn.className = 'model-btn' + (m === type ? (' active-' + m) : '');
+  });
+  const desc = document.getElementById('desc-box');
+  desc.className = 'model-desc' + (type === 'mvp' ? ' mvp-desc' : type === 'mvvm' ? ' mvvm-desc' : '');
+  const descs = {
+    mvc: '<strong>MVC：</strong>Controller 接收用户输入，调用 Model 处理业务逻辑，再更新 View 显示结果。View 可直接访问 Model（<span style="color:#dc2626;">耦合较高</span>）。',
+    mvp: '<strong>MVP：</strong>View 与 Model 完全分离，所有交互逻辑由 Presenter 处理。Presenter 通过 View 接口引用更新 UI，可复用于多个视图，支持脱离 UI 的单元测试。',
+    mvvm: '<strong>MVVM：</strong>ViewModel 通过 <span style="color:#059669;font-weight:600;">DataBinding</span> 实现 View 与 Model 的双向绑定。View 和 Model 不能直接通信，只能经 ViewModel 中转。ViewModel 包含数据状态处理、数据绑定及数据转换。'
+  };
+  desc.innerHTML = descs[type];
+}
+
+function playAnimation() {
+  const activeType = ['mvc','mvp','mvvm'].find(m =>
+    document.getElementById('diagram-' + m).style.display !== 'none'
+  ) || 'mvc';
+
+  if (activeType === 'mvc') {
+    animateSequence(['mvc-c', 'mvc-m', 'mvc-v'], ['mvc-a1', 'mvc-a2']);
+  } else if (activeType === 'mvp') {
+    animateSequence(['mvp-v', 'mvp-p', 'mvp-m'], ['mvp-a1', 'mvp-a2']);
+  } else {
+    animateSequence(['mvvm-v', 'mvvm-vm', 'mvvm-m'], ['mvvm-a1', 'mvvm-a2']);
+  }
+}
+
+function animateSequence(boxIds, arrowIds) {
+  boxIds.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 600);
+    }, i * 500);
+  });
+  arrowIds.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 600);
+    }, i * 500 + 250);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

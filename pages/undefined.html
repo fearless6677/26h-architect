@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识点模板 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #ffffff; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; }
+.code-area .fn { color: #c084fc; }
+.code-area .st { color: #86efac; }
+.code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; }
+.explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; }
+.cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Animation styles */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.orange { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.arrow { font-size: 20px; color: #94a3b8; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Diagram styles */
+.diagram { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px 0; }
+.diagram-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.d-box { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; }
+.d-box.primary { background: #dbeafe; border: 2px solid #3b82f6; color: #1d4ed8; }
+.d-box.secondary { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.d-box.accent { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.d-arrow { color: #94a3b8; font-size: 18px; }
+.d-label { font-size: 11px; color: #64748b; text-align: center; margin-top: 4px; }
+
+/* Pulse animation for diagram */
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.pulse { animation: pulse 2s ease-in-out infinite; }
+
+/* Slide animation */
+@keyframes slideIn { 0% { transform: translateX(-20px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+.slide-in { animation: slideIn 0.5s ease-out forwards; }
+
+/* Rotate animation */
+@keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.rotate { animation: rotate 3s linear infinite; display: inline-block; }
+
+/* Bounce animation */
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.bounce { animation: bounce 1.5s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 返回总目录</a>
+  <span class="breadcrumb">› 知识点模板</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <div class="tags">
+    <span class="category-tag">📂 分类名称</span>
+    <span class="exam-tag">⭐ 必考</span>
+  </div>
+  <h1>知识点名称（替换为实际标题）</h1>
+  <p class="one-liner">一句话解释：这是对该知识点的简洁描述，用一两句话概括核心概念。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放动画</button>
+
+    <!-- 静态图示区域：用 CSS 绘制结构图 -->
+    <div class="diagram">
+      <div class="diagram-row">
+        <div class="d-box primary bounce" id="a1">模块 A</div>
+        <span class="d-arrow">→</span>
+        <div class="d-box secondary pulse" id="a2">模块 B</div>
+        <span class="d-arrow">→</span>
+        <div class="d-box accent" id="a3">模块 C</div>
+      </div>
+      <div class="d-label">↑ 数据流向：A → B → C</div>
+      <div class="diagram-row" style="margin-top: 8px;">
+        <div class="d-box primary" id="a4" style="font-size:12px; padding: 8px 14px;">子系统 1</div>
+        <div class="d-box primary" id="a5" style="font-size:12px; padding: 8px 14px;">子系统 2</div>
+        <div class="d-box primary" id="a6" style="font-size:12px; padding: 8px 14px;">子系统 3</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 伪代码示例 —— 替换为实际知识点的代码</span>
+<span class="kw">function</span> <span class="fn">example</span>(input) {
+    <span class="cm">// 步骤 1：初始化</span>
+    <span class="kw">let</span> result = <span class="fn">init</span>(input);
+
+    <span class="cm">// 步骤 2：核心处理</span>
+    <span class="kw">for</span> (<span class="kw">let</span> i = 0; i &lt; result.length; i++) {
+        result[i] = <span class="fn">process</span>(result[i]);
+    }
+
+    <span class="cm">// 步骤 3：返回结果</span>
+    <span class="kw">return</span> <span class="fn">finalize</span>(result);
+}
+
+<span class="cm">// 关键点：这里说明代码的核心逻辑</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心概念：</strong>这里用简洁的语言解释该知识点的<span class="hl">核心要点</span>。
+  说明它<span class="hl">为什么重要</span>，以及它在系统架构中的<span class="hl">角色和定位</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏷️ 应用场景 1</span>
+  <span class="tag-item">🏷️ 应用场景 2</span>
+  <span class="tag-item">🏷️ 应用场景 3</span>
+  <span class="tag-item">🏷️ 典型实例</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>优点 1：描述该方案的优势</li>
+      <li>优点 2：描述该方案的优势</li>
+      <li>优点 3：描述该方案的优势</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>缺点 1：描述该方案的不足</li>
+      <li>缺点 2：描述该方案的不足</li>
+      <li>缺点 3：描述该方案的不足</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">关键词1</span>
+    <span class="keyword">关键词2</span>
+    <span class="keyword">关键词3</span>
+    <span class="keyword">关键词4</span>
+    <span class="keyword">关键词5</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>关联知识点 1</strong> = 说明关联关系</li>
+    <li><strong>关联知识点 2</strong> = 说明关联关系</li>
+    <li><strong>关联知识点 3</strong> = 说明关联关系</li>
+    <li><strong>vs 对比对象</strong>：说明两者的区别与联系</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // 依次高亮各模块
+  const ids = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6'];
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('processing');
+      setTimeout(() => el.classList.remove('processing'), 600);
+    }, i * 350);
+  });
+}
+
+// 页面加载后自动播放一次动画
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>架构风格动画演示 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:1100px;margin:0 auto;padding:80px 20px 40px}
+h1{font-size:32px;color:#1e293b;margin-bottom:12px;text-align:center}
+.subtitle{font-size:16px;color:#64748b;text-align:center;margin-bottom:40px}
+.video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:24px;margin-bottom:40px}
+.video-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s}
+.video-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.video-wrapper{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:#000}
+.video-wrapper video{position:absolute;top:0;left:0;width:100%;height:100%}
+.card-content{padding:20px}
+.card-content h3{font-size:20px;color:#1e293b;margin-bottom:8px}
+.card-content p{font-size:14px;color:#64748b;line-height:1.6}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:6px;margin-bottom:6px}
+.tag.cat{background:#dbeafe;color:#2563eb}
+.tag.level{background:#fef2f2;color:#dc2626}
+.info-box{background:#eff6ff;border-left:4px solid #2563eb;padding:16px 20px;border-radius:0 8px 8px 0;margin-top:40px}
+.info-box h4{color:#1e40af;margin-bottom:8px;font-size:16px}
+.info-box p{font-size:14px;color:#475569}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 架构风格 › 动画演示</span></nav>
+<div class="ct">
+<h1>🎬 架构风格动画演示</h1>
+<p class="subtitle">用视频直观理解三大经典架构风格的工作原理</p>
+
+<div class="video-grid">
+  <div class="video-card">
+    <div class="video-wrapper">
+      <video autoplay loop muted playsinline>
+        <source src="videos/pipe-filter.mp4" type="video/mp4">
+        您的浏览器不支持视频播放
+      </video>
+    </div>
+    <div class="card-content">
+      <h3>🔧 管道-过滤器架构</h3>
+      <span class="tag cat">数据流风格</span>
+      <span class="tag level">⭐ 高频</span>
+      <p>数据像流水线一样一步步加工，每个过滤器独立运行。前一个的输出 = 后一个的输入，可以自由组合。</p>
+    </div>
+  </div>
+
+  <div class="video-card">
+    <div class="video-wrapper">
+      <video autoplay loop muted playsinline>
+        <source src="videos/blackboard.mp4" type="video/mp4">
+        您的浏览器不支持视频播放
+      </video>
+    </div>
+    <div class="card-content">
+      <h3>📋 黑板架构</h3>
+      <span class="tag cat">数据中心风格</span>
+      <span class="tag level">⭐ 高频</span>
+      <p>多个专家轮流推理，逐步逼近答案。语音专家、语法专家、语义专家通过黑板协作，适合语音识别等非确定性问题。</p>
+    </div>
+  </div>
+
+  <div class="video-card">
+    <div class="video-wrapper">
+      <video autoplay loop muted playsinline>
+        <source src="videos/event-driven.mp4" type="video/mp4">
+        您的浏览器不支持视频播放
+      </video>
+    </div>
+    <div class="card-content">
+      <h3>📡 事件驱动架构</h3>
+      <span class="tag cat">独立构件风格</span>
+      <span class="tag level">⭐⭐ 高频</span>
+      <p>发布者不知道谁会收到，订阅者之间互不认识。通过事件总线解耦，库存、邮件、积分服务独立响应。</p>
+    </div>
+  </div>
+</div>
+
+<div class="info-box">
+  <h4>💡 视频说明</h4>
+  <p>这些动画使用 <strong>Remotion</strong> 框架生成，展示了架构风格的核心概念。视频自动循环播放，帮助你直观理解：
+  <ul style="margin-top:8px;padding-left:20px;color:#475569">
+    <li>数据如何在组件间流动</li>
+    <li>组件如何协作完成任务</li>
+    <li>架构的优势和适用场景</li>
+  </ul>
+  </p>
+</div>
+</div>
+</body>
+</html>

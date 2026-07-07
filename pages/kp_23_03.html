@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件著作权保护规则 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .code-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .hl { color: #fbbf24; font-weight: 600; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Timeline animation */
+.timeline { position: relative; padding: 20px 0 20px 40px; }
+.timeline::before { content: ''; position: absolute; left: 18px; top: 0; bottom: 0; width: 3px; background: #cbd5e1; border-radius: 2px; }
+.tl-item { position: relative; margin-bottom: 24px; opacity: 0; transform: translateX(-20px); transition: all 0.5s ease; }
+.tl-item.show { opacity: 1; transform: translateX(0); }
+.tl-dot { position: absolute; left: -30px; top: 4px; width: 16px; height: 16px; border-radius: 50%; border: 3px solid #3b82f6; background: #fff; z-index: 1; }
+.tl-dot.active { background: #3b82f6; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+.tl-dot.green { border-color: #22c55e; } .tl-dot.green.active { background: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.5); }
+.tl-dot.red { border-color: #ef4444; } .tl-dot.red.active { background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.5); }
+.tl-dot.amber { border-color: #f59e0b; } .tl-dot.amber.active { background: #f59e0b; box-shadow: 0 0 10px rgba(245,158,11,0.5); }
+.tl-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; font-size: 13px; }
+.tl-card .label { font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.tl-card .desc { color: #64748b; font-size: 12px; }
+
+/* Decision flow */
+.decision-flow { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.d-box { display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; }
+.d-box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.d-box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.d-box.amber { background: #fffbeb; border: 2px solid #f59e0b; color: #92400e; }
+.d-box.pink { background: #fdf2f8; border: 2px solid #ec4899; color: #9d174d; }
+.d-box.pulse { transform: scale(1.08); box-shadow: 0 0 14px rgba(37,99,235,0.35); }
+.d-arrow { color: #94a3b8; font-size: 18px; font-weight: 700; }
+.d-label { font-size: 11px; color: #64748b; text-align: center; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+
+/* Comparison table */
+.cmp-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+.cmp-table th { background: #f1f5f9; color: #1e293b; padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+.cmp-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #475569; }
+.cmp-table tr:hover td { background: #f8fafc; }
+.cmp-table .em { color: #dc2626; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 计算机软件保护条例 › 软件著作权保护规则</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">计算机软件保护条例</span>
+  <span class="code-tag">IP-03</span>
+  <span class="exam-tag">⭐ 约1-2分（必考）</span>
+  <h1>软件著作权保护规则</h1>
+  <p class="one-liner">软件著作权自开发完成之日起产生，委托开发无合同归受托人，保护期自然人终生+50年/法人50年</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 权利产生与保护期</div>
+  <div class="tab" onclick="switchTab(this,'decision')">🔀 委托/合作开发</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 法条速记</div>
+</div>
+
+<!-- ====== Tab1: Timeline ====== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playTimeline()">▶ 播放</button>
+    <div class="timeline" id="timeline">
+      <div class="tl-item" data-i="0">
+        <div class="tl-dot green"></div>
+        <div class="tl-card">
+          <div class="label">🖥️ 开发完成之日</div>
+          <div class="desc">著作权<span class="em">自动产生</span>——无需登记、无需发表。完成即保护！</div>
+        </div>
+      </div>
+      <div class="tl-item" data-i="1">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="label">👤 自然人保护期</div>
+          <div class="desc">终生 + 死后<span class="em">50年</span>（截止于第50年12月31日）</div>
+        </div>
+      </div>
+      <div class="tl-item" data-i="2">
+        <div class="tl-dot amber"></div>
+        <div class="tl-card">
+          <div class="label">🏢 法人保护期</div>
+          <div class="desc">首次发表后<span class="em">50年</span>（截止于第50年12月31日）。50年内未发表→不再保护</div>
+        </div>
+      </div>
+      <div class="tl-item" data-i="3">
+        <div class="tl-dot red"></div>
+        <div class="tl-card">
+          <div class="label">⚠️ 保护边界</div>
+          <div class="desc">不延及<span class="em">思想、处理过程、操作方法、数学概念</span>——只保护表达，不保护思想</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Tab2: Decision Flow ====== -->
+<div id="decision" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playDecision()">▶ 播放</button>
+
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px;">委托开发：</p>
+    <div class="decision-flow" id="flow1">
+      <div class="d-box blue" data-d="1">委托开发</div>
+      <span class="d-arrow">→</span>
+      <div class="d-box amber" data-d="2">有书面合同？</div>
+      <span class="d-arrow">→</span>
+      <div>
+        <div class="d-label">有 →</div>
+        <div class="d-box green" data-d="3">按合同</div>
+      </div>
+      <div>
+        <div class="d-label">无 →</div>
+        <div class="d-box pink" data-d="4">归受托人</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:#64748b;margin:20px 0 12px;">合作开发：</p>
+    <div class="decision-flow" id="flow2">
+      <div class="d-box blue" data-d="5">合作开发</div>
+      <span class="d-arrow">→</span>
+      <div class="d-box amber" data-d="6">可分割？</div>
+      <span class="d-arrow">→</span>
+      <div>
+        <div class="d-label">可分割 →</div>
+        <div class="d-box green" data-d="7">各自享有</div>
+      </div>
+      <div>
+        <div class="d-label">不可分割 →</div>
+        <div class="d-box green" data-d="8">共同享有</div>
+      </div>
+    </div>
+
+    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px;margin-top:16px;font-size:13px;color:#92400e;">
+      ⚡ 不可分割 + 不能协商 → 任何一方<span style="font-weight:700;">不得阻止</span>他方行使除<span style="font-weight:700;">转让</span>外的权利
+    </div>
+  </div>
+
+  <table class="cmp-table">
+    <tr><th>场景</th><th>规则</th><th>易错点</th></tr>
+    <tr><td>委托开发·有合同</td><td>按合同约定</td><td>—</td></tr>
+    <tr><td>委托开发·无合同</td><td class="em">著作权归受托人</td><td>常考！不是委托人</td></tr>
+    <tr><td>合作开发·可分割</td><td>各自享有各自部分</td><td>—</td></tr>
+    <tr><td>合作开发·不可分割</td><td>共同享有</td><td>—</td></tr>
+    <tr><td>合作·协商不成</td><td class="em">不得阻止他方（转让除外）</td><td>转让必须全体同意</td></tr>
+  </table>
+</div>
+
+<!-- ====== Tab3: Code ====== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ═══ 软件著作权核心法条速记 ═══</span>
+
+<span class="cm">// 1. 权利产生时点</span>
+<span class="hl">著作权 = 开发完成之日</span>自动产生    <span class="cm">// ≠ 发表日 ≠ 登记日</span>
+
+<span class="cm">// 2. 保护期</span>
+<span class="kw">自然人</span>: 终生 + 死后<span class="hl">50年</span>  (截止12月31日)
+<span class="kw">法人</span>:   首次发表后<span class="hl">50年</span>  (截止12月31日, 50年未发表=不再保护)
+
+<span class="cm">// 3. 保护边界</span>
+<span class="fn">保护</span>(表达)    <span class="cm">// 源代码、目标代码、文档</span>
+<span class="fn">不保护</span>(思想)  <span class="cm">// 算法、处理方法、数学概念</span>
+
+<span class="cm">// 4. 委托开发</span>
+<span class="kw">if</span> (有书面合同) → 按合同
+<span class="kw">else</span>           → <span class="hl">归受托人</span>     <span class="cm">// 常考陷阱！</span>
+
+<span class="cm">// 5. 合作开发</span>
+可分割 → 各自享有
+不可分割 → 共同享有
+协商不成 → 任何一方<span class="hl">不得阻止</span>他方行使(<span class="hl">转让除外</span>)</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>软件著作权自<span class="hl">开发完成之日</span>起产生，不是登记也不是发表。
+  保护的是<span class="hl">代码表达</span>而非背后的思想/算法。委托开发无合同→<span class="hl">归受托人</span>（最常考的陷阱！）。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🖥️ 软件著作权自动产生（完成即保护）</span>
+  <span class="tag-item">📝 源程序 = 目标程序（同一作品）</span>
+  <span class="tag-item">🤝 委托无合同 → 受托人享有</span>
+  <span class="tag-item">👥 合作不可分割 + 协商不成 → 转让除外均可行使</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 学习优势</h4>
+    <ul>
+      <li>练习题反复出现，考点高度重复</li>
+      <li>法条简洁，易于掌握</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 易错提醒</h4>
+    <ul>
+      <li>保护期的自然人/法人区别需分别记忆</li>
+      <li>合作开发软件的著作权行使规则较复杂</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">软件著作权</span>
+    <span class="keyword">开发完成之日</span>
+    <span class="keyword">保护期</span>
+    <span class="keyword">委托开发</span>
+    <span class="keyword">合作开发</span>
+    <span class="keyword">思想不受保护</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>知识产权概述（kp_23_02）</strong> → 著作权/专利权/商标权的整体框架</li>
+    <li><strong>专利保护规则（kp_23_04）</strong> → 对比软件著作权的保护期限与产生方式</li>
+    <li><strong>经典例题</strong>：X公司受托Y公司开发软件，无书面合同 → 著作权归<span class="hl">X公司</span></li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* Timeline animation */
+function playTimeline() {
+  const items = document.querySelectorAll('.tl-item');
+  items.forEach((el, i) => {
+    setTimeout(() => {
+      el.classList.add('show');
+      el.querySelector('.tl-dot').classList.add('active');
+    }, i * 500);
+  });
+}
+
+/* Decision flow animation */
+function playDecision() {
+  const boxes = document.querySelectorAll('.d-box');
+  boxes.forEach((el, i) => {
+    setTimeout(() => {
+      el.classList.add('pulse');
+      setTimeout(() => el.classList.remove('pulse'), 500);
+    }, i * 350);
+  });
+}
+
+window.addEventListener('load', () => {
+  setTimeout(playTimeline, 400);
+});
+</script>
+</body>
+</html>

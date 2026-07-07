@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式软件的六大特点与低功耗设计 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 12px 0; }
+.feature-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 16px; transition: all 0.3s; position: relative; overflow: hidden; }
+.feature-card.highlight { border-color: #3b82f6; box-shadow: 0 0 14px rgba(37,99,235,0.25); transform: scale(1.03); }
+.feature-card .icon { font-size: 24px; margin-bottom: 6px; }
+.feature-card h3 { font-size: 15px; color: #1e293b; margin-bottom: 6px; }
+.feature-card .methods { display: flex; flex-wrap: wrap; gap: 4px; }
+.feature-card .method-tag { font-size: 11px; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 10px; }
+.feature-card.c1 { border-left: 4px solid #3b82f6; }
+.feature-card.c2 { border-left: 4px solid #8b5cf6; }
+.feature-card.c3 { border-left: 4px solid #ef4444; }
+.feature-card.c4 { border-left: 4px solid #f59e0b; }
+.feature-card.c5 { border-left: 4px solid #22c55e; }
+.feature-card.c6 { border-left: 4px solid #06b6d4; }
+
+.low-power-flow { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 16px 0; flex-wrap: wrap; }
+.lp-box { display: inline-flex; align-items: center; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.lp-box.src { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.lp-box.tech { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.lp-box.target { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.lp-box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.lp-pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.lp-pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.section-label { font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 嵌入式软件的六大特点与低功耗设计</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>嵌入式软件的六大特点与低功耗设计</h1>
+  <p class="one-liner">嵌入式软件具有可剪裁、可配置、强实时、安全性、可靠性、高确定性六大特征</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 六大特点</div>
+  <div class="tab" onclick="switchTab(this,'power')">⚡ 低功耗</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- Tab 1: 六大特点动画 -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 逐个点亮</button>
+    <p class="section-label">点击或自动高亮每个特点卡片：</p>
+    <div class="feature-grid">
+      <div class="feature-card c1" id="f1">
+        <div class="icon">✂️</div>
+        <h3>可剪裁性</h3>
+        <div class="methods">
+          <span class="method-tag">静态编译</span>
+          <span class="method-tag">动态库</span>
+          <span class="method-tag">控制函数流程</span>
+        </div>
+      </div>
+      <div class="feature-card c2" id="f2">
+        <div class="icon">🔧</div>
+        <h3>可配置性</h3>
+        <div class="methods">
+          <span class="method-tag">数据驱动</span>
+          <span class="method-tag">静态编译</span>
+          <span class="method-tag">配置表</span>
+        </div>
+      </div>
+      <div class="feature-card c3" id="f3">
+        <div class="icon">⏱️</div>
+        <h3>强实时性</h3>
+        <div class="methods">
+          <span class="method-tag">表驱动</span>
+          <span class="method-tag">动静结合</span>
+          <span class="method-tag">汇编语言</span>
+        </div>
+      </div>
+      <div class="feature-card c4" id="f4">
+        <div class="icon">🛡️</div>
+        <h3>安全性</h3>
+        <div class="methods">
+          <span class="method-tag">编码标准</span>
+          <span class="method-tag">安全保障机制</span>
+          <span class="method-tag">FMECA</span>
+        </div>
+      </div>
+      <div class="feature-card c5" id="f5">
+        <div class="icon">🔒</div>
+        <h3>可靠性</h3>
+        <div class="methods">
+          <span class="method-tag">容错技术</span>
+          <span class="method-tag">余度技术</span>
+          <span class="method-tag">鲁棒性设计</span>
+        </div>
+      </div>
+      <div class="feature-card c6" id="f6">
+        <div class="icon">🎯</div>
+        <h3>高确定性</h3>
+        <div class="methods">
+          <span class="method-tag">静态分配资源</span>
+          <span class="method-tag">越界检查</span>
+          <span class="method-tag">状态机</span>
+          <span class="method-tag">静态任务调度</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab 2: 低功耗设计 -->
+<div id="power" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playPower()">▶ 播放</button>
+    <p class="section-label">低功耗设计技术路径：</p>
+    <div class="low-power-flow">
+      <div class="lp-box src" id="lp1">⚡ 高功耗</div>
+      <div class="lp-pipe"><div class="flow"></div></div>
+      <div class="lp-box tech" id="lp2">🔧 编译优化</div>
+      <div class="lp-pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="lp-box tech" id="lp3">🔧 软硬件协同</div>
+      <div class="lp-pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="lp-box tech" id="lp4">🔧 算法优化</div>
+      <div class="lp-pipe"><div class="flow" style="animation-delay:.9s"></div></div>
+      <div class="lp-box target" id="lp5">🔋 低功耗</div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>编译优化：</strong>减少冗余指令，降低CPU执行时间；
+    <strong>软硬件协同：</strong>根据任务动态调配硬件资源（如休眠外设）；
+    <strong>算法优化：</strong>用中断代替轮询、查表代替复杂运算，减少CPU运行时间。
+  </div>
+</div>
+
+<!-- Tab 3: 伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 嵌入式软件六大特点及设计方法</span>
+特点 = {
+  <span class="fn">可剪裁性</span>: [<span class="st">"静态编译"</span>, <span class="st">"动态库"</span>, <span class="st">"控制函数流程"</span>],
+  <span class="fn">可配置性</span>: [<span class="st">"数据驱动"</span>, <span class="st">"静态编译"</span>, <span class="st">"配置表"</span>],
+  <span class="fn">强实时性</span>: [<span class="st">"表驱动"</span>, <span class="st">"动静结合"</span>, <span class="st">"汇编语言"</span>],
+  <span class="fn">安全性</span>:   [<span class="st">"编码标准"</span>, <span class="st">"安全保障机制"</span>, <span class="st">"FMECA"</span>],
+  <span class="fn">可靠性</span>:   [<span class="st">"容错技术"</span>, <span class="st">"余度技术"</span>, <span class="st">"鲁棒性设计"</span>],
+  <span class="fn">高确定性</span>: [<span class="st">"静态分配资源"</span>, <span class="st">"越界检查"</span>, <span class="st">"状态机"</span>, <span class="st">"静态任务调度"</span>]
+}
+
+<span class="cm">// 低功耗设计技术</span>
+<span class="kw">function</span> <span class="fn">reducePower</span>(system) {
+    <span class="fn">compileOptimize</span>(system);   <span class="cm">// 编译优化：精简指令</span>
+    <span class="fn">hwSwCoDesign</span>(system);      <span class="cm">// 软硬件协同：按需调配</span>
+    <span class="fn">algorithmOptimize</span>(system); <span class="cm">// 算法优化：中断代轮询</span>
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>嵌入式软件六大特点围绕<span class="hl">资源受限</span>和<span class="hl">确定性需求</span>展开——
+  可剪裁去掉冗余、可配置灵活适配、强实时保证响应、安全性分析故障(FMECA)、可靠性用容错/余度/鲁棒性、高确定性靠静态分配和状态机。
+  低功耗的三条路：<span class="hl">编译优化、软硬件协同、算法优化</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">✂️ 裁剪文件系统模块减小ROM</span>
+  <span class="tag-item">⏱️ 查表法代替复杂计算满足实时</span>
+  <span class="tag-item">⚡ 中断代替轮询减少CPU时间</span>
+  <span class="tag-item">🛡️ FMECA = 故障模式影响及危害性分析</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>针对性强、资源利用率高</li>
+      <li>裁剪后可在极小ROM/RAM上运行</li>
+      <li>实时性和确定性满足关键任务需求</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 挑战</h4>
+    <ul>
+      <li>开发复杂度高，需深入硬件细节</li>
+      <li>调试手段有限（资源受限）</li>
+      <li>安全性/可靠性设计增加开发成本</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">可剪裁</span>
+    <span class="keyword">可配置</span>
+    <span class="keyword">FMECA</span>
+    <span class="keyword">容错</span>
+    <span class="keyword">余度技术</span>
+    <span class="keyword">鲁棒性</span>
+    <span class="keyword">编译优化</span>
+    <span class="keyword">软硬件协同设计</span>
+    <span class="keyword">算法优化</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>嵌入式体系结构</strong>（es03）= 六大特点的运行环境基础</li>
+    <li><strong>嵌入式处理器类型</strong>（es04）= 低功耗设计的硬件载体</li>
+    <li><strong>FMECA</strong> = 故障模式、影响及危害性分析，安全性设计的核心方法</li>
+    <li><strong>余度技术</strong> = 冗余备份，用多套系统保证可靠性（如双机热备）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function clearHighlights() {
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('f' + i).classList.remove('highlight');
+  }
+}
+
+function playAnimation() {
+  clearHighlights();
+  for (let i = 1; i <= 6; i++) {
+    setTimeout(() => {
+      document.getElementById('f' + i).classList.add('highlight');
+      setTimeout(() => document.getElementById('f' + i).classList.remove('highlight'), 600);
+    }, (i - 1) * 450);
+  }
+}
+
+function playPower() {
+  const ids = ['lp1','lp2','lp3','lp4','lp5'];
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('processing');
+      setTimeout(() => document.getElementById(id).classList.remove('processing'), 500);
+    }, i * 400);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

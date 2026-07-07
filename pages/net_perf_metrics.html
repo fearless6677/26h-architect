@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络性能指标与非性能指标 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 260px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Animation styles */
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+.metric-group { border-radius: 8px; padding: 16px; }
+.metric-group.perf { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 2px solid #3b82f6; }
+.metric-group.non-perf { background: linear-gradient(135deg, #faf5ff, #ede9fe); border: 2px solid #8b5cf6; }
+.metric-group h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.metric-group.perf h3 { color: #1d4ed8; }
+.metric-group.non-perf h3 { color: #6d28d9; }
+.metric-item { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; opacity: 0.5; transform: scale(0.9); transition: all 0.4s ease; }
+.metric-group.perf .metric-item { background: #bfdbfe; color: #1e40af; border: 1px solid #60a5fa; }
+.metric-group.non-perf .metric-item { background: #ddd6fe; color: #5b21b6; border: 1px solid #a78bfa; }
+.metric-item.active { opacity: 1; transform: scale(1.08); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.delay-breakdown { margin-top: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; }
+.delay-breakdown h4 { font-size: 13px; color: #475569; margin-bottom: 8px; }
+.delay-parts { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.delay-part { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; opacity: 0.4; transition: all 0.3s; }
+.delay-part.send { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+.delay-part.prop { background: #dcfce7; color: #166534; border: 1px solid #4ade80; }
+.delay-part.proc { background: #e0e7ff; color: #3730a3; border: 1px solid #818cf8; }
+.delay-part.queue { background: #ffe4e6; color: #9f1239; border: 1px solid #fb7185; }
+.delay-part.active { opacity: 1; transform: scale(1.1); }
+.delay-plus { font-size: 14px; color: #94a3b8; font-weight: bold; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 网络基础概念 › 网络性能指标与非性能指标</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">网络基础概念</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <span class="hour-tag">🕐 第3小时</span>
+  <h1>网络性能指标与非性能指标</h1>
+  <p class="one-liner">网络指标分为性能指标（速率/带宽/吞吐量/时延）和非性能指标（费用/质量/可靠性等）</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="metric-grid">
+      <div class="metric-group perf">
+        <h3>📊 性能指标（可量化）</h3>
+        <div>
+          <span class="metric-item" id="m1">速率</span>
+          <span class="metric-item" id="m2">带宽</span>
+          <span class="metric-item" id="m3">吞吐量</span>
+          <span class="metric-item" id="m4">时延</span>
+        </div>
+      </div>
+      <div class="metric-group non-perf">
+        <h3>📋 非性能指标（综合性）</h3>
+        <div>
+          <span class="metric-item" id="n1">费用</span>
+          <span class="metric-item" id="n2">质量</span>
+          <span class="metric-item" id="n3">标准化</span>
+          <span class="metric-item" id="n4">可靠性</span>
+          <span class="metric-item" id="n5">可扩展性</span>
+          <span class="metric-item" id="n6">可升级性</span>
+          <span class="metric-item" id="n7">易管理性</span>
+          <span class="metric-item" id="n8">可维护性</span>
+        </div>
+      </div>
+    </div>
+    <div class="delay-breakdown">
+      <h4>⏱️ 时延分解（点击播放查看）</h4>
+      <div class="delay-parts">
+        <span class="delay-part send" id="d1">发送时延</span>
+        <span class="delay-plus">+</span>
+        <span class="delay-part prop" id="d2">传播时延</span>
+        <span class="delay-plus">+</span>
+        <span class="delay-part proc" id="d3">处理时延</span>
+        <span class="delay-plus">+</span>
+        <span class="delay-part queue" id="d4">排队时延</span>
+        <span class="delay-plus">= 总时延</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 网络指标分类</span>
+<span class="kw">性能指标</span> = {
+    <span class="fn">速率</span>:    数据传输速率 (bps)，如 100Mbps
+    <span class="fn">带宽</span>:    信道最大数据传输速率，信道的极限能力
+    <span class="fn">吞吐量</span>:  单位时间实际通过的数据量，受瓶颈影响
+    <span class="fn">时延</span>:    数据从一端到另一端的总时间
+}
+
+<span class="kw">非性能指标</span> = {
+    <span class="st">费用</span>:      建网、运维的经济成本
+    <span class="st">质量</span>:      用户感知的服务优劣
+    <span class="st">标准化</span>:    遵循国际标准（RFC/IEEE）的程度
+    <span class="st">可靠性</span>:    抵御故障、持续运行的能力
+    <span class="st">可扩展性</span>:  规模扩大的容易程度
+    <span class="st">可升级性</span>:  技术迭代的容易程度
+    <span class="st">易管理性</span>:  日常管理的便捷程度
+    <span class="st">可维护性</span>:  故障诊断与修复的容易程度
+}
+
+<span class="cm">// 时延 = 发送时延 + 传播时延 + 处理时延 + 排队时延</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>网络指标分为<span class="hl">两大类</span>——
+  <strong>性能指标</strong>从速率、带宽、吞吐量、时延等<span class="hl">可量化</span>维度度量网络能力；
+  <strong>非性能指标</strong>从费用、质量、标准化、可靠性、可扩展性、可升级性、易管理性、可维护性等<span class="hl">综合性</span>维度评价网络质量。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">💡 带宽=100Mbps 表示信道最大数据传输速率</span>
+  <span class="tag-item">⏱️ 时延=发送时延+传播时延+处理时延+排队时延</span>
+  <span class="tag-item">📈 吞吐量 ≤ 带宽（受瓶颈链路限制）</span>
+  <span class="tag-item">🔧 非性能指标决定网络的"好不好用"</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>性能指标可量化评估网络能力</li>
+      <li>非性能指标全面反映网络综合质量</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 易混淆点</h4>
+    <ul>
+      <li>带宽 ≠ 实际速率（带宽是极限能力）</li>
+      <li>吞吐量 ≠ 带宽（受瓶颈链路制约）</li>
+      <li>时延包含4部分，不能只算一种</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">性能指标</span>
+    <span class="keyword">非性能指标</span>
+    <span class="keyword">带宽</span>
+    <span class="keyword">时延</span>
+    <span class="keyword">吞吐量</span>
+    <span class="keyword">速率</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>OSI七层模型</strong> → 各层协议的性能直接影响网络指标</li>
+    <li><strong>TCP vs UDP</strong> → TCP可靠但时延大，UDP快但不可靠，体现了性能与非性能指标的权衡</li>
+    <li><strong>网络拓扑</strong> → 影响带宽利用率和时延分布</li>
+    <li><strong>QoS（服务质量）</strong> → 综合运用性能与非性能指标保障关键业务</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // Light up performance metrics one by one
+  const perfItems = ['m1','m2','m3','m4'];
+  perfItems.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      setTimeout(() => document.getElementById(id).classList.remove('active'), 600);
+    }, i * 300);
+  });
+
+  // Light up non-performance metrics
+  const nonPerfItems = ['n1','n2','n3','n4','n5','n6','n7','n8'];
+  nonPerfItems.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      setTimeout(() => document.getElementById(id).classList.remove('active'), 400);
+    }, 1400 + i * 200);
+  });
+
+  // Light up delay breakdown
+  const delayParts = ['d1','d2','d3','d4'];
+  delayParts.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      setTimeout(() => document.getElementById(id).classList.remove('active'), 500);
+    }, 3200 + i * 400);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

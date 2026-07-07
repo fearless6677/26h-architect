@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式软件架构设计方法(ABSD/ADD/DARTS) · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 嵌入式软件架构设计 › 嵌入式软件架构设计方法(ABSD/ADD/DARTS)</span></nav>
+<div class="ct">
+<div><span class="tag c">嵌入式软件架构设计</span><span class="tag e">高</span>
+<h1>嵌入式软件架构设计方法(ABSD/ADD/DARTS)</h1><p class="ol">嵌入式软件架构设计三大方法：ABSD(架构驱动)、ADD(属性驱动7阶段)、DARTS(实时系统5部分，优势与不足均常考)</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>嵌入式软件架构设计方法主要有三种：(1)ABSD(基于架构的软件设计)：利用架构驱动设计(详见第9小时)；(2)ADD(属性驱动的设计)：将一组质量属性(可用性、性能、安全性等)场景作为输入，利用质量属性战术实现架构设计，需经历7个阶段：评审→选择驱动因子→选择系统元素→选择设计概念→实体化元素和定义接口→草拟视图→分析评价；(3)DARTS(实时系统设计方法)：基于传统结构化分析方法扩展行为建模，分为5个部分：用实时结构化分析开发系统规范→将系统划分为多个并发任务→定义任务间接口→设计每个任务→设计成果。DARTS优势：强调并发任务分解并提供确认标准、提供接口定义指南、强调任务架构图、提供分析到设计的转换。DARTS不足：封装性不好、依赖前期分析质量。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">ES-19-04</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>ABSD：以软件架构为核心驱动整个设计过程</li><li>ADD：针对高可用性需求设计，将可用性场景作为驱动因子输入，经历7个阶段</li><li>DARTS：嵌入式实时控制系统设计，将系统分解为多个并发任务并定义接口</li><li>DARTS优势体现：强调任务架构图，提供从分析到设计的转换路径</li><li>DARTS不足体现：封装数据存储效果差，前期分析不好导致后续困难</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>ADD的7个阶段是案例题填空/排序考点</li><li>DARTS的优势(4条)和不足(2条)是简答题高频考点</li><li>三种方法对比有助于综合理解和区分</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>DARTS使用信息隐藏技术封装数据存储，封装性不好</li><li>DARTS依赖前期分析质量，分析不好则任务结构化更困难</li><li>ADD需要丰富的质量属性场景作为输入</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">ABSD</span><span class="k">ADD</span><span class="k">DARTS</span><span class="k">属性驱动</span><span class="k">7个阶段</span><span class="k">5个部分</span><span class="k">并发任务</span><span class="k">质量属性战术</span><span class="k">实时系统设计</span><span class="k">结构化分析</span><span class="k">封装性不好</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="KP1901.html">KP1901</a></li><li><a href="KP1903.html">KP1903</a></li><li><a href="KP1905.html">KP1905</a></li></ul></div>
+</div></body></html>

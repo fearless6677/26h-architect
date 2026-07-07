@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>边缘计算概念与边云协同 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 边缘计算 › 边缘计算概念与边云协同</span></nav>
+<div class="ct">
+<div><span class="tag c">边缘计算</span><span class="tag e">高频</span>
+<h1>边缘计算概念与边云协同</h1><p class="ol">边缘计算将数据处理下放到网络边缘节点，四大特点是联接性、数据第一入口、约束性、分布性；核心价值是边云协同（资源/数据/智能/应用/业务/服务六维协同）。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>边缘计算是将数据处理、应用运行和功能服务由网络中心下放到网络边缘节点。核心特点是联接性（联接多样性物理对象和场景）、数据第一入口（拥有大量实时完整数据）、约束性（适配恶劣工业环境，功耗/成本/空间受限）、分布性（天然分布式部署）。边云协同是边缘计算核心发展方向，包含六个维度：资源协同（基础设施+调度）、数据协同（边缘采集初处理→云端深度分析）、智能协同（边缘推理←云端训练）、应用管理协同（边缘运行←云端开发）、业务管理协同（边缘应用实例←云端编排）、服务协同（边缘ECSaaS+云端SaaS）。安全价值：提供可信基础设施、可信安全服务、安全可信网络覆盖。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// 边缘计算四大特点
+特点 = {
+  "联接性": "联接物理对象多样性+应用场景多样性→丰富联接功能",
+  "数据第一入口": "大量/实时/完整数据→支撑预测性维护等创新应用",
+  "约束性": "适配恶劣环境，对功耗/成本/空间有高要求",
+  "分布性": "天然分布式特征→分布式计算存储/资源调度/智能/安全"
+}
+
+// 边云协同六大维度
+边云协同 = [
+  "资源协同：边缘基础设施+云端调度策略",
+  "数据协同：边缘采集初处理→云端海量存储深度分析",
+  "智能协同：边缘执行推理→云端模型训练+下发",
+  "应用管理协同：边缘部署运行→云端开发测试",
+  "业务管理协同：边缘模块化应用→云端业务编排",
+  "服务协同：边缘ECSaaS+云端SaaS→按需服务"
+]</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>智慧园区：边缘节点实时处理园区监控视频</li><li>云游戏：边缘节点提供渲染计算降低延迟</li><li>工业物联网：边缘网关就近处理设备数据</li><li>Cloud VR：边缘计算降低VR延迟提升体验</li><li>视频监控：边缘侧实时分析视频流检测异常</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>低延迟：就近处理数据减少传输延迟</li><li>带宽节省：边缘预处理减少云端传输量</li><li>数据隐私：敏感数据可在本地处理不上传</li><li>可靠性：离线时边缘可独立运行</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">边缘计算</span><span class="k">边云协同</span><span class="k">联接性</span><span class="k">数据第一入口</span><span class="k">约束性</span><span class="k">分布性</span><span class="k">资源协同</span><span class="k">数据协同</span><span class="k">智能协同</span><span class="k">ECSaaS</span><span class="k">六大协同维度</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><span style="color:#94a3b8;font-size:12px">[云计算]</span></li><li><span style="color:#94a3b8;font-size:12px">[CPS]</span></li><li><span style="color:#94a3b8;font-size:12px">[物联网]</span></li><li><span style="color:#94a3b8;font-size:12px">[数字孪生体]</span></li></ul></div>
+</div></body></html>

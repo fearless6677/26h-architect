@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识产权的基本特性 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 四大特性动画 */
+.prop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+.prop-card { background: #fff; border-radius: 12px; padding: 20px; border: 2px solid #e2e8f0; transition: all 0.4s ease; cursor: default; position: relative; overflow: hidden; }
+.prop-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; transition: background 0.3s; }
+.prop-card.c1::before { background: #3b82f6; }
+.prop-card.c2::before { background: #8b5cf6; }
+.prop-card.c3::before { background: #10b981; }
+.prop-card.c4::before { background: #f59e0b; }
+.prop-card.highlight { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.prop-card.c1.highlight { border-color: #3b82f6; }
+.prop-card.c2.highlight { border-color: #8b5cf6; }
+.prop-card.c3.highlight { border-color: #10b981; }
+.prop-card.c4.highlight { border-color: #f59e0b; }
+.prop-card .icon { font-size: 28px; margin-bottom: 8px; }
+.prop-card h3 { font-size: 16px; margin-bottom: 6px; }
+.prop-card.c1 h3 { color: #1d4ed8; }
+.prop-card.c2 h3 { color: #6d28d9; }
+.prop-card.c3 h3 { color: #047857; }
+.prop-card.c4 h3 { color: #b45309; }
+.prop-card p { font-size: 13px; color: #475569; }
+.prop-card .example-line { font-size: 12px; color: #64748b; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+
+/* 中心概念图 */
+.concept-center { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+.center-node { background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; padding: 14px 24px; border-radius: 50px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+.arrow { color: #94a3b8; font-size: 18px; }
+
+@media (max-width: 600px) {
+  .prop-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 知识产权基础 › 知识产权的基本特性</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">知识产权基础</span>
+  <span class="exam-tag">⭐ 约1分</span>
+  <h1>知识产权的基本特性</h1>
+  <p class="one-liner">知识产权具有无体性、专有性、地域性和时间性四大特征。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="concept-center">
+      <div class="center-node">知识产权（无形财产权）</div>
+    </div>
+    <div class="prop-grid">
+      <div class="prop-card c1" id="card1">
+        <div class="icon">👻</div>
+        <h3>无体性</h3>
+        <p>对象没有具体形体，是<span class="hl">抽象财富</span>，不同于有形的物权客体。</p>
+        <div class="example-line">💡 例：软件著作权保护的是代码逻辑，而非光盘本身</div>
+      </div>
+      <div class="prop-card c2" id="card2">
+        <div class="icon">🔒</div>
+        <h3>专有性</h3>
+        <p>除权利人同意或法律规定外，<span class="hl">他人不得使用</span>。类似垄断权。</p>
+        <div class="example-line">💡 例：未经许可使用他人专利 = 侵权</div>
+      </div>
+      <div class="prop-card c3" id="card3">
+        <div class="icon">🌍</div>
+        <h3>地域性</h3>
+        <p>只在<span class="hl">授予权利的国家</span>范围内受保护，跨国需另行申请。</p>
+        <div class="example-line">💡 例：中国软件著作权要在美国保护，需依美国法律</div>
+      </div>
+      <div class="prop-card c4" id="card4">
+        <div class="icon">⏳</div>
+        <h3>时间性</h3>
+        <p>超过<span class="hl">法定期限</span>后，知识产品成为社会共同财富。</p>
+        <div class="example-line">💡 例：发明专利保护期20年，到期后任何人可免费使用</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 知识产权四大特性 —— 抽象的无形财产权</span>
+
+<span class="kw">class</span> <span class="fn">IntellectualProperty</span> {
+    <span class="cm">// (1) 无体性：对象是抽象财富，没有具体形体</span>
+    <span class="fn">nature</span>()    → <span class="st">"无形的抽象财产"</span>
+
+    <span class="cm">// (2) 专有性：非经同意/法定，他人不得使用</span>
+    <span class="fn">exclusive</span>()  → <span class="st">"权利人独占，他人禁用"</span>
+
+    <span class="cm">// (3) 地域性：仅在授权国范围内受保护</span>
+    <span class="fn">territory</span>()  → <span class="st">"一国授权，一国保护"</span>
+
+    <span class="cm">// (4) 时间性：法定期限后成为社会共同财富</span>
+    <span class="fn">duration</span>()   → <span class="st">"过期 → 公共领域"</span>
+}
+
+<span class="cm">// ⚠️ 注意区分：</span>
+<span class="cm">// 地域性 vs 国际公约：国际公约简化跨国申请流程，</span>
+<span class="cm">//   但最终保护仍依各国法律（地域性依然成立）</span>
+<span class="cm">// 时间性：需精确记忆起止时间（如发明20年、著作权50年）</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>知识产权是<span class="hl">抽象的无形财产权</span>，区别于有形财产。
+  四大特性中，<strong>无体性</strong>是本质特征，<strong>专有性</strong>是权利特征，<strong>地域性</strong>和<strong>时间性</strong>是保护特征。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📝 软件著作权（自动产生）</span>
+  <span class="tag-item">🔧 发明专利（保护期20年）</span>
+  <span class="tag-item">🏷️ 商标权（可续展，无固定期限）</span>
+  <span class="tag-item">🌐 国际公约（伯尔尼、TRIPS等）</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 掌握优势</h4>
+    <ul>
+      <li>概念清晰，四个特性易记</li>
+      <li>考试中属于送分题</li>
+      <li>与生活实例关联紧密，好理解</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 易错点</h4>
+    <ul>
+      <li>需区分地域性与国际公约的关系</li>
+      <li>时间性的起止时间需精确记忆</li>
+      <li>无体性 ≠ 不需要载体（载体≠权利本身）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">无体性</span>
+    <span class="keyword">专有性</span>
+    <span class="keyword">地域性</span>
+    <span class="keyword">时间性</span>
+    <span class="keyword">抽象财富</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>KP23-02</strong> — 知识产权的类型（著作权、专利权、商标权等）</li>
+    <li><strong>KP23-03</strong> — 知识产权的保护范围与限制</li>
+    <li><strong>地域性 vs 国际公约</strong>：公约提供跨国申请通道，但各国仍独立审查</li>
+    <li><strong>时间性对比</strong>：发明20年 / 实用新型10年 / 著作权（自然人终身+死后50年）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const cards = ['card1','card2','card3','card4'];
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 800);
+    }, i * 500);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

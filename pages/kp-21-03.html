@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WPDRRC模型与五层安全体系 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #fce7f3; color: #be185d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 15px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 180px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* WPDRRC cycle */
+.cycle-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.cycle-ring { position: relative; width: 340px; height: 340px; }
+.cycle-node { position: absolute; width: 72px; height: 72px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.35s ease; border: 3px solid; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.cycle-node .en { font-size: 9px; font-weight: 400; opacity: 0.7; margin-top: 1px; }
+.cycle-node.active { transform: scale(1.18); box-shadow: 0 0 20px rgba(37,99,235,0.45); z-index: 2; }
+.cycle-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #e0f2fe, #dbeafe); border: 2px dashed #93c5fd; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.cycle-center .title { font-size: 13px; font-weight: 700; color: #1e40af; }
+.cycle-center .sub { font-size: 10px; color: #3b82f6; margin-top: 2px; }
+.cycle-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.cycle-arrow { fill: none; stroke: #cbd5e1; stroke-width: 2; }
+.cycle-arrow.active { stroke: #2563eb; stroke-width: 3; filter: drop-shadow(0 0 4px rgba(37,99,235,0.5)); }
+
+/* 5-layer stack */
+.layer-stack { display: flex; flex-direction: column; gap: 0; margin: 16px 0; }
+.layer-row { display: flex; align-items: stretch; border: 2px solid; border-radius: 10px; padding: 14px 20px; margin-bottom: 8px; transition: all 0.3s ease; cursor: pointer; position: relative; }
+.layer-row .layer-icon { font-size: 28px; margin-right: 16px; display: flex; align-items: center; }
+.layer-row .layer-body { flex: 1; }
+.layer-row .layer-body h3 { font-size: 15px; margin-bottom: 2px; }
+.layer-row .layer-body p { font-size: 12px; opacity: 0.8; margin: 0; }
+.layer-row .layer-badge { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 11px; padding: 2px 10px; border-radius: 10px; font-weight: 600; }
+.layer-row.highlight { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 2; }
+
+.l1 { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+.l1 .layer-badge { background: #fee2e2; color: #b91c1c; }
+.l2 { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
+.l2 .layer-badge { background: #ffedd5; color: #c2410c; }
+.l3 { background: #fefce8; border-color: #fde047; color: #854d0e; }
+.l3 .layer-badge { background: #fef9c3; color: #a16207; }
+.l4 { background: #f0fdf4; border-color: #86efac; color: #166534; }
+.l4 .layer-badge { background: #dcfce7; color: #15803d; }
+.l5 { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
+.l5 .layer-badge { background: #dbeafe; color: #1d4ed8; }
+
+/* CIA triad */
+.cia-row { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; justify-content: center; }
+.cia-card { flex: 1; min-width: 140px; max-width: 200px; text-align: center; padding: 20px 12px; border-radius: 12px; border: 2px solid; transition: all 0.3s; cursor: default; }
+.cia-card:hover { transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+.cia-card .icon { font-size: 32px; margin-bottom: 6px; }
+.cia-card .name { font-size: 16px; font-weight: 700; }
+.cia-card .desc { font-size: 11px; margin-top: 4px; opacity: 0.8; }
+.cia-c { background: #eff6ff; border-color: #60a5fa; color: #1d4ed8; }
+.cia-i { background: #f0fdf4; border-color: #4ade80; color: #15803d; }
+.cia-a { background: #fefce8; border-color: #facc15; color: #854d0e; }
+
+/* 3 elements */
+.elem-row { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; justify-content: center; }
+.elem-card { flex: 1; min-width: 120px; max-width: 180px; text-align: center; padding: 16px 10px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; transition: all 0.3s; }
+.elem-card:hover { border-color: #a78bfa; background: #f5f3ff; }
+.elem-card .icon { font-size: 28px; }
+.elem-card .name { font-size: 15px; font-weight: 700; color: #5b21b6; margin-top: 4px; }
+.elem-card .desc { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+.section-title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 20px 0 12px; padding-left: 12px; border-left: 4px solid #2563eb; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 安全架构 › WPDRRC模型与五层安全体系</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">安全架构框架</span>
+  <span class="exam-tag">⭐ 高频考点</span>
+  <h1>WPDRRC模型与信息安全体系架构五层设计</h1>
+  <p class="one-liner">WPDRRC六环节闭环 + 3要素 + 五层安全体系 = 全面防护</p>
+</div>
+
+<!-- ============ TABS ============ -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'wpdrrc')">🔄 WPDRRC模型</div>
+  <div class="tab" onclick="switchTab(this,'layers')">🏗️ 五层体系</div>
+  <div class="tab" onclick="switchTab(this,'cia')">🛡️ CIA三要素</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- ============ WPDRRC CYCLE ============ -->
+<div id="wpdrrc" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playCycle()">▶ 播放</button>
+    <div class="cycle-wrap">
+      <div class="cycle-ring" id="cycleRing">
+        <svg class="cycle-svg" viewBox="0 0 340 340">
+          <circle cx="170" cy="170" r="130" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="6,4"/>
+          <path id="arrow0" class="cycle-arrow" d="M170,40 A130,130 0 0,1 283,105"/>
+          <path id="arrow1" class="cycle-arrow" d="M283,105 A130,130 0 0,1 283,235"/>
+          <path id="arrow2" class="cycle-arrow" d="M283,235 A130,130 0 0,1 170,300"/>
+          <path id="arrow3" class="cycle-arrow" d="M170,300 A130,130 0 0,1 57,235"/>
+          <path id="arrow4" class="cycle-arrow" d="M57,235 A130,130 0 0,1 57,105"/>
+          <path id="arrow5" class="cycle-arrow" d="M57,105 A130,130 0 0,1 170,40"/>
+        </svg>
+        <!-- Nodes positioned in circle -->
+        <div class="cycle-node" id="n0" style="top:2px;left:134px;background:#fef2f2;border-color:#ef4444;color:#991b1b;">预警<span class="en">Warning</span></div>
+        <div class="cycle-node" id="n1" style="top:67px;right:2px;background:#fff7ed;border-color:#f97316;color:#9a3412;">保护<span class="en">Protect</span></div>
+        <div class="cycle-node" id="n2" style="bottom:67px;right:2px;background:#fefce8;border-color:#eab308;color:#854d0e;">检测<span class="en">Detect</span></div>
+        <div class="cycle-node" id="n3" style="bottom:2px;left:134px;background:#f0fdf4;border-color:#22c55e;color:#166534;">响应<span class="en">React</span></div>
+        <div class="cycle-node" id="n4" style="bottom:67px;left:2px;background:#eff6ff;border-color:#3b82f6;color:#1d4ed8;">恢复<span class="en">Restore</span></div>
+        <div class="cycle-node" id="n5" style="top:67px;left:2px;background:#faf5ff;border-color:#a855f7;color:#6b21a8;">反击<span class="en">Counter</span></div>
+        <!-- Center -->
+        <div class="cycle-center">
+          <div class="title">WPDRRC</div>
+          <div class="sub">安全生命周期</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">3 大要素</div>
+  <div class="elem-row">
+    <div class="elem-card"><div class="icon">👤</div><div class="name">人员</div><div class="desc">安全意识的核心</div></div>
+    <div class="elem-card"><div class="icon">📜</div><div class="name">策略</div><div class="desc">制度与规范保障</div></div>
+    <div class="elem-card"><div class="icon">⚙️</div><div class="name">技术</div><div class="desc">技术手段支撑</div></div>
+  </div>
+
+  <div class="explain">
+    <strong>核心：</strong>WPDRRC形成完整的<span class="hl">安全生命周期闭环</span>。
+    预警→保护→检测→响应→恢复→反击，<span class="hl">循环往复</span>，持续改进。
+    三大要素<span class="hl">人员、策略、技术</span>贯穿每个环节。
+  </div>
+</div>
+
+<!-- ============ 5 LAYERS ============ -->
+<div id="layers" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playLayers()">▶ 逐层高亮</button>
+    <div class="layer-stack" id="layerStack">
+      <div class="layer-row l1" id="ly1">
+        <div class="layer-icon">🏢</div>
+        <div class="layer-body">
+          <h3>① 物理安全</h3>
+          <p>环境安全 / 设备安全 / 媒体安全 — <strong>前提</strong></p>
+        </div>
+        <div class="layer-badge">前提</div>
+      </div>
+      <div class="layer-row l2" id="ly2">
+        <div class="layer-icon">🖥️</div>
+        <div class="layer-body">
+          <h3>② 系统安全</h3>
+          <p>网络结构 / 操作系统 / 应用系统安全 — <strong>基础</strong></p>
+        </div>
+        <div class="layer-badge">基础</div>
+      </div>
+      <div class="layer-row l3" id="ly3">
+        <div class="layer-icon">🌐</div>
+        <div class="layer-body">
+          <h3>③ 网络安全</h3>
+          <p>访问控制 / 通信保密 / 入侵检测 / 安全扫描 / 防病毒 — <strong>关键</strong></p>
+        </div>
+        <div class="layer-badge">关键</div>
+      </div>
+      <div class="layer-row l4" id="ly4">
+        <div class="layer-icon">📦</div>
+        <div class="layer-body">
+          <h3>④ 应用安全</h3>
+          <p>资源共享安全 / 信息存储安全</p>
+        </div>
+        <div class="layer-badge">应用</div>
+      </div>
+      <div class="layer-row l5" id="ly5">
+        <div class="layer-icon">📋</div>
+        <div class="layer-body">
+          <h3>⑤ 安全管理</h3>
+          <p>健全体制 / 管理平台 / 人员防范意识</p>
+        </div>
+        <div class="layer-badge">管理</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="explain">
+    <strong>记忆口诀：</strong><span class="hl">物系网应管</span>（物理是前提，系统是基础，网络是关键）。
+    五层从上到下构成<span class="hl">纵深防御</span>，任一层失效都可能影响整体安全。
+  </div>
+</div>
+
+<!-- ============ CIA ============ -->
+<div id="cia" class="tab-content">
+  <div class="anim-area">
+    <div class="cia-row">
+      <div class="cia-card cia-c">
+        <div class="icon">🔒</div>
+        <div class="name">机密性</div>
+        <div class="desc">Confidentiality<br>确保信息不被未授权访问</div>
+      </div>
+      <div class="cia-card cia-i">
+        <div class="icon">✅</div>
+        <div class="name">完整性</div>
+        <div class="desc">Integrity<br>确保信息不被篡改</div>
+      </div>
+      <div class="cia-card cia-a">
+        <div class="icon">🟢</div>
+        <div class="name">可用性</div>
+        <div class="desc">Availability<br>确保授权用户可用</div>
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>CIA三要素</strong>是安全架构设计的<span class="hl">基石</span>。
+    所有安全措施最终都是为了保障这三点：<span class="hl">机密性、完整性、可用性</span>。
+  </div>
+
+  <div class="tag-list">
+    <span class="tag-item">🔥 防火墙 → Protect</span>
+    <span class="tag-item">🔍 IDS入侵检测 → Detect</span>
+    <span class="tag-item">📋 灾难恢复计划 → Restore</span>
+    <span class="tag-item">🗄️ 数据库容灾 → 应用安全</span>
+  </div>
+</div>
+
+<!-- ============ CODE ============ -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// WPDRRC 安全生命周期 —— 六环节闭环</span>
+<span class="kw">class</span> <span class="fn">SecurityLifecycle</span> {
+
+    <span class="cm">// ① 预警：风险评估、威胁情报</span>
+    <span class="fn">warning</span>()    { <span class="kw">return</span> riskAssess() + threatIntel(); }
+
+    <span class="cm">// ② 保护：防火墙、加密、访问控制</span>
+    <span class="fn">protect</span>()    { <span class="kw">return</span> firewall() + encrypt() + acl(); }
+
+    <span class="cm">// ③ 检测：IDS、日志审计、漏洞扫描</span>
+    <span class="fn">detect</span>()     { <span class="kw">return</span> ids() + logAudit() + scan(); }
+
+    <span class="cm">// ④ 响应：应急响应、事件处置</span>
+    <span class="fn">react</span>()      { <span class="kw">return</span> incidentResponse() + contain(); }
+
+    <span class="cm">// ⑤ 恢复：灾难恢复、数据备份</span>
+    <span class="fn">restore</span>()    { <span class="kw">return</span> disasterRecovery() + backup(); }
+
+    <span class="cm">// ⑥ 反击：溯源追踪、法律手段</span>
+    <span class="fn">counterattack</span>() { <span class="kw">return</span> traceSource() + legalAction(); }
+
+    <span class="cm">// 循环往复，持续改进</span>
+    <span class="fn">run</span>() {
+        <span class="kw">while</span> (<span class="st">true</span>) {
+            warning() → protect() → detect()
+                → react() → restore() → counterattack();
+        }
+    }
+}
+
+<span class="cm">// 五层安全体系</span>
+<span class="kw">const</span> securityLayers = [
+    { layer: <span class="num">1</span>, name: <span class="st">"物理安全"</span>, role: <span class="st">"前提"</span>, items: [<span class="st">"环境"</span>,<span class="st">"设备"</span>,<span class="st">"媒体"</span>] },
+    { layer: <span class="num">2</span>, name: <span class="st">"系统安全"</span>, role: <span class="st">"基础"</span>, items: [<span class="st">"网络结构"</span>,<span class="st">"操作系统"</span>,<span class="st">"应用系统"</span>] },
+    { layer: <span class="num">3</span>, name: <span class="st">"网络安全"</span>, role: <span class="st">"关键"</span>, items: [<span class="st">"访问控制"</span>,<span class="st">"通信保密"</span>,<span class="st">"IDS"</span>] },
+    { layer: <span class="num">4</span>, name: <span class="st">"应用安全"</span>, role: <span class="st">"应用"</span>, items: [<span class="st">"资源共享"</span>,<span class="st">"信息存储"</span>] },
+    { layer: <span class="num">5</span>, name: <span class="st">"安全管理"</span>, role: <span class="st">"管理"</span>, items: [<span class="st">"体制"</span>,<span class="st">"平台"</span>,<span class="st">"防范意识"</span>] },
+];
+
+<span class="cm">// CIA 三要素 —— 安全架构的基石</span>
+<span class="kw">const</span> CIA = { Confidentiality: <span class="st">"机密性"</span>, Integrity: <span class="st">"完整性"</span>, Availability: <span class="st">"可用性"</span> };</pre>
+</div>
+
+<!-- ============ EXAMPLES ============ -->
+<div class="tag-list" style="margin-top:24px;">
+  <span class="tag-item">🔥 防火墙属于 Protect</span>
+  <span class="tag-item">🔍 IDS属于 Detect</span>
+  <span class="tag-item">📋 灾难恢复属于 Restore</span>
+  <span class="tag-item">🗄️ 数据库容灾 = 应用安全</span>
+  <span class="tag-item">🏢 物理安全是前提</span>
+  <span class="tag-item">🖥️ 系统安全是基础</span>
+  <span class="tag-item">🌐 网络安全是关键</span>
+</div>
+
+<!-- ============ PROS / CONS ============ -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>WPDRRC形成完整的安全生命周期闭环</li>
+      <li>五层安全体系覆盖从物理到管理的全方位防护</li>
+      <li>CIA三要素是安全架构设计的基石</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点 / 风险</h4>
+    <ul>
+      <li>模型要素较多，实施需要人员、策略、技术全面配合</li>
+      <li>各环节之间存在依赖关系，单点失效可能影响整体</li>
+      <li>反击环节在实际操作中法律风险较高</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ EXAM ============ -->
+<div class="exam-box">
+  <h4>📝 考试关键词（高频考点）</h4>
+  <p style="font-size:12px;color:#92400e;margin-bottom:8px;">WPDRRC六环节 + 五层安全体系是选择题和案例分析的重点</p>
+  <div>
+    <span class="keyword">WPDRRC</span>
+    <span class="keyword">预警</span>
+    <span class="keyword">保护</span>
+    <span class="keyword">检测</span>
+    <span class="keyword">响应</span>
+    <span class="keyword">恢复</span>
+    <span class="keyword">反击</span>
+    <span class="keyword">物理安全</span>
+    <span class="keyword">系统安全</span>
+    <span class="keyword">网络安全</span>
+    <span class="keyword">应用安全</span>
+    <span class="keyword">安全管理</span>
+    <span class="keyword">CIA</span>
+  </div>
+</div>
+
+<!-- ============ RELATED ============ -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>信息安全基础（kp-21-01）</strong> = 安全概念与术语是 WPDRRC 的理论基础</li>
+    <li><strong>加密与认证技术（kp-21-04）</strong> = 加密/认证是 Protect 环节的核心技术手段</li>
+    <li><strong>安全标准与等级保护（kp-21-05）</strong> = 等保制度为五层体系提供合规框架</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---- WPDRRC Cycle Animation ---- */
+let cycleTimer = null;
+function playCycle() {
+  if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+  let step = 0;
+  const nodes = document.querySelectorAll('.cycle-node');
+  const arrows = document.querySelectorAll('.cycle-arrow');
+
+  function tick() {
+    nodes.forEach(n => n.classList.remove('active'));
+    arrows.forEach(a => a.classList.remove('active'));
+    nodes[step].classList.add('active');
+    arrows[step].classList.add('active');
+    step = (step + 1) % 6;
+  }
+  tick();
+  cycleTimer = setInterval(tick, 800);
+  setTimeout(() => { clearInterval(cycleTimer); cycleTimer = null; }, 6000);
+}
+
+/* ---- Layer Stack Animation ---- */
+let layerTimer = null;
+function playLayers() {
+  if (layerTimer) { clearInterval(layerTimer); layerTimer = null; }
+  const rows = document.querySelectorAll('.layer-row');
+  let idx = 0;
+  function tick() {
+    rows.forEach(r => r.classList.remove('highlight'));
+    rows[idx].classList.add('highlight');
+    idx = (idx + 1) % rows.length;
+  }
+  tick();
+  layerTimer = setInterval(tick, 700);
+  setTimeout(() => { clearInterval(layerTimer); layerTimer = null; rows.forEach(r => r.classList.remove('highlight')); }, 5000);
+}
+
+/* Auto-play on load */
+window.addEventListener('load', () => setTimeout(playCycle, 600));
+</script>
+</body>
+</html>

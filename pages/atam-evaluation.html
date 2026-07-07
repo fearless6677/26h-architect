@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATAM架构权衡分析法 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; font-weight: 600; }
+.page-header .hour-tag { display: inline-block; background: #f5f3ff; color: #7c3aed; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; animation: fadeIn 0.3s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .at { color: #fbbf24; } .code-area .num { color: #67e8f9; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.examples-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.examples-box h4 { color: #15803d; margin-bottom: 10px; }
+.examples-box li { font-size: 13px; color: #475569; margin: 6px 0; list-style: none; }
+.examples-box li::before { content: "📌 "; }
+
+/* Phase flow */
+.phase-flow { display: flex; align-items: stretch; justify-content: center; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+.phase-box { display: flex; flex-direction: column; align-items: center; padding: 14px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 120px; cursor: default; position: relative; }
+.phase-box.p1 { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.phase-box.p2 { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.phase-box.p3 { background: #fefce8; border: 2px solid #eab308; color: #a16207; }
+.phase-box.p4 { background: #fdf2f8; border: 2px solid #ec4899; color: #be185d; }
+.phase-box .phase-num { font-size: 11px; opacity: 0.7; margin-bottom: 2px; }
+.phase-box .phase-label { font-size: 14px; }
+.phase-box .phase-sub { font-size: 11px; font-weight: 400; color: #64748b; margin-top: 4px; line-height: 1.5; text-align: left; }
+.phase-arrow { display: flex; align-items: center; justify-content: center; width: 40px; font-size: 20px; color: #94a3b8; }
+.phase-box.active-phase { transform: scale(1.08); box-shadow: 0 0 20px rgba(37,99,235,0.35); z-index: 2; }
+
+/* Utility tree */
+.utility-tree { margin: 16px auto; max-width: 720px; }
+.tree-root { text-align: center; }
+.tree-node { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; margin: 4px; transition: all 0.3s; cursor: default; }
+.tree-root .tree-node { background: #1e293b; color: #fbbf24; border: 2px solid #fbbf24; font-size: 15px; }
+.tree-level { display: flex; justify-content: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+.tree-level .tree-node.perf { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.tree-level .tree-node.avail { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.tree-level .tree-node.sec { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.tree-level .tree-node.mod { background: #fdf2f8; border: 2px solid #ec4899; color: #be185d; }
+.tree-scenario { font-size: 11px; font-weight: 400; display: block; margin-top: 2px; }
+.tree-connector { text-align: center; color: #94a3b8; font-size: 18px; margin: 2px 0; }
+.tree-node.highlight-node { transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.35); }
+
+/* Finding dots */
+.finding-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; justify-content: center; }
+.finding-dot { padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; transition: all 0.3s; }
+.finding-dot.risk { background: #fef2f2; border: 1.5px solid #f87171; color: #b91c1c; }
+.finding-dot.nonrisk { background: #f0fdf4; border: 1.5px solid #4ade80; color: #15803d; }
+.finding-dot.sensitive { background: #fefce8; border: 1.5px solid #facc15; color: #a16207; }
+.finding-dot.tradeoff { background: #f5f3ff; border: 1.5px solid #a78bfa; color: #6d28d9; }
+.finding-dot.pop { transform: scale(1.12); }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Detail cards in phases tab */
+.phase-detail-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; transition: box-shadow 0.2s; }
+.phase-detail-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.phase-detail-card h4 { font-size: 15px; margin-bottom: 8px; }
+.phase-detail-card h4 .badge { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; margin-right: 8px; font-weight: 600; }
+.phase-detail-card ul { margin-left: 18px; }
+.phase-detail-card li { font-size: 13px; color: #475569; margin: 4px 0; }
+.phase-detail-card .step-label { color: #1e40af; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› ATAM方法 › ATAM架构权衡分析法</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">ATAM方法</span>
+  <span class="exam-tag">🔴 必考</span>
+  <span class="hour-tag">📖 第10小时</span>
+  <h1>ATAM架构权衡分析法</h1>
+  <p class="one-liner">ATAM采用效用树对质量属性排序，通过四阶段评估实现多质量属性折中</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 四阶段动画</div>
+  <div class="tab" onclick="switchTab(this,'tree')">🌳 效用树</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'detail')">📋 阶段详解</div>
+</div>
+
+<!-- ==================== TAB: 四阶段动画 ==================== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playPhaseAnimation()">▶ 播放</button>
+    <p style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:12px;">ATAM 四阶段评估流程</p>
+    <div class="phase-flow">
+      <div class="phase-box p1" id="ph1">
+        <span class="phase-num">阶段1</span>
+        <span class="phase-label">演示</span>
+        <span class="phase-sub">Presentation<br>a. 介绍ATAM过程<br>b. 业务驱动因素<br>c. 体系结构介绍</span>
+      </div>
+      <div class="phase-arrow">→</div>
+      <div class="phase-box p2" id="ph2">
+        <span class="phase-num">阶段2</span>
+        <span class="phase-label">调查和分析</span>
+        <span class="phase-sub">a. 确定架构方法<br>b. 生成效用树<br>c. 分析架构方法</span>
+      </div>
+      <div class="phase-arrow">→</div>
+      <div class="phase-box p3" id="ph3">
+        <span class="phase-num">阶段3</span>
+        <span class="phase-label">测试</span>
+        <span class="phase-sub">a. 头脑风暴<br>b. 优先场景<br>c. 分析架构方法</span>
+      </div>
+      <div class="phase-arrow">→</div>
+      <div class="phase-box p4" id="ph4">
+        <span class="phase-num">阶段4</span>
+        <span class="phase-label">报告</span>
+        <span class="phase-sub">向利益相关者<br>提供所有评估信息</span>
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <p style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:8px;">阶段2产出的四种分析结果</p>
+      <div class="finding-row">
+        <span class="finding-dot risk" id="f1">🔴 风险</span>
+        <span class="finding-dot nonrisk" id="f2">🟢 非风险</span>
+        <span class="finding-dot sensitive" id="f3">🟡 敏感点</span>
+        <span class="finding-dot tradeoff" id="f4">🟣 权衡点</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB: 效用树 ==================== -->
+<div id="tree" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playTreeAnimation()">▶ 播放</button>
+    <div class="utility-tree">
+      <div class="tree-root">
+        <span class="tree-node" id="tn-root">🏆 效用</span>
+      </div>
+      <div class="tree-connector">│</div>
+      <div class="tree-level" id="tree-l1">
+        <span class="tree-node perf" id="tn-perf">⚡ 性能<span class="tree-scenario">(a) 0.5s内响应</span></span>
+        <span class="tree-node avail" id="tn-avail">🛡️ 可用性<span class="tree-scenario">(d) 2min内发现故障</span></span>
+        <span class="tree-node sec" id="tn-sec">🔒 安全性<span class="tree-scenario">(b) 99.999%安全</span></span>
+        <span class="tree-node mod" id="tn-mod">🔧 可修改性<span class="tree-scenario">(h) 30人月添加中间件</span></span>
+      </div>
+      <div class="tree-connector">↓ 具体场景（按优先级排序）</div>
+      <div id="tree-scenarios" style="margin-top:8px;"></div>
+    </div>
+  </div>
+  <div class="explain" style="margin-top:8px;">
+    <strong>效用树（Utility Tree）：</strong>将抽象的"效用"分解为<span class="hl">四大质量属性</span>，再细化为具体可测量的场景。场景按<span class="hl">(优先级, 难度)</span>排序，指导评估聚焦最重要的架构决策。
+  </div>
+</div>
+
+<!-- ==================== TAB: 伪代码 ==================== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ATAM —— Architecture Tradeoff Analysis Method</span>
+<span class="cm">// 架构权衡分析法：开发前评估多质量属性</span>
+
+<span class="kw">class</span> <span class="fn">ATAM</span> {
+
+  <span class="cm">// ========== 阶段1: 演示 Presentation =========</span>
+  <span class="fn">phase1_presentation</span>() {
+    <span class="fn">introduce</span>(<span class="st">"ATAM评估过程"</span>)
+    <span class="fn">introduce</span>(<span class="st">"业务驱动因素"</span>)      <span class="cm">// 功能/利益相关方/业务目标/限制</span>
+    <span class="fn">introduce</span>(<span class="st">"体系结构"</span>)          <span class="cm">// 可用性及质量要求</span>
+  }
+
+  <span class="cm">// ========== 阶段2: 调查和分析 =========</span>
+  <span class="fn">phase2_investigation</span>() {
+    architecture_methods = <span class="fn">determine_methods</span>()   <span class="cm">// 确定架构方法</span>
+    utility_tree = <span class="fn">build_utility_tree</span>()          <span class="cm">// 生成质量属性效用树</span>
+    <span class="kw">for</span> method <span class="kw">in</span> architecture_methods:
+      <span class="fn">investigate</span>(method)                        <span class="cm">// 调查架构方法</span>
+      questions = <span class="fn">create_analysis_questions</span>()    <span class="cm">// 创建分析问题</span>
+      answers   = <span class="fn">analyze_answers</span>(questions)     <span class="cm">// 分析答案</span>
+      <span class="fn">identify</span>(answers)                          <span class="cm">// 找出↓</span>
+        <span class="at">风险</span>(Risks)        <span class="cm">// 可能导致问题的决策</span>
+        <span class="at">非风险</span>(Non-Risks)  <span class="cm">// 好的、安全的决策</span>
+        <span class="at">敏感点</span>(Sensitivity) <span class="cm">// 对某属性影响大的参数</span>
+        <span class="at">权衡点</span>(Tradeoff)   <span class="cm">// 影响多个属性的决策</span>
+  }
+
+  <span class="cm">// ========== 阶段3: 测试 =========</span>
+  <span class="fn">phase3_testing</span>() {
+    <span class="fn">brainstorm</span>()                              <span class="cm">// 头脑风暴</span>
+    scenarios = <span class="fn">prioritize_scenarios</span>()           <span class="cm">// 优先排序场景</span>
+    <span class="fn">analyze_architecture_methods</span>(scenarios)     <span class="cm">// 再次分析</span>
+  }
+
+  <span class="cm">// ========== 阶段4: 报告 =========</span>
+  <span class="fn">phase4_reporting</span>() {
+    <span class="fn">present_all_findings</span>(<span class="at">利益相关者</span>)            <span class="cm">// 提供所有信息</span>
+  }
+}
+
+<span class="cm">// 核心概念: 以属性作为架构评估的核心</span>
+<span class="cm">// 关键工具: 效用树 = 效用 → 质量属性 → 具体场景</span>
+<span class="cm">// 评估技术: 场景技术 + 启发式分析方法</span>
+<span class="cm">// 知识库:   有基于属性的体系模型, 可复用</span></pre>
+</div>
+
+<!-- ==================== TAB: 阶段详解 ==================== -->
+<div id="detail" class="tab-content">
+
+  <div class="phase-detail-card" style="border-left: 4px solid #3b82f6;">
+    <h4><span class="badge" style="background:#dbeafe;color:#1d4ed8;">阶段1</span>演示 Presentation</h4>
+    <ul>
+      <li><span class="step-label">a.</span> 介绍ATAM评估过程 — 让利益相关者了解方法</li>
+      <li><span class="step-label">b.</span> 介绍业务驱动因素 — 功能需求、利益相关方、业务目标、约束限制</li>
+      <li><span class="step-label">c.</span> 介绍要评估的体系结构 — 可用性及质量要求概述</li>
+    </ul>
+  </div>
+
+  <div class="phase-detail-card" style="border-left: 4px solid #22c55e;">
+    <h4><span class="badge" style="background:#dcfce7;color:#15803d;">阶段2</span>调查和分析</h4>
+    <ul>
+      <li><span class="step-label">a.</span> 确定架构方法 — 识别当前采用的架构策略</li>
+      <li><span class="step-label">b.</span> 生成质量属性效用树 — 确定最重要的质量属性并排序</li>
+      <li><span class="step-label">c.</span> 分析体系结构方法 — 循环执行：
+        <ul>
+          <li>调查架构方法 → 创建分析问题 → 分析答案</li>
+          <li>输出：<span style="color:#b91c1c;font-weight:600;">风险</span> /
+                    <span style="color:#15803d;font-weight:600;">非风险</span> /
+                    <span style="color:#a16207;font-weight:600;">敏感点</span> /
+                    <span style="color:#6d28d9;font-weight:600;">权衡点</span></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="phase-detail-card" style="border-left: 4px solid #eab308;">
+    <h4><span class="badge" style="background:#fef9c3;color:#a16207;">阶段3</span>测试</h4>
+    <ul>
+      <li><span class="step-label">a.</span> 头脑风暴和优先场景 — 利益相关者提出新场景并排序</li>
+      <li><span class="step-label">b.</span> 分析架构方法 — 对头脑风暴产生的新场景进行分析</li>
+    </ul>
+  </div>
+
+  <div class="phase-detail-card" style="border-left: 4px solid #ec4899;">
+    <h4><span class="badge" style="background:#fce7f3;color:#be185d;">阶段4</span>报告</h4>
+    <ul>
+      <li>提供评估期间所有信息给利益相关者 — 包括发现的风险、非风险、敏感点、权衡点</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ==================== 核心解释 ==================== -->
+<div class="explain" style="margin-top:20px;">
+  <strong>核心：</strong>ATAM全称<span class="hl">Architecture Tradeoff Analysis Method</span>，
+  是在系统开发前针对<span class="hl">性能、可用性、安全性、可修改性</span>等质量属性进行评价和折中的架构评估方法。
+  以<span class="hl">属性</span>作为核心概念，使用<span class="hl">效用树（Utility Tree）</span>对质量属性分类和优先级排序。
+  评估采用<span class="hl">场景技术 + 启发式分析方法</span>，知识库基于属性模型可复用。
+</div>
+
+<!-- ==================== 效用树示例 ==================== -->
+<div class="examples-box">
+  <h4>💡 效用树示例</h4>
+  <ul>
+    <li>效用 → 性能 → (a) 正常负载下0.5秒内响应用户交易请求</li>
+    <li>效用 → 安全性 → (b) 信用卡支付保证99.999%安全性</li>
+    <li>效用 → 可用性 → (d) 网络失效后2分钟内发现错误并启用备用系统</li>
+    <li>效用 → 可修改性 → (h) 在30人月内添加新事务处理中间件</li>
+  </ul>
+</div>
+
+<!-- ==================== 标签 ==================== -->
+<div class="tag-list">
+  <span class="tag-item">🎯 多质量属性折中</span>
+  <span class="tag-item">🌳 效用树排序</span>
+  <span class="tag-item">🔍 风险/敏感点/权衡点</span>
+  <span class="tag-item">📊 场景+启发式分析</span>
+  <span class="tag-item">📖 知识库可复用</span>
+</div>
+
+<!-- ==================== 优缺点 ==================== -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>系统化地处理多个质量属性之间的权衡</li>
+      <li>效用树工具使质量属性优先级清晰</li>
+      <li>知识库可复用，有基于属性的体系模型</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 局限性</h4>
+    <ul>
+      <li>评估过程复杂，需要大量时间和人力</li>
+      <li>依赖利益相关者的参与程度</li>
+      <li>需要评估者具备丰富的架构经验</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== 考试关键词 ==================== -->
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">ATAM</span>
+    <span class="keyword">Architecture Tradeoff Analysis Method</span>
+    <span class="keyword">效用树</span>
+    <span class="keyword">Utility Tree</span>
+    <span class="keyword">演示</span>
+    <span class="keyword">调查和分析</span>
+    <span class="keyword">测试</span>
+    <span class="keyword">报告</span>
+    <span class="keyword">性能</span>
+    <span class="keyword">可用性</span>
+    <span class="keyword">安全性</span>
+    <span class="keyword">可修改性</span>
+    <span class="keyword">折中</span>
+    <span class="keyword">风险</span>
+    <span class="keyword">非风险</span>
+    <span class="keyword">敏感点</span>
+    <span class="keyword">权衡点</span>
+  </div>
+</div>
+
+<!-- ==================== 关联知识 ==================== -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="architecture-evaluation-concepts.html"><strong>架构评估概念</strong></a> — ATAM是架构评估方法的核心代表</li>
+    <li><a href="saam-method.html"><strong>SAAM方法</strong></a> — 另一种架构评估方法，侧重于场景可用性分析</li>
+    <li><a href="quality-improvement-strategies.html"><strong>质量改进策略</strong></a> — ATAM评估结果驱动质量属性的改进</li>
+    <li><strong>ATAM vs SAAM</strong>：ATAM强调多属性折中(4个质量属性)，SAAM侧重单属性场景验证</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* Phase flow animation */
+let phaseTimer = null;
+function playPhaseAnimation() {
+  const phases = ['ph1','ph2','ph3','ph4'];
+  const findings = ['f1','f2','f3','f4'];
+  phases.forEach(id => document.getElementById(id).classList.remove('active-phase'));
+  findings.forEach(id => document.getElementById(id).classList.remove('pop'));
+  let i = 0;
+  function next() {
+    if (i < 4) {
+      document.getElementById(phases[i]).classList.add('active-phase');
+      if (i > 0) document.getElementById(phases[i-1]).classList.remove('active-phase');
+      i++;
+      phaseTimer = setTimeout(next, 900);
+    } else {
+      document.getElementById(phases[3]).classList.remove('active-phase');
+      // pop findings
+      findings.forEach((id, idx) => {
+        setTimeout(() => {
+          document.getElementById(id).classList.add('pop');
+          setTimeout(() => document.getElementById(id).classList.remove('pop'), 500);
+        }, idx * 300);
+      });
+    }
+  }
+  next();
+}
+
+/* Utility tree animation */
+function playTreeAnimation() {
+  const ids = ['tn-root','tn-perf','tn-avail','tn-sec','tn-mod'];
+  ids.forEach(id => document.getElementById(id).classList.remove('highlight-node'));
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('highlight-node');
+      setTimeout(() => {
+        if (id !== 'tn-root') document.getElementById(id).classList.remove('highlight-node');
+      }, 600);
+    }, i * 400);
+  });
+}
+
+/* Auto-play on load */
+window.addEventListener('load', () => {
+  setTimeout(playPhaseAnimation, 600);
+});
+</script>
+</body>
+</html>

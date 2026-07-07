@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统分析与设计 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* DFD Animation */
+.dfd-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.orange { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.box.purple { background: #f5f3ff; border: 2px solid #8b5cf6; color: #6d28d9; }
+.box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+/* Coupling/cohension table */
+.scale-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.scale-table th { background: #f1f5f9; padding: 8px 10px; text-align: center; border: 1px solid #e2e8f0; color: #475569; }
+.scale-table td { padding: 8px 10px; text-align: center; border: 1px solid #e2e8f0; }
+.scale-table .low { background: #f0fdf4; color: #15803d; }
+.scale-table .high { background: #fef2f2; color: #b91c1c; }
+
+/* OOP Class cards */
+.class-row { display: flex; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
+.class-card { flex: 1; min-width: 160px; background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; transition: all 0.3s; }
+.class-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.class-card.entity { border-color: #3b82f6; }
+.class-card.control { border-color: #f97316; }
+.class-card.boundary { border-color: #8b5cf6; }
+.class-card h5 { font-size: 14px; margin-bottom: 6px; }
+.class-card p { font-size: 12px; color: #64748b; }
+.class-card .icon { font-size: 28px; margin-bottom: 6px; }
+
+.section-label { font-size: 15px; font-weight: 700; color: #1e293b; margin: 20px 0 10px; padding-left: 10px; border-left: 4px solid #2563eb; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 系统分析与设计</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">系统分析与设计</span>
+  <span class="exam-tag">⭐ 必考</span>
+  <h1>系统分析与设计（SA/SD & OO）</h1>
+  <p class="one-liner">分析设计就是画图纸——结构化用数据流图拆功能，面向对象用类和对象模拟现实世界。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'oop')">🧱 面向对象</div>
+</div>
+
+<!-- Tab 1: DFD Animation -->
+<div id="anim" class="tab-content active">
+
+  <p class="section-label">数据流图 DFD（结构化分析 SA）</p>
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="dfd-row">
+      <div class="box blue" id="d1">外部项<br><small>用户</small></div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box orange" id="d2">处理/加工<br><small>验证身份</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="box green" id="d3">数据存储<br><small>用户表</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="box orange" id="d4">处理/加工<br><small>返回结果</small></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.9s"></div></div>
+      <div class="box blue" id="d5">外部项<br><small>系统</small></div>
+    </div>
+    <p style="text-align:center; font-size:12px; color:#94a3b8; margin-top:12px;">规则：父图数据流必须在子图中出现（平衡原则）</p>
+  </div>
+
+  <p class="section-label">模块耦合度（低 → 高）</p>
+  <table class="scale-table">
+    <tr>
+      <th class="low">非直接</th><th class="low">数据</th><th>标记</th><th>控制</th><th>通信</th><th class="high">公共</th><th class="high">内容</th>
+    </tr>
+    <tr>
+      <td class="low">✅ 最独立</td><td class="low">传简单数据</td><td>传数据结构</td><td>传控制信号</td><td>共享数据区</td><td class="high">共享全局变量</td><td class="high">❌ 直接访问内部</td>
+    </tr>
+  </table>
+
+  <p class="section-label">模块内聚度（高 → 低）</p>
+  <table class="scale-table">
+    <tr>
+      <th class="low">功能</th><th class="low">顺序</th><th>通信</th><th>过程</th><th>时间</th><th class="high">逻辑</th><th class="high">偶然</th>
+    </tr>
+    <tr>
+      <td class="low">✅ 单一功能</td><td class="low">输出连输入</td><td>共用数据</td><td>规定顺序</td><td>同时执行</td><td class="high">选择执行</td><td class="high">❌ 硬凑一起</td>
+    </tr>
+  </table>
+
+  <div class="explain">
+    <strong>设计原则：</strong><span class="hl">高内聚、低耦合</span>——模块内部紧密协作，模块之间尽量少依赖。
+  </div>
+</div>
+
+<!-- Tab 2: Code -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 结构化分析(SA)——数据流图DFD</span>
+<span class="st">外部项</span> → <span class="fn">[处理/加工]</span> → <span class="st">数据存储</span>
+<span class="cm">// 规则：父图数据流必须在子图中出现</span>
+
+<span class="cm">// 耦合度(低→高)：</span>
+<span class="cm">// 非直接→数据→标记→控制→通信→公共→内容</span>
+
+<span class="cm">// 内聚度(高→低)：</span>
+<span class="cm">// 功能→顺序→通信→过程→时间→逻辑→偶然</span>
+
+<span class="cm">// 设计原则：高内聚、低耦合</span>
+
+<span class="cm">// 结构化三大方法：</span>
+<span class="kw">SA</span>  → 数据流图DFD（分析功能需求）
+<span class="kw">SD</span>  → 自顶向下模块化设计（概要+详细）
+<span class="kw">SP</span>  → 顺序 + 分支 + 循环（构造程序）
+
+<span class="cm">// ORM框架对比：</span>
+<span class="fn">Hibernate</span>  → 全自动（HQL，不需要写SQL）
+<span class="fn">MyBatis</span>   → 半自动（手动写SQL映射）
+<span class="fn">JDO</span>       → 对象持久化（Sun标准）</pre>
+</div>
+
+<!-- Tab 3: OOP -->
+<div id="oop" class="tab-content">
+
+  <p class="section-label">面向对象编程 三大特点（OOP）</p>
+  <div class="class-row">
+    <div class="class-card entity">
+      <div class="icon">📦</div>
+      <h5>封装</h5>
+      <p>数据 + 操作打包在一起<br>外部不能直接访问内部</p>
+    </div>
+    <div class="class-card control">
+      <div class="icon">🧬</div>
+      <h5>继承</h5>
+      <p>Dog extends Animal<br>子类继承父类属性和方法</p>
+    </div>
+    <div class="class-card boundary">
+      <div class="icon">🎭</div>
+      <h5>多态</h5>
+      <p>Animal.speak() →<br>Dog输出"汪汪"，Cat输出"喵喵"</p>
+    </div>
+  </div>
+
+  <p class="section-label">OOD 三种类（面向对象设计）</p>
+  <div class="class-row">
+    <div class="class-card entity">
+      <div class="icon">📗</div>
+      <h5>实体类（名词）</h5>
+      <p>教师、学生、课程<br>对应现实世界的"东西"</p>
+    </div>
+    <div class="class-card control">
+      <div class="icon">⚙️</div>
+      <h5>控制类（动词）</h5>
+      <p>登录验证、权限检查<br>对应业务逻辑/动作</p>
+    </div>
+    <div class="class-card boundary">
+      <div class="icon">🖥️</div>
+      <h5>边界类（接口）</h5>
+      <p>GUI窗口、通信协议<br>系统与外部的交互面</p>
+    </div>
+  </div>
+
+  <div class="explain">
+    <strong>核心过程：</strong>OOA(分析) → OOD(设计三种类) → OOP(编程三大特点)。
+    <span class="hl">ORM</span>实现对象持久化，主流框架：Hibernate(全自动)、MyBatis(手动SQL)、JDO。
+  </div>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📊 DFD四元素：数据流/加工/存储/外部项</span>
+  <span class="tag-item">🔗 数据耦合=传简单参数(低)</span>
+  <span class="tag-item">⚡ 内容耦合=访问内部(最高)</span>
+  <span class="tag-item">🎯 功能内聚=单一功能(最高)</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>结构化方法：清晰的数据流分析</li>
+      <li>面向对象方法：贴近现实，可复用性好</li>
+      <li>高内聚低耦合：提高模块独立性</li>
+      <li>ORM框架：简化数据库操作</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>结构化方法不适合复杂系统</li>
+      <li>面向对象设计学习曲线较陡</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">数据流图DFD</span>
+    <span class="keyword">数据字典</span>
+    <span class="keyword">耦合</span>
+    <span class="keyword">内聚</span>
+    <span class="keyword">高内聚低耦合</span>
+    <span class="keyword">面向对象</span>
+    <span class="keyword">封装</span>
+    <span class="keyword">继承</span>
+    <span class="keyword">多态</span>
+    <span class="keyword">ORM</span>
+    <span class="keyword">实体类</span>
+    <span class="keyword">控制类</span>
+    <span class="keyword">边界类</span>
+    <span class="keyword">结构化分析SA</span>
+    <span class="keyword">结构化设计SD</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>需求工程</strong> = DFD的来源，需求分析产生数据流图</li>
+    <li><strong>软件测试</strong> = 基于DFD/类图设计测试用例</li>
+    <li><strong>软件过程模型</strong> = 瀑布/迭代等决定分析方法的选择</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  for (let i = 1; i <= 5; i++) {
+    setTimeout(() => {
+      const el = document.getElementById('d' + i);
+      el.classList.add('processing');
+      setTimeout(() => el.classList.remove('processing'), 500);
+    }, (i-1) * 400);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

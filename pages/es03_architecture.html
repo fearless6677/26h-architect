@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式软件分层架构（HAL与BSP） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 五层架构图 */
+.layer-stack { display: flex; flex-direction: column; gap: 0; align-items: center; margin: 12px 0; }
+.layer-box { width: 100%; max-width: 520px; padding: 14px 20px; text-align: center; font-size: 13px; font-weight: 600; border: 2px solid; position: relative; transition: all 0.4s ease; border-radius: 0; }
+.layer-box:first-child { border-radius: 10px 10px 0 0; }
+.layer-box:last-child { border-radius: 0 0 10px 10px; }
+.layer-box .layer-num { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; opacity: 0.7; }
+.layer-box .layer-desc { display: block; font-size: 11px; font-weight: 400; opacity: 0.75; margin-top: 2px; }
+.layer-box.highlight { transform: scale(1.04); box-shadow: 0 0 20px rgba(37,99,235,0.35); z-index: 2; }
+
+.l5 { background: #faf5ff; border-color: #a78bfa; color: #6d28d9; }
+.l4 { background: #eff6ff; border-color: #60a5fa; color: #1d4ed8; }
+.l3 { background: #ecfdf5; border-color: #34d399; color: #065f46; }
+.l2 { background: #fff7ed; border-color: #fb923c; color: #9a3412; }
+.l1 { background: #f1f5f9; border-color: #94a3b8; color: #334155; }
+
+.arrow-down { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid #cbd5e1; margin: -1px auto; }
+
+.hal-bsp-row { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+.hal-box, .bsp-box { padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; min-width: 140px; transition: all 0.3s; }
+.hal-box { background: #fff7ed; border: 2px solid #fb923c; color: #9a3412; }
+.bsp-box { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.hal-box:hover, .bsp-box:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+.dev-mode { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.dev-node { padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; }
+.dev-host { background: #dbeafe; border: 2px solid #3b82f6; color: #1d4ed8; }
+.dev-target { background: #dcfce7; border: 2px solid #22c55e; color: #15803d; }
+.dev-arrow { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.dev-arrow span { font-size: 10px; color: #64748b; }
+.dev-line { width: 60px; height: 3px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.dev-line .pulse { position: absolute; top: 0; left: -20px; width: 20px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: devPulse 1.8s linear infinite; }
+@keyframes devPulse { 0% { left: -20px; } 100% { left: 60px; } }
+
+@keyframes layerGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 嵌入式软件分层架构（HAL与BSP）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">🔥 必考</span>
+  <span class="hour-tag">🕐 第2小时</span>
+  <h1>嵌入式软件分层架构（HAL与BSP）</h1>
+  <p class="one-liner">嵌入式软件分为硬件层、抽象层、操作系统层、中间件层、应用层五层</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 架构图解</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 代码示意</div>
+  <div class="tab" onclick="switchTab(this,'dev')">🔧 开发模式</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放动画</button>
+    <div class="layer-stack">
+      <div class="layer-box l5" id="layer5">
+        <span class="layer-num">L5</span>
+        应用层
+        <span class="layer-desc">不同应用软件（智能家居 / 车载 / 工业控制…）</span>
+      </div>
+      <div class="layer-box l4" id="layer4">
+        <span class="layer-num">L4</span>
+        中间件层
+        <span class="layer-desc">数据库 / OpenGL / 消息中间件 / VM / DDS</span>
+      </div>
+      <div class="layer-box l3" id="layer3">
+        <span class="layer-num">L3</span>
+        操作系统层
+        <span class="layer-desc">RTOS / 文件系统 / GUI / 网络协议栈</span>
+      </div>
+      <div class="layer-box l2" id="layer2">
+        <span class="layer-num">L2</span>
+        抽象层（关键层 ⭐）
+        <span class="layer-desc">HAL（硬件抽象层）+ BSP（板级支持包）</span>
+      </div>
+      <div class="layer-box l1" id="layer1">
+        <span class="layer-num">L1</span>
+        硬件层
+        <span class="layer-desc">处理器 / 存储器 / 总线 / I/O / 电源</span>
+      </div>
+    </div>
+
+    <div class="hal-bsp-row" style="margin-top:16px;">
+      <div class="hal-box" id="halBox">
+        🧩 HAL<br><span style="font-weight:400;font-size:11px;">向上提供虚拟硬件接口</span>
+      </div>
+      <div class="bsp-box" id="bspBox">
+        🔌 BSP<br><span style="font-weight:400;font-size:11px;">底层硬件驱动 + 启动代码</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 嵌入式软件五层架构</span>
+<span class="num">Layer5</span>: <span class="st">应用层</span>     → 不同应用软件
+<span class="num">Layer4</span>: <span class="st">中间件层</span>   → 数据库/OpenGL/消息中间件/VM/DDS
+<span class="num">Layer3</span>: <span class="st">操作系统层</span> → RTOS/文件系统/GUI/网络
+<span class="num">Layer2</span>: <span class="st">抽象层</span>     → <span class="kw">HAL</span>(硬件抽象层) + <span class="kw">BSP</span>(板级支持包)
+<span class="num">Layer1</span>: <span class="st">硬件层</span>     → 处理器/存储器/总线/I/O/电源
+
+<span class="cm">// HAL 示例：统一 GPIO 接口，屏蔽不同芯片差异</span>
+<span class="kw">typedef struct</span> {
+    void (*<span class="fn">init</span>)(<span class="kw">uint32_t</span> pin);
+    void (*<span class="fn">write</span>)(<span class="kw">uint32_t</span> pin, <span class="kw">uint8_t</span> val);
+    <span class="kw">uint8_t</span> (*<span class="fn">read</span>)(<span class="kw">uint32_t</span> pin);
+} <span class="fn">HAL_GPIO_t</span>;
+
+<span class="cm">// 不同芯片提供不同实现，上层代码无需修改</span>
+<span class="fn">HAL_GPIO_t</span> stm32_gpio = { .init = stm32_gpio_init, ... };
+<span class="fn">HAL_GPIO_t</span> nxp_gpio   = { .init = nxp_gpio_init,   ... };</pre>
+</div>
+
+<div id="dev" class="tab-content">
+  <div class="anim-area">
+    <p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:12px;">宿主机-目标机 开发模式</p>
+    <div class="dev-mode">
+      <div class="dev-node dev-host">💻 宿主机<br><span style="font-size:11px;font-weight:400;">编写 + 交叉编译 + 调试</span></div>
+      <div class="dev-arrow">
+        <span>串口 / 网络 / JTAG</span>
+        <div class="dev-line"><div class="pulse"></div></div>
+        <span>交叉编译器</span>
+      </div>
+      <div class="dev-node dev-target">🔲 目标机<br><span style="font-size:11px;font-weight:400;">运行 + 执行最终程序</span></div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#64748b;margin-top:14px;">
+      宿主机资源丰富 → 编写代码 → <strong style="color:#dc2626;">交叉编译</strong>生成目标机指令 → 下载到目标机运行
+    </p>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>嵌入式软件采用<span class="hl">五层架构</span>，自底向上依次为：
+  (1)<span class="hl">硬件层</span>——处理器、存储器、总线、I/O接口等物理设备；
+  (2)<span class="hl">抽象层</span>——包含 HAL（硬件抽象层，为上层提供统一的虚拟硬件接口）和 BSP（板级支持包，包含硬件驱动和启动代码）；
+  (3)<span class="hl">操作系统层</span>——RTOS、文件系统、GUI 等可配置模块；
+  (4)<span class="hl">中间件层</span>——连接两个独立应用的桥梁，如嵌入式数据库、消息中间件等；
+  (5)<span class="hl">应用层</span>——各类应用软件。
+  开发采用<span class="hl">宿主机-目标机模式</span>，通过串口/网络/JTAG连接，使用交叉编译器。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🧩 HAL：统一GPIO接口屏蔽芯片差异</span>
+  <span class="tag-item">🔌 BSP：为ARM Cortex-M4编写启动代码和驱动</span>
+  <span class="tag-item">🗄️ 中间件：嵌入式SQLite数据库</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>层次清晰、职责分明</li>
+      <li>软硬件解耦——上层不依赖具体芯片</li>
+      <li>可移植性好——换芯片只需改 HAL/BSP</li>
+      <li>便于分工协作和独立调试</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>层间调用开销，实时性受影响</li>
+      <li>HAL 设计需兼顾多平台，复杂度高</li>
+      <li>BSP 需针对每款板子单独开发</li>
+      <li>层数过多降低开发效率</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">HAL 硬件抽象层</span>
+    <span class="keyword">BSP 板级支持包</span>
+    <span class="keyword">宿主机与目标机</span>
+    <span class="keyword">交叉编译器</span>
+    <span class="keyword">中间件</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="es01_composition.html"><strong>es01 嵌入式系统组成</strong></a> —— 硬件 + 软件 + 应用的整体视图</li>
+    <li><a href="es05_software_features.html"><strong>es05 嵌入式软件特点</strong></a> —— 实时性、可裁剪、固化运行等特征</li>
+    <li><strong>HAL vs 驱动</strong>：HAL 提供统一 API 屏蔽差异，驱动操作具体寄存器</li>
+    <li><strong>vs 分层架构风格</strong>：嵌入式五层是分层架构在嵌入式领域的具体应用</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const layers = ['layer1','layer2','layer3','layer4','layer5'];
+  layers.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 600);
+    }, i * 450);
+  });
+  // HAL & BSP flash
+  setTimeout(() => {
+    document.getElementById('halBox').style.boxShadow = '0 0 16px rgba(251,146,60,0.6)';
+    document.getElementById('bspBox').style.boxShadow = '0 0 16px rgba(245,158,11,0.6)';
+    setTimeout(() => {
+      document.getElementById('halBox').style.boxShadow = '';
+      document.getElementById('bspBox').style.boxShadow = '';
+    }, 800);
+  }, layers.length * 450);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

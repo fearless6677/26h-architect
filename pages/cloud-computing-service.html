@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云计算服务模式与部署模式 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 云计算 › 云计算服务模式与部署模式</span></nav>
+<div class="ct">
+<div><span class="tag c">云计算</span><span class="tag e">必考</span>
+<h1>云计算服务模式与部署模式</h1><p class="ol">云计算三种服务方式（SaaS/PaaS/IaaS）和四种部署模式（公有云/社区云/私有云/混合云），注意'计算即服务'不是云计算服务方式（练习题常考干扰项）。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>云计算是同时描述一个系统平台或一类应用程序的术语。三种服务方式：SaaS（软件即服务，提供商将应用软件统一部署在云端，用户直接使用）、PaaS（平台即服务，提供商将分布式开发环境与平台作为服务提供）、IaaS（基础设施即服务，提供商将服务器组成云端基础设施按计量供给）。四种部署模式：公有云（面向公众开放）、社区云（特定社区共享）、私有云（单一组织专用）、混合云（两种或以上云组合）。注意：云计算服务方式不包括'计算即服务'，这是常见干扰项。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// 云计算三种服务方式
+服务模式 = {
+  "SaaS": "软件即服务→应用软件统一部署在云端（用户直接使用应用）",
+  "PaaS": "平台即服务→分布式开发环境与平台作为服务（开发者使用平台）",
+  "IaaS": "基础设施即服务→服务器组成'云端'基础设施按量计费（管理员使用基础设施）"
+}
+
+// 四种部署模式
+部署模式 = ["公有云", "社区云", "私有云", "混合云"]</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>SaaS：Office 365、Salesforce等在线软件服务</li><li>PaaS：Google App Engine、AWS Elastic Beanstalk等开发平台</li><li>IaaS：阿里云ECS、AWS EC2等按需计算资源</li><li>混合云：企业核心数据放私有云，弹性业务用公有云</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>按需使用、弹性伸缩</li><li>降低IT基础设施投入成本</li><li>快速部署、运维简化</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">SaaS</span><span class="k">PaaS</span><span class="k">IaaS</span><span class="k">软件即服务</span><span class="k">平台即服务</span><span class="k">基础设施即服务</span><span class="k">公有云</span><span class="k">私有云</span><span class="k">混合云</span><span class="k">社区云</span><span class="k">计量服务</span><span class="k">计算即服务（干扰项）</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><span style="color:#94a3b8;font-size:12px">[边缘计算]</span></li><li><span style="color:#94a3b8;font-size:12px">[大数据]</span></li><li><span style="color:#94a3b8;font-size:12px">[SaaS/PaaS/IaaS区别]</span></li></ul></div>
+</div></body></html>

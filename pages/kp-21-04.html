@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSI安全架构与六大网络安全框架 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 940px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 26px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 15px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+
+/* Deep defense layers */
+.defense-stack { display: flex; flex-direction: column; gap: 0; max-width: 560px; margin: 0 auto; }
+.defense-layer { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 2px solid; border-radius: 10px; transition: all 0.4s; opacity: 0.5; margin-bottom: 8px; }
+.defense-layer.lit { opacity: 1; transform: scale(1.03); }
+.defense-layer.outer { border-color: #3b82f6; background: #eff6ff; }
+.defense-layer.middle { border-color: #8b5cf6; background: #f5f3ff; }
+.defense-layer.inner { border-color: #22c55e; background: #f0fdf4; }
+.defense-layer .icon { font-size: 24px; flex-shrink: 0; }
+.defense-layer .label { font-weight: 700; font-size: 14px; }
+.defense-layer .desc { font-size: 12px; color: #64748b; }
+
+/* Framework cards */
+.fw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+@media (max-width: 640px) { .fw-grid { grid-template-columns: 1fr; } }
+.fw-card { border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px; transition: all 0.3s; cursor: default; }
+.fw-card:hover { border-color: #3b82f6; box-shadow: 0 2px 12px rgba(37,99,235,0.12); transform: translateY(-2px); }
+.fw-card .fw-num { display: inline-block; background: #2563eb; color: #fff; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700; margin-right: 6px; }
+.fw-card .fw-title { font-weight: 700; font-size: 14px; color: #1e293b; }
+.fw-card .fw-body { font-size: 12px; color: #475569; margin-top: 6px; }
+.fw-card .fw-key { display: inline-block; background: #fef3c7; border: 1px solid #fcd34d; padding: 1px 8px; border-radius: 10px; font-size: 11px; color: #92400e; font-weight: 600; margin-top: 6px; }
+
+/* AEF-ADF flow */
+.aef-flow { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.aef-box { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; border: 2px solid; }
+.aef-box.aef { background: #fef2f2; border-color: #f87171; color: #991b1b; }
+.aef-box.adf { background: #eff6ff; border-color: #60a5fa; color: #1e40af; }
+.aef-box.adi { background: #fefce8; border-color: #facc15; color: #854d0e; }
+.aef-box.decision { background: #f0fdf4; border-color: #4ade80; color: #166534; }
+.aef-arrow { font-size: 18px; color: #94a3b8; }
+.aef-box.lit { transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.35); }
+
+/* Non-repudiation stages */
+.nr-stages { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 16px 0; flex-wrap: wrap; }
+.nr-step { padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; border: 2px solid #a78bfa; background: #f5f3ff; color: #5b21b6; transition: all 0.3s; }
+.nr-step.lit { background: #7c3aed; color: #fff; transform: scale(1.08); }
+.nr-arrow { color: #a78bfa; font-size: 16px; }
+
+.section-label { font-size: 13px; font-weight: 700; color: #334155; margin: 18px 0 8px; border-left: 3px solid #2563eb; padding-left: 10px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 网络安全架构 › OSI安全架构与六大框架</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">网络安全架构</span>
+  <span class="exam-tag">⭐ 中高频</span>
+  <h1>OSI安全架构与六大网络安全框架</h1>
+  <p class="one-liner">OSI深度防御架构(多点+分层+基础设施) + 六大安全框架(认证/访问控制AEF-ADF/机密性/完整性/抗抵赖5阶段)</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'frameworks')">🧩 六大框架</div>
+</div>
+
+<!-- ====== Tab 1: Animation ====== -->
+<div id="anim" class="tab-content active">
+
+  <div class="section-label">深度防御架构 — 三层分布</div>
+  <div class="anim-area">
+    <button class="play-btn" onclick="playDefense()">▶ 播放</button>
+    <div class="defense-stack">
+      <div class="defense-layer outer" id="d1">
+        <span class="icon">🌐</span>
+        <div><div class="label">多点技术防御</div><div class="desc">网络边界防火墙 + 计算环境防护</div></div>
+      </div>
+      <div class="defense-layer middle" id="d2">
+        <span class="icon">🔒</span>
+        <div><div class="label">分层技术防御</div><div class="desc">嵌套防火墙 + 入侵检测系统(IDS)</div></div>
+      </div>
+      <div class="defense-layer inner" id="d3">
+        <span class="icon">🏛️</span>
+        <div><div class="label">支撑性安全基础设施</div><div class="desc">PKI公钥基础设施 + 检测响应基础设施</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">访问控制框架 — AEF ⟷ ADF 协作</div>
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAEF()">▶ 播放</button>
+    <div class="aef-flow">
+      <div class="aef-box aef" id="a1">AEF<br><small>管制执行设备</small></div>
+      <span class="aef-arrow">→ 请求 →</span>
+      <div class="aef-box adf" id="a2">ADF<br><small>决策执行设备</small></div>
+      <span class="aef-arrow">+ </span>
+      <div class="aef-box adi" id="a3">ADI<br><small>决策信息</small></div>
+      <span class="aef-arrow">→</span>
+      <div class="aef-box decision" id="a4">允许/禁止</div>
+    </div>
+  </div>
+
+  <div class="section-label">抗抵赖框架 — 5 阶段流程</div>
+  <div class="anim-area">
+    <button class="play-btn" onclick="playNR()">▶ 播放</button>
+    <div class="nr-stages">
+      <div class="nr-step" id="n1">① 证据生成</div>
+      <span class="nr-arrow">→</span>
+      <div class="nr-step" id="n2">② 证据传输</div>
+      <span class="nr-arrow">→</span>
+      <div class="nr-step" id="n3">③ 存储回复</div>
+      <span class="nr-arrow">→</span>
+      <div class="nr-step" id="n4">④ 证据验证</div>
+      <span class="nr-arrow">→</span>
+      <div class="nr-step" id="n5">⑤ 解决纠纷</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Tab 2: Code ====== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// OSI安全架构 —— 访问控制框架核心逻辑</span>
+
+<span class="kw">class</span> <span class="fn">AEF</span> {  <span class="cm">// 管制执行设备（执行端）</span>
+    <span class="fn">requestAccess</span>(user, resource) {
+        <span class="kw">let</span> req = { user, resource, timestamp }
+        <span class="kw">return</span> ADF.<span class="fn">decide</span>(req)   <span class="cm">// 向ADF发起访问请求</span>
+    }
+}
+
+<span class="kw">class</span> <span class="fn">ADF</span> {  <span class="cm">// 决策执行设备（决策端）</span>
+    <span class="fn">decide</span>(req) {
+        <span class="kw">let</span> adi = ADI.<span class="fn">collect</span>(req) <span class="cm">// 收集决策信息</span>
+        <span class="cm">// ADI = 安全标签 + 用户身份 + 主机IP + 历史决策</span>
+        <span class="kw">if</span> (policy.<span class="fn">evaluate</span>(req, adi))
+            <span class="kw">return</span> <span class="st">"ALLOW"</span>
+        <span class="kw">else</span>
+            <span class="kw">return</span> <span class="st">"DENY"</span>
+    }
+}
+
+<span class="cm">// 抗抵赖 —— 数字签名 5 阶段</span>
+<span class="kw">function</span> <span class="fn">nonRepudiation</span>(contract) {
+    evidence = <span class="fn">generate</span>(contract)      <span class="cm">// ① 生成证据(数字签名)</span>
+    <span class="fn">transmit</span>(evidence, parties)        <span class="cm">// ② 传输证据给各方</span>
+    <span class="fn">storeAndAck</span>(evidence, TTP)         <span class="cm">// ③ 第三方存储+回复确认</span>
+    <span class="fn">verify</span>(evidence)                   <span class="cm">// ④ 验证签名有效性</span>
+    <span class="fn">resolve</span>(evidence)                  <span class="cm">// ⑤ 发生纠纷时仲裁解决</span>
+}</pre>
+</div>
+
+<!-- ====== Tab 3: Frameworks ====== -->
+<div id="frameworks" class="tab-content">
+  <div class="explain">
+    <strong>OSI安全架构</strong>定义了<span class="hl">6大安全框架</span>，覆盖安全服务的所有关键方面。核心思路是<span class="hl">AEF与ADF分离</span>——决策与执行解耦。
+  </div>
+  <div class="fw-grid">
+    <div class="fw-card">
+      <span class="fw-num">1</span><span class="fw-title">认证框架</span>
+      <div class="fw-body">5种鉴别方式：<br>• 已知的 → 口令/密码<br>• 拥有的 → IC卡/令牌/USB Key<br>• 不可变特征 → 指纹/虹膜/人脸<br>• 受信第三方 → CA证书<br>• 环境 → 主机IP/MAC地址</div>
+      <span class="fw-key">多因子认证 = 组合多种方式</span>
+    </div>
+    <div class="fw-card">
+      <span class="fw-num">2</span><span class="fw-title">访问控制框架</span>
+      <div class="fw-body"><b>AEF</b>(管制设备) → 通知 → <b>ADF</b>(决策设备)<br>ADF 结合 <b>ADI</b>(决策信息:安全标签/用户身份/IP/历史决策) → 做出 允许/禁止 判决</div>
+      <span class="fw-key">AEF执行 · ADF决策 · ADI信息</span>
+    </div>
+    <div class="fw-card">
+      <span class="fw-num">3</span><span class="fw-title">机密性框架</span>
+      <div class="fw-body">两种手段提供机密性：<br>• <b>禁止访问</b> → 访问控制(路由控制/数据保密)<br>• <b>加密</b> → 对称/非对称加密变换数据</div>
+      <span class="fw-key">禁止访问 or 加密</span>
+    </div>
+    <div class="fw-card">
+      <span class="fw-num">4</span><span class="fw-title">完整性框架</span>
+      <div class="fw-body">保护数据不被未授权：<br>• 创建/修改 → 写操作保护<br>• 删除 → 防删除机制<br>• 重放 → 序列号/时间戳检测</div>
+      <span class="fw-key">防创建·防删除·防重放</span>
+    </div>
+    <div class="fw-card">
+      <span class="fw-num">5</span><span class="fw-title">抗抵赖框架</span>
+      <div class="fw-body">5个阶段完整流程：<br>① 证据生成 → ② 证据传输 → ③ 存储回复 → ④ 证据验证 → ⑤ 解决纠纷<br>依赖TTP(可信第三方)</div>
+      <span class="fw-key">生成→传输→存储→验证→纠纷</span>
+    </div>
+    <div class="fw-card" style="border-color:#e0e7ff; background:#f5f7ff;">
+      <span class="fw-num" style="background:#6366f1;">+</span><span class="fw-title">深度防御架构(支撑)</span>
+      <div class="fw-body">三层防御分布：<br>• <b>多点防御</b>：边界+环境<br>• <b>分层防御</b>：嵌套FW+IDS<br>• <b>基础设施</b>：PKI+检测响应</div>
+      <span class="fw-key">多点+分层+基础设施</span>
+    </div>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>OSI安全架构通过<span class="hl">深度防御</span>将安全能力分布到整个信息系统，用<span class="hl">6大框架</span>覆盖所有安全服务。
+  关键设计是<span class="hl">AEF与ADF分离</span>——管制(执行)与决策解耦，ADI提供决策上下文信息。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏦 银行网银双因子认证(口令+USB Key)</span>
+  <span class="tag-item">📜 电子合同数字签名(抗抵赖)</span>
+  <span class="tag-item">🔐 PKI公钥基础设施</span>
+  <span class="tag-item">🛡️ 嵌套防火墙+IDS分层防御</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>深度防御将安全能力分布至整个信息系统</li>
+      <li>六大框架覆盖安全服务的所有关键方面</li>
+      <li>AEF与ADF分离实现了决策与执行的解耦</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>AEF与ADF分离增加了系统复杂度</li>
+      <li>分层防御可能导致性能开销</li>
+      <li>抗抵赖服务依赖第三方证据，实施成本高</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词 <small style="font-weight:400;color:#b45309;">— 中高频考点，AEF/ADF/ADI概念及六大框架功能对应关系常以选择题出现</small></h4>
+  <div>
+    <span class="keyword">OSI安全架构</span>
+    <span class="keyword">深度防御</span>
+    <span class="keyword">AEF</span>
+    <span class="keyword">ADF</span>
+    <span class="keyword">ADI</span>
+    <span class="keyword">认证框架</span>
+    <span class="keyword">访问控制</span>
+    <span class="keyword">机密性</span>
+    <span class="keyword">完整性</span>
+    <span class="keyword">抗抵赖</span>
+    <span class="keyword">PKI</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="kp-21-03.html" style="color:#0369a1;"><strong>kp-21-03 安全服务与机制</strong></a> — OSI安全框架的具体安全服务(认证/访问控制/机密性/完整性/抗抵赖)</li>
+    <li><a href="kp-21-05.html" style="color:#0369a1;"><strong>kp-21-05 加密与认证技术</strong></a> — 对称/非对称加密、数字签名是机密性与抗抵赖的底层实现</li>
+    <li><strong>PKI ↔ CA</strong>：公钥基础设施是深度防御"支撑性基础设施"的核心</li>
+    <li><strong>AEF/ADF vs 策略/执行</strong>：类似PDP/PEP架构(策略决策点/策略执行点)</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function clearLit(sel) {
+  document.querySelectorAll(sel).forEach(el => el.classList.remove('lit'));
+}
+
+function playDefense() {
+  clearLit('.defense-layer');
+  ['d1','d2','d3'].forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('lit');
+      setTimeout(() => document.getElementById(id).classList.remove('lit'), 600);
+    }, i * 500);
+  });
+}
+
+function playAEF() {
+  clearLit('.aef-box');
+  const seq = ['a1','a2','a3','a2','a4'];
+  seq.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('lit');
+      setTimeout(() => document.getElementById(id).classList.remove('lit'), 450);
+    }, i * 450);
+  });
+}
+
+function playNR() {
+  clearLit('.nr-step');
+  for (let i = 1; i <= 5; i++) {
+    setTimeout(() => {
+      document.getElementById('n' + i).classList.add('lit');
+      setTimeout(() => document.getElementById('n' + i).classList.remove('lit'), 550);
+    }, (i - 1) * 500);
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(playDefense, 400);
+  setTimeout(playAEF, 2200);
+  setTimeout(playNR, 4200);
+});
+</script>
+</body>
+</html>

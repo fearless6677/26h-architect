@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lambda架构三层结构与实现 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.exam-box .weight { font-size: 13px; color: #b45309; margin-top: 8px; font-weight: 600; }
+
+/* Lambda 三层动画 */
+.layer-stack { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+.layer { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: all 0.4s; opacity: 0.5; position: relative; }
+.layer.highlight { opacity: 1; transform: scale(1.03); }
+.layer-batch { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.layer-batch.highlight { box-shadow: 0 0 18px rgba(59,130,246,0.35); }
+.layer-speed { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.layer-speed.highlight { box-shadow: 0 0 18px rgba(245,158,11,0.4); }
+.layer-serving { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.layer-serving.highlight { box-shadow: 0 0 18px rgba(34,197,94,0.35); }
+.layer-icon { font-size: 20px; }
+.layer-info { flex: 1; }
+.layer-info .layer-name { font-size: 14px; font-weight: 700; }
+.layer-info .layer-desc { font-size: 11px; font-weight: 400; color: #64748b; margin-top: 2px; }
+.layer-tech { font-size: 11px; font-weight: 400; background: rgba(255,255,255,0.7); padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+
+.merge-arrow { text-align: center; color: #94a3b8; font-size: 12px; line-height: 1; }
+.merge-arrow span { display: inline-block; animation: arrowPulse 1.8s ease-in-out infinite; }
+@keyframes arrowPulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+.data-flow { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px 0; flex-wrap: wrap; }
+.data-node { padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; transition: all 0.3s; }
+.data-node.src { background: #e0e7ff; border: 1px solid #818cf8; color: #4338ca; }
+.data-node.batch-view { background: #dbeafe; border: 1px solid #60a5fa; color: #1e40af; }
+.data-node.realtime-view { background: #fef3c7; border: 1px solid #fbbf24; color: #92400e; }
+.data-node.query { background: #f0fdf4; border: 1px solid #4ade80; color: #15803d; }
+.data-node.active { transform: scale(1.1); box-shadow: 0 0 12px rgba(37,99,235,0.3); }
+.arrow { color: #94a3b8; font-size: 14px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+.step-label { text-align: center; font-size: 12px; color: #64748b; margin-top: 8px; min-height: 18px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 大数据架构 › Lambda架构三层结构与实现</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">大数据架构</span>
+  <span class="exam-tag">⭐ 核心考点 15-25分</span>
+  <h1>Lambda架构三层结构与实现</h1>
+  <p class="one-liner">Lambda架构分三层——批处理层(存储主数据集+批处理)、加速层(实时处理)、服务层(合并视图响应请求)，容错好但编码量大</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'flow')">📊 数据流</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="layer-stack">
+      <div class="layer layer-batch" id="L1">
+        <span class="layer-icon">🗄️</span>
+        <div class="layer-info">
+          <div class="layer-name">批处理层 (Batch Layer)</div>
+          <div class="layer-desc">存储主数据集(原始、不可变、真实)，周期执行批处理 → 生成<span style="color:#1d4ed8;font-weight:700">批视图</span></div>
+        </div>
+        <span class="layer-tech">HDFS / HBase + Spark / MapReduce</span>
+      </div>
+      <div class="layer layer-speed" id="L2">
+        <span class="layer-icon">⚡</span>
+        <div class="layer-info">
+          <div class="layer-name">加速层 (Speed Layer)</div>
+          <div class="layer-desc">处理增量实时数据 → 生成<span style="color:#92400e;font-weight:700">实时视图</span></div>
+        </div>
+        <span class="layer-tech">Spark Streaming / Storm</span>
+      </div>
+      <div class="merge-arrow"><span>▼ 合并 ▼</span></div>
+      <div class="layer layer-serving" id="L3">
+        <span class="layer-icon">🔍</span>
+        <div class="layer-info">
+          <div class="layer-name">服务层 (Serving Layer)</div>
+          <div class="layer-desc">响应用户请求，合并<span style="color:#1d4ed8">批视图</span> + <span style="color:#92400e">实时视图</span> → 最终结果</div>
+        </div>
+        <span class="layer-tech">HBase / Cassandra + Hive</span>
+      </div>
+    </div>
+    <div class="step-label" id="stepLabel"></div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// Lambda架构 —— 三层协作处理大数据</span>
+
+<span class="cm">// ===== 1. 批处理层 Batch Layer =====</span>
+<span class="cm">// 主数据集: 原始数据, 不可变, 真实</span>
+master_data = <span class="fn">store_on_hdfs</span>(raw_data)     <span class="cm">// HDFS存储原始数据</span>
+batch_view  = <span class="fn">spark_batch</span>(master_data)     <span class="cm">// 周期性全量批处理</span>
+<span class="fn">write_to</span>(batch_view, <span class="st">"HBase"</span>)            <span class="cm">// 结果写入HBase</span>
+
+<span class="cm">// ===== 2. 加速层 Speed Layer =====</span>
+<span class="cm">// 只处理增量数据, 速度优先</span>
+realtime_view = <span class="fn">spark_streaming</span>(new_data)  <span class="cm">// 实时流处理增量</span>
+<span class="fn">write_to</span>(realtime_view, <span class="st">"HBase"</span>)         <span class="cm">// 实时视图写入</span>
+
+<span class="cm">// ===== 3. 服务层 Serving Layer =====</span>
+<span class="cm">// 合并批视图 + 实时视图, 响应查询</span>
+<span class="kw">function</span> <span class="fn">query</span>(user_request) {
+    result = <span class="fn">merge</span>(batch_view, realtime_view)  <span class="cm">// 合并两个视图</span>
+    <span class="kw">return</span> <span class="fn">respond</span>(result)                     <span class="cm">// 返回给用户</span>
+}
+
+<span class="cm">// 关键: 批处理保证正确性, 加速层保证实时性, 服务层合并两者</span></pre>
+</div>
+
+<div id="flow" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playFlow()">▶ 播放</button>
+    <div style="font-size:13px;color:#475569;margin-bottom:12px;font-weight:600;">场景: 视频网络平台</div>
+    <div class="data-flow" id="flowRow">
+      <div class="data-node src" id="f1">📹 原始视频数据</div>
+      <span class="arrow">→</span>
+      <div class="data-node batch-view" id="f2">🗄️ Spark/MR 离线批处理</div>
+      <span class="arrow">→</span>
+      <div class="data-node realtime-view" id="f3">⚡ Spark Streaming 实时处理</div>
+      <span class="arrow">→</span>
+      <div class="data-node query" id="f4">🔍 合并结果 → HBase</div>
+    </div>
+    <div class="step-label" id="flowLabel"></div>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>Lambda架构分<span class="hl">三层</span>——
+  <strong>批处理层</strong>存主数据集、周期全量处理保证<span class="hl">正确性</span>；
+  <strong>加速层</strong>处理增量数据保证<span class="hl">实时性</span>；
+  <strong>服务层</strong>合并两个视图<span class="hl">响应请求</span>。
+  容错好，但要维护两套处理逻辑，编码量大。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🎬 视频网络平台：离线Spark/MR + 实时Streaming → HBase</span>
+  <span class="tag-item">📢 广告平台：Hive→MySQL + Spark Streaming→Redis + Java Web</span>
+  <span class="tag-item">📊 大数据分析：HDFS批处理 + Storm实时 + Cassandra服务</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>容错性好——主数据集不可变，可随时重算</li>
+      <li>查询灵活度高——批视图+实时视图按需合并</li>
+      <li>弹性伸缩，易于扩展</li>
+      <li>历史数据批式全量处理，吞吐量大</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>编码量大——需实现两套处理逻辑</li>
+      <li>持续处理成本高——两套系统持续运行</li>
+      <li>重新部署和迁移成本高</li>
+      <li>实时与离线处理结果可能不一致</li>
+      <li>需维护两套系统，复杂度高</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">Lambda架构三层</span>
+    <span class="keyword">批处理层</span>
+    <span class="keyword">加速层</span>
+    <span class="keyword">服务层</span>
+    <span class="keyword">批视图</span>
+    <span class="keyword">实时视图</span>
+    <span class="keyword">容错</span>
+    <span class="keyword">弹性伸缩</span>
+    <span class="keyword">HDFS</span>
+    <span class="keyword">HBase</span>
+    <span class="keyword">Spark</span>
+    <span class="keyword">Storm</span>
+  </div>
+  <p class="weight">📌 核心考点，案例分析+论文高频出现，约15-25分（第22小时）</p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>KP22-01 大数据架构概述</strong> → Lambda是大数据架构的经典实现</li>
+    <li><strong>KP22-03 Kappa架构</strong> → 只用流处理，解决Lambda双系统问题</li>
+    <li><strong>KP22-04 数据湖架构</strong> → 统一存储层，进一步简化架构</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+const steps = [
+  { id: 'L1', text: '① 批处理层：原始数据存入HDFS，Spark/MR周期全量处理 → 生成批视图' },
+  { id: 'L2', text: '② 加速层：增量数据实时流入，Spark Streaming处理 → 生成实时视图' },
+  { id: 'L3', text: '③ 服务层：合并批视图 + 实时视图，响应查询请求' },
+];
+
+function playAnimation() {
+  document.querySelectorAll('.layer').forEach(l => l.classList.remove('highlight'));
+  document.getElementById('stepLabel').textContent = '';
+  steps.forEach((s, i) => {
+    setTimeout(() => {
+      document.querySelectorAll('.layer').forEach(l => l.classList.remove('highlight'));
+      document.getElementById(s.id).classList.add('highlight');
+      document.getElementById('stepLabel').textContent = s.text;
+    }, i * 1200);
+  });
+  setTimeout(() => {
+    document.getElementById('stepLabel').textContent = '✅ 三层协作完成：批处理保正确性 + 加速层保实时性 + 服务层合并响应';
+  }, steps.length * 1200);
+}
+
+function playFlow() {
+  for (let i = 1; i <= 4; i++) {
+    setTimeout(() => {
+      document.querySelectorAll('.data-node').forEach(n => n.classList.remove('active'));
+      document.getElementById('f' + i).classList.add('active');
+      const labels = ['原始数据产生', 'Spark/MR离线批处理 → 批视图', 'Spark Streaming实时处理 → 实时视图', '合并结果写入HBase，响应用户查询'];
+      document.getElementById('flowLabel').textContent = labels[i - 1];
+    }, i * 800);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

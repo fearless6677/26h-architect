@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五大典型安全模型(BLP/Biba/CWM/ChineseWall/状态机) · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 安全模型 › 五大典型安全模型(BLP/Biba/CWM/ChineseWall/状态机)</span></nav>
+<div class="ct">
+<div><span class="tag c">安全模型</span><span class="tag e">高频考点，历年必考安全模型选择及读写权限判断，选择题+案例分析</span>
+<h1>五大典型安全模型(BLP/Biba/CWM/ChineseWall/状态机)</h1><p class="ol">BLP模型保机密性(不上读不下写)、Biba模型保完整性(高不读低/低不写高)、CWM保完整性+职责分离(银行)、Chinese Wall防利益冲突(金融)</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>五大典型安全模型：①状态机模型——系统始终处于安全状态，只允许安全方式访问资源；②BLP模型(Bell-LaPadula)——面向机密性，按安全级别强制访问控制，核心规则'不上读不下写'（低级别主体不能读高级别客体→简单规则，高级别主体不能写低级别客体→星型规则）；③Biba模型——面向完整性，防止低完整性数据流向高完整性，星完整性规则（低不能写高）、简单完整性规则（高不能读低）；④CWM模型(Clark-Wilson)——完整性+职责分离，主体只能通过程序访问客体，常用于银行系统；⑤Chinese Wall模型——混合策略(DAC+MAC)，防止利益冲突，用于金融/投资银行领域。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">SEC-MODEL</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>BLP模型：机密级主体访问绝密级客体→可写不可读（上写可以，上读不行）</li><li>BLP模型：机密级主体访问秘密级客体→可读不可写（下读可以，下写不行）</li><li>Biba模型：中完整性主体访问高完整性客体→可读不可写（防止低写高）</li><li>CWM模型：银行系统中柜员只能通过特定交易程序操作账户数据，不能直接修改</li><li>Chinese Wall模型：投资银行分析师访问A公司数据后，不能再访问竞争对手B公司数据</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>BLP模型是机密性保护的经典模型</li><li>Biba模型是完整性保护的经典模型</li><li>CWM模型实现了职责分离和事务完整性</li><li>Chinese Wall模型解决了多边安全冲突问题</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>各模型侧重不同安全属性，无法同时满足机密性和完整性</li><li>模型实际部署复杂度高</li><li>Chinese Wall模型存在利益冲突组定义困难的问题</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">BLP模型</span><span class="k">Biba模型</span><span class="k">CWM模型</span><span class="k">Chinese Wall模型</span><span class="k">状态机模型</span><span class="k">机密性</span><span class="k">完整性</span><span class="k">不上读不下写</span><span class="k">强制访问控制</span><span class="k">职责分离</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="kp-21-01.html">kp-21-01</a></li><li><a href="kp-21-03.html">kp-21-03</a></li></ul></div>
+</div></body></html>

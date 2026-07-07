@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构复用与DSSA · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 架构复用与DSSA › 软件架构复用与DSSA</span></nav>
+<div class="ct">
+<div><span class="tag c">架构复用与DSSA</span><span class="tag e">常考</span>
+<h1>软件架构复用与DSSA</h1><p class="ol">架构复用分机会复用和系统复用；DSSA是特定领域标准架构，三活动三层次</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>软件架构复用分为机会复用(发现即复用)和系统复用(预先规划)。复用对象包括需求、架构、元素、测试等，过程为构建/获取→管理→使用。DSSA是特定应用领域的标准软件架构，特征为领域性、普遍性、抽象性、可复用性。DSSA三个基本活动：领域分析(建立领域模型)→领域设计(设计DSSA)→领域实现(获取可重用信息)。DSSA三层次模型：领域开发环境、领域特定应用开发环境、应用执行环境。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// 软件架构复用
+Reuse = {
+  类型: {机会复用: "开发中发现即复用", 系统复用: "开发前规划复用"},
+  原因: "减少工作/时间/成本, 提高生产力/质量/互操作性",
+  对象: ["需求", "架构设计", "元素", "模型分析", "测试", "项目规划", "过程方法工具"],
+  过程: ["构建/获取可复用资产", "管理可复用资产", "使用可复用资产"]
+}
+
+// DSSA特定领域软件架构
+DSSA = {
+  定义: "特定领域标准软件架构, 为一组应用提供组织结构参考",
+  特征: ["领域性", "普遍性", "抽象性", "可复用性"],
+  三个基本活动: ["领域分析(建立领域模型)", "领域设计(设计DSSA)", "领域实现(获取可重用信息)"],
+  参与人员: ["领域专家", "领域分析师", "领域设计人员", "领域实现人员"],
+  三层次模型: ["领域开发环境", "领域特定应用开发环境", "应用执行环境"],
+  建立过程: "螺旋模型(并发/递归/反复)"
+}</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>机会复用: 开发中发现已有的认证模块直接复用</li><li>系统复用: 公司规划统一的日志框架供所有项目使用</li><li>DSSA应用: 电信领域的标准架构, 金融交易系统架构</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>减少开发工作量和成本</li><li>提高生产力和产品质量</li><li>更好的互操作性</li><li>缩短开发时间</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">机会复用</span><span class="k">系统复用</span><span class="k">DSSA</span><span class="k">领域分析</span><span class="k">领域设计</span><span class="k">领域实现</span><span class="k">领域模型</span><span class="k">三层次</span><span class="k">螺旋模型</span><span class="k">四个特征</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="absd_method.html">absd_method</a></li><li><a href="arch_style_overview.html">arch_style_overview</a></li><li><a href="sa_definition.html">sa_definition</a></li></ul></div>
+</div></body></html>

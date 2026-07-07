@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存储器分类（RAM与ROM详解） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; font-weight: 600; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; overflow: hidden; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .tp { color: #38bdf8; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #2563eb; text-decoration: none; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Tree animation styles */
+.tree-container { display: flex; flex-direction: column; align-items: center; gap: 0; padding-top: 10px; }
+.tree-root { font-size: 16px; font-weight: 700; color: #1e293b; padding: 10px 24px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 2px solid #3b82f6; border-radius: 10px; margin-bottom: 0; }
+.tree-branch { display: flex; gap: 32px; margin-top: 0; opacity: 0; transition: opacity 0.5s; }
+.tree-branch.visible { opacity: 1; }
+.tree-connector { width: 2px; height: 20px; background: #94a3b8; margin: 0 auto; }
+.tree-connector-h { display: flex; align-items: flex-start; justify-content: center; position: relative; }
+.tree-connector-h::before { content: ''; position: absolute; top: 0; left: 25%; right: 25%; height: 2px; background: #94a3b8; }
+.tree-branch-label { font-size: 15px; font-weight: 700; padding: 8px 18px; border-radius: 8px; text-align: center; transition: all 0.3s; min-width: 140px; }
+.tree-branch-label.ram { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.tree-branch-label.rom { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.tree-branch-label:hover { transform: scale(1.05); }
+.tree-sub { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding: 12px; border-radius: 8px; opacity: 0; transition: opacity 0.5s; min-width: 200px; }
+.tree-sub.visible { opacity: 1; }
+.tree-sub.ram-sub { background: #f0f9ff; border: 1px solid #93c5fd; }
+.tree-sub.rom-sub { background: #fffbeb; border: 1px solid #fcd34d; }
+.tree-item { font-size: 12px; padding: 6px 10px; border-radius: 6px; transition: all 0.3s; cursor: default; display: flex; align-items: center; gap: 6px; }
+.tree-item:hover { transform: translateX(4px); }
+.tree-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.tree-item.dram .dot { background: #3b82f6; }
+.tree-item.sram .dot { background: #8b5cf6; }
+.tree-item.mrom .dot { background: #f59e0b; }
+.tree-item.prom .dot { background: #ef4444; }
+.tree-item.eprom .dot { background: #10b981; }
+.tree-item.eeprom .dot { background: #06b6d4; }
+.tree-item.flash .dot { background: #f97316; }
+.tree-item .item-name { font-weight: 600; min-width: 56px; }
+.tree-item .item-desc { color: #64748b; font-size: 11px; }
+
+/* Speed hierarchy bar */
+.speed-section { margin-top: 20px; }
+.speed-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 10px; text-align: center; }
+.speed-bar { display: flex; align-items: stretch; border-radius: 8px; overflow: hidden; height: 44px; margin-bottom: 6px; }
+.speed-seg { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; transition: flex 0.6s ease; flex: 0; overflow: hidden; white-space: nowrap; padding: 0 4px; }
+.speed-seg.expand { flex: 1; }
+.speed-seg.s1 { background: #dc2626; }
+.speed-seg.s2 { background: #ea580c; }
+.speed-seg.s3 { background: #2563eb; }
+.speed-seg.s4 { background: #059669; }
+.speed-labels { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; padding: 0 4px; }
+.speed-arrow { text-align: center; font-size: 12px; color: #64748b; margin-top: 2px; }
+
+/* Comparison table */
+.compare-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+.compare-table th { background: #f1f5f9; color: #475569; padding: 8px 10px; text-align: left; border-bottom: 2px solid #e2e8f0; font-weight: 600; }
+.compare-table td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
+.compare-table tr:hover td { background: #fafbfc; }
+.compare-table .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.compare-table .badge-v { background: #dcfce7; color: #15803d; }
+.compare-table .badge-x { background: #fee2e2; color: #b91c1c; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 存储器分类（RAM与ROM详解）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">🔥 必考</span>
+  <h1>存储器分类（RAM与ROM详解）</h1>
+  <p class="one-liner">存储器分RAM（DRAM/SRAM）和ROM（5种），速度：寄存器＞Cache＞内存＞Flash</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 分类动画</div>
+  <div class="tab" onclick="switchTab(this,'speed')">📊 速度层级</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'compare')">📋 对比表</div>
+</div>
+
+<!-- Tab: Animation -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 展开分类</button>
+    <div class="tree-container">
+      <div class="tree-root" id="root">存储器</div>
+      <div class="tree-connector" id="conn0" style="opacity:0;transition:opacity 0.3s"></div>
+      <div class="tree-connector-h" id="connH" style="width:340px;height:20px;opacity:0;transition:opacity 0.3s"></div>
+      <div class="tree-branch" id="branch1">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="tree-connector" style="height:14px"></div>
+          <div class="tree-branch-label ram" id="ramLabel">RAM（易失性）</div>
+          <div class="tree-sub ram-sub" id="ramSub">
+            <div class="tree-item dram"><span class="dot"></span><span class="item-name">DRAM</span><span class="item-desc">电容存储 → 需刷新 · 集成高 · 容量大 · 速度慢 → 主存</span></div>
+            <div class="tree-item sram"><span class="dot"></span><span class="item-name">SRAM</span><span class="item-desc">晶体管自锁 → 不需刷新 · 速度快 · 集成低 · 成本高 → Cache</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="tree-connector" style="height:14px"></div>
+          <div class="tree-branch-label rom" id="romLabel">ROM（非易失性）</div>
+          <div class="tree-sub rom-sub" id="romSub">
+            <div class="tree-item mrom"><span class="dot"></span><span class="item-name">MROM</span><span class="item-desc">掩膜制造 → 大批量，不可修改</span></div>
+            <div class="tree-item prom"><span class="dot"></span><span class="item-name">PROM</span><span class="item-desc">一次性烧录 → 少量制造</span></div>
+            <div class="tree-item eprom"><span class="dot"></span><span class="item-name">EPROM</span><span class="item-desc">紫外线擦除重写</span></div>
+            <div class="tree-item eeprom"><span class="dot"></span><span class="item-name">EEPROM</span><span class="item-desc">电压擦除 → 速度慢</span></div>
+            <div class="tree-item flash"><span class="dot"></span><span class="item-name">Flash</span><span class="item-desc">联机擦写 → 速度快 · 次数多 · 读速慢</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Speed Hierarchy -->
+<div id="speed" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playSpeed()">▶ 演示速度</button>
+    <div class="speed-section">
+      <div class="speed-title">存取速度层级（快 → 慢）</div>
+      <div class="speed-bar" id="speedBar">
+        <div class="speed-seg s1" id="seg1">寄存器组</div>
+        <div class="speed-seg s2" id="seg2">Cache(SRAM)</div>
+        <div class="speed-seg s3" id="seg3">内存(DRAM)</div>
+        <div class="speed-seg s4" id="seg4">Flash</div>
+      </div>
+      <div class="speed-labels">
+        <span>⚡ 最快</span>
+        <span>最慢 🐢</span>
+      </div>
+      <div class="speed-arrow">← 速度递减 · 容量递增 · 成本递减 →</div>
+    </div>
+    <div style="margin-top:20px;padding:12px;background:#f0f9ff;border-radius:8px;border:1px solid #bfdbfe;">
+      <div style="font-size:13px;color:#1e40af;font-weight:600;margin-bottom:6px;">💡 记忆口诀</div>
+      <div style="font-size:13px;color:#475569;">
+        <strong>寄存器</strong>在CPU内部最快 → <strong>Cache</strong>(SRAM)做缓冲 → <strong>内存</strong>(DRAM)跑程序 → <strong>Flash</strong>存固件最慢
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Code -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 存储器分类及特点</span>
+<span class="tp">RAM</span>(<span class="st">易失</span>):                      <span class="cm">// 断电数据丢失，需供电维持</span>
+  <span class="kw">DRAM</span>: 电容存储 → 需刷新       <span class="cm">// 电容漏电 → 定期刷新充放电</span>
+       → 集成度高, 容量大, 速度慢  <span class="cm">// 结构简单 → 单位面积容量大</span>
+       → <span class="fn">用作主存</span>                 <span class="cm">// PC内存条 = DDR SDRAM</span>
+
+  <span class="kw">SRAM</span>: 晶体管自锁 → 不需刷新   <span class="cm">// 6个晶体管组成触发器，状态自保持</span>
+       → 速度快, 集成度低, 成本高  <span class="cm">// 6T单元 vs 1T1C → 面积大</span>
+       → <span class="fn">用作Cache</span>               <span class="cm">// CPU内部 L1/L2/L3 高速缓存</span>
+
+<span class="tp">ROM</span>(<span class="st">非易失</span>):                    <span class="cm">// 断电数据不丢失</span>
+  <span class="kw">MROM</span>:  掩膜制造 → 大批量, 不可修改   <span class="cm">// 出厂内容固定，成本最低</span>
+  <span class="kw">PROM</span>:  一次性烧录 → 少量制造         <span class="cm">// 熔丝原理，写错就废</span>
+  <span class="kw">EPROM</span>: 紫外线擦除重写               <span class="cm">// 芯片上有石英窗口</span>
+  <span class="kw">EEPROM</span>: 电压擦除 → 速度慢           <span class="cm">// 按字节擦写，寿命长</span>
+  <span class="kw">Flash</span>:  联机擦写 → 速度快           <span class="cm">// 按块擦写 → U盘/SSD/固件存储</span>
+              次数多, 读速慢            <span class="cm">// 擦写寿命 ~10万次</span></pre>
+</div>
+
+<!-- Tab: Comparison Table -->
+<div id="compare" class="tab-content">
+  <div class="anim-area" style="overflow-x:auto;">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>类型</th>
+          <th>存储原理</th>
+          <th>易失性</th>
+          <th>可改写</th>
+          <th>典型用途</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:#2563eb">DRAM</strong></td>
+          <td>电容充放电</td>
+          <td><span class="badge badge-x">易失</span></td>
+          <td>✅ 可读写</td>
+          <td>PC/嵌入式主存（内存条）</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#8b5cf6">SRAM</strong></td>
+          <td>6T触发器自锁</td>
+          <td><span class="badge badge-x">易失</span></td>
+          <td>✅ 可读写</td>
+          <td>CPU内部 L1/L2 Cache</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#f59e0b">MROM</strong></td>
+          <td>掩膜光刻</td>
+          <td><span class="badge badge-v">非易失</span></td>
+          <td>❌ 不可改</td>
+          <td>大批量固化程序（BIOS早期）</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#ef4444">PROM</strong></td>
+          <td>熔丝烧断</td>
+          <td><span class="badge badge-v">非易失</span></td>
+          <td>❌ 一次性</td>
+          <td>少量定制化固件</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#10b981">EPROM</strong></td>
+          <td>浮栅晶体管</td>
+          <td><span class="badge badge-v">非易失</span></td>
+          <td>⚠️ 紫外线擦除</td>
+          <td>早期开发调试（石英窗口）</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#06b6d4">EEPROM</strong></td>
+          <td>浮栅隧道效应</td>
+          <td><span class="badge badge-v">非易失</span></td>
+          <td>✅ 电压擦除</td>
+          <td>设备配置参数（按字节写）</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#f97316">Flash</strong></td>
+          <td>浮栅/电荷俘获</td>
+          <td><span class="badge badge-v">非易失</span></td>
+          <td>✅ 联机擦写</td>
+          <td>固件/U盘/SSD（按块写）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>存储器分<span class="hl">两大类</span>——RAM（易失性，断电丢数据）和ROM（非易失性，断电保数据）。
+  RAM 分 <span class="hl">DRAM</span>（电容存储，需刷新，集成高容量大，用于主存）和 <span class="hl">SRAM</span>（晶体管自锁，不需刷新，速度快集成低，用于Cache）。
+  ROM 演化出 <span class="hl">5种</span>：MROM → PROM → EPROM → EEPROM → Flash，擦写越来越方便。
+  存取速度排序：<span class="hl">寄存器组 ＞ Cache ＞ 内存(DRAM) ＞ Flash</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">💻 DRAM → PC和嵌入式系统主存</span>
+  <span class="tag-item">⚡ SRAM → CPU内部L1/L2高速缓存</span>
+  <span class="tag-item">📦 Flash → 固件存储和U盘/SSD</span>
+  <span class="tag-item">⚙️ EEPROM → 存储设备配置参数</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 层次化存储的优势</h4>
+    <ul>
+      <li><strong>平衡性能与成本</strong>：高速小容量(Cache) + 低速大容量(主存/Flash)</li>
+      <li><strong>局部性原理</strong>：时间局部性 → Cache命中；空间局部性 → 块读取</li>
+      <li><strong>对程序员透明</strong>：硬件自动管理Cache，无需手动干预</li>
+      <li><strong>ROM演化灵活</strong>：从不可改(MROM)到联机擦写(Flash)，适应不同阶段</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 注意事项</h4>
+    <ul>
+      <li>DRAM需<strong>定时刷新</strong>，否则电容漏电丢失数据</li>
+      <li>Flash有<strong>擦写寿命</strong>限制（约10万次），写磨损均衡很关键</li>
+      <li>EEPROM按字节写<strong>速度慢</strong>，大批量写入选Flash</li>
+      <li>SRAM成本高集成度低，<strong>不能无限增大</strong>Cache</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">DRAM电容刷新</span>
+    <span class="keyword">SRAM晶体管自锁</span>
+    <span class="keyword">Cache</span>
+    <span class="keyword">Flash联机擦写</span>
+    <span class="keyword">存取速度排序</span>
+    <span class="keyword">寄存器组最快</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="es04_processor_types.html">处理器类型（es04）</a> — CPU内部寄存器组与Cache的层级关系</li>
+    <li><a href="es07_bus.html">总线与I/O（es07）</a> — 存储器通过总线与CPU通信，总线带宽影响实际存取速度</li>
+    <li><strong>局部性原理</strong> = 层次化存储的理论基础（时间局部性→Cache，空间局部性→块读取）</li>
+    <li><strong>虚拟存储器</strong> = MMU + Page Table，将物理内存映射为更大逻辑地址空间</li>
+    <li><strong>vs 寄存器组</strong>：寄存器在CPU核心内部，最快最小；Cache在CPU与内存之间做缓冲</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animPlayed = false;
+function playAnimation() {
+  if (animPlayed) {
+    // Reset
+    document.getElementById('conn0').style.opacity = '0';
+    document.getElementById('connH').style.opacity = '0';
+    document.getElementById('branch1').classList.remove('visible');
+    document.getElementById('ramSub').classList.remove('visible');
+    document.getElementById('romSub').classList.remove('visible');
+    setTimeout(playAnimation, 300);
+    return;
+  }
+  animPlayed = true;
+
+  // Step 1: connector from root
+  setTimeout(() => {
+    document.getElementById('conn0').style.opacity = '1';
+  }, 100);
+
+  // Step 2: horizontal connector
+  setTimeout(() => {
+    document.getElementById('connH').style.opacity = '1';
+  }, 400);
+
+  // Step 3: RAM and ROM branches appear
+  setTimeout(() => {
+    document.getElementById('branch1').classList.add('visible');
+  }, 700);
+
+  // Step 4: RAM sub-items
+  setTimeout(() => {
+    document.getElementById('ramSub').classList.add('visible');
+  }, 1200);
+
+  // Step 5: ROM sub-items
+  setTimeout(() => {
+    document.getElementById('romSub').classList.add('visible');
+  }, 1600);
+}
+
+let speedPlayed = false;
+function playSpeed() {
+  const segs = ['seg1','seg2','seg3','seg4'];
+  if (speedPlayed) {
+    segs.forEach(id => document.getElementById(id).classList.remove('expand'));
+    setTimeout(playSpeed, 300);
+    return;
+  }
+  speedPlayed = true;
+  segs.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('expand');
+    }, i * 300);
+  });
+}
+
+// Auto-play animation on load
+window.addEventListener('load', () => {
+  setTimeout(playAnimation, 600);
+  setTimeout(() => {
+    // Auto-play speed bar too
+    const speedTab = document.querySelectorAll('.tab')[1];
+    // Only if speed tab gets clicked later, playSpeed handles reset
+  }, 2000);
+});
+</script>
+</body>
+</html>

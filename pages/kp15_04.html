@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企业信息系统总体框架（ISA四维模型） · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 信息系统架构 › 企业信息系统总体框架（ISA四维模型）</span></nav>
+<div class="ct">
+<div><span class="tag c">信息系统架构</span><span class="tag e">3~5分（选择题+论文素材）</span>
+<h1>企业信息系统总体框架（ISA四维模型）</h1><p class="ol">企业ISA由战略系统、业务系统、应用系统和企业信息基础设施（EII）四部分组成</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>企业信息系统总体框架（ISA）是多维度、分层次、高度集成化的模型。建立有效集成的ISA必须考虑企业4个方面：（1）战略系统：与战略制定、高层决策有关的管理活动和计算机辅助系统，由战略规划体系和高层决策支持系统组成，分长期规划（较稳定，如调整产品结构）和短期规划（如决定新产品类型）；（2）业务系统：完成一定业务功能的各部分，由业务过程组成（业务活动、先后次序、执行角色、处理数据），作用包括对现有业务建模、BPR优化、确定稳定数据、为应用和基础设施提供基础；（3）应用系统：信息系统中的应用软件，包括内部功能和外部界面，界面变化多，功能和算法变化也较多；（4）企业信息基础设施（EII）：由信息设备、通信网络、数据库、系统软件和支持性软件组成的环境。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">ISA-15-04</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>战略系统：长期规划（调整产品结构）、短期规划（决定新产品类型）</li><li>业务系统：对企业现有业务过程建模，采用BPR优化</li><li>应用系统：界面变化多，数据处理变化小，算法和控制结构变化多</li><li>EII：信息设备+通信网络+数据库+系统软件+支持性软件</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>四维度覆盖企业信息化全貌，从战略到基础设施</li><li>业务系统通过BPR优化流程，以稳定数据驱动应用开发</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>四个维度需要协调一致，任何一个维度缺失都会导致架构不完整</li><li>框架较为宏观，落地实施需要更多细化工作</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">ISA</span><span class="k">战略系统</span><span class="k">业务系统</span><span class="k">应用系统</span><span class="k">EII</span><span class="k">企业信息基础设施</span><span class="k">BPR</span><span class="k">业务过程</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="kp15_03.html">kp15_03</a></li><li><a href="kp15_05.html">kp15_05</a></li></ul></div>
+</div></body></html>

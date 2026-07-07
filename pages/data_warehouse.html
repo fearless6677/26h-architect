@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据仓库与商业智能(BI) · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all .2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .var { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Anim: BI architecture */
+.arch-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.arch-box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.4s ease; min-width: 90px; position: relative; }
+.arch-box.source { background: #fef9c3; border: 2px solid #eab308; color: #854d0e; }
+.arch-box.dw { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; min-width: 140px; }
+.arch-box.olap { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.arch-box.mine { background: #fdf4ff; border: 2px solid #a855f7; color: #7e22ce; }
+.arch-box.result { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.arch-box.active { transform: scale(1.1); box-shadow: 0 0 20px rgba(37,99,235,0.35); z-index: 2; }
+.arch-box small { font-size: 10px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+.arrow { width: 28px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.arrow .flow { position: absolute; top: 0; left: -16px; width: 16px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: arrowFlow 1.2s linear infinite; }
+@keyframes arrowFlow { 0% { left: -16px; } 100% { left: 28px; } }
+.arrow.down { width: 4px; height: 24px; background: #cbd5e1; margin: 0 auto; position: relative; overflow: hidden; }
+.arrow.down .flow { position: absolute; left: 0; top: -12px; width: 4px; height: 12px; background: linear-gradient(180deg, transparent, #3b82f6, transparent); animation: downFlow 1.2s linear infinite; }
+@keyframes downFlow { 0% { top: -12px; } 100% { top: 24px; } }
+
+/* Anim: OLTP vs OLAP compare */
+.compare-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.compare-table th { background: #eff6ff; color: #1e40af; padding: 8px 12px; text-align: left; border-bottom: 2px solid #bfdbfe; }
+.compare-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #475569; }
+.compare-table tr { transition: background 0.3s; }
+.compare-table tr:hover { background: #f1f5f9; }
+.compare-table .label { font-weight: 600; color: #1e293b; min-width: 80px; }
+
+/* Feature badges */
+.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0; }
+.feature-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; transition: all 0.4s ease; opacity: 0.5; }
+.feature-card.lit { opacity: 1; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59,130,246,0.15); }
+.feature-card .icon { font-size: 24px; margin-bottom: 4px; }
+.feature-card .name { font-size: 14px; font-weight: 700; color: #1e293b; }
+.feature-card .desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background .2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+.sub-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 16px 0 8px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 数据仓库与BI › 数据仓库与商业智能</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">数据仓库与BI</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <h1>数据仓库与商业智能（BI）</h1>
+  <p class="one-liner">数据仓库是企业的数据"档案馆"，专门收集历史数据用于分析决策；OLTP是"前台柜台"做日常交易，OLAP是"幕后分析师"做决策支持。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 架构动画</div>
+  <div class="tab" onclick="switchTab(this,'features')">🏛️ 四大特征</div>
+  <div class="tab" onclick="switchTab(this,'compare')">⚖️ OLTP vs OLAP</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- Tab 1: BI Architecture Animation -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playArchAnimation()">▶ 播放</button>
+    <p style="font-size:13px;color:#64748b;margin-bottom:8px;">商业智能三要素：数据仓库 + OLAP + 数据挖掘</p>
+    <div class="arch-row">
+      <div class="arch-box source" id="a1">📦 数据源<small>POS / ERP / CRM</small></div>
+      <div class="arrow"><div class="flow"></div></div>
+      <div class="arch-box dw" id="a2">🏛️ 数据仓库<small>Data Warehouse</small></div>
+      <div class="arrow"><div class="flow" style="animation-delay:.4s"></div></div>
+      <div class="arch-box olap" id="a3">📊 OLAP<small>联机分析处理</small></div>
+      <div class="arrow"><div class="flow" style="animation-delay:.8s"></div></div>
+      <div class="arch-box result" id="a5">💡 决策支持</div>
+    </div>
+    <div style="display:flex;justify-content:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="arrow down"><div class="flow" style="animation-delay:.6s"></div></div>
+        <div class="arch-box mine" id="a4" style="margin-top:4px;">⛏️ 数据挖掘<small>发现隐藏规律</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>核心流程：</strong>多源数据 → <span class="hl">ETL抽取/转换/加载</span> → 数据仓库(归档) → OLAP分析 / 数据挖掘 → <span class="hl">辅助决策</span>
+  </div>
+  <div class="explain" style="margin-top:8px;">
+    <strong>数据挖掘：</strong>在<span class="hl">没有明确假设</span>的前提下，发现<span class="hl">未知</span>但<span class="hl">有效、实用</span>的规律。经典案例："买尿布的人也爱买啤酒" 🍺🧒
+  </div>
+</div>
+
+<!-- Tab 2: Four Features -->
+<div id="features" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playFeatureAnimation()">▶ 点亮</button>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px;">数据仓库四大特征（考试必背）：</p>
+    <div class="feature-grid">
+      <div class="feature-card" id="f1">
+        <div class="icon">🎯</div>
+        <div class="name">面向主题</div>
+        <div class="desc">按业务主题组织<br>如"销售""客户"</div>
+      </div>
+      <div class="feature-card" id="f2">
+        <div class="icon">🔗</div>
+        <div class="name">集成</div>
+        <div class="desc">统一编码/命名<br>消除数据不一致</div>
+      </div>
+      <div class="feature-card" id="f3">
+        <div class="icon">🔒</div>
+        <div class="name">非易失（不更新）</div>
+        <div class="desc">数据载入后只读<br>不做增删改操作</div>
+      </div>
+      <div class="feature-card" id="f4">
+        <div class="icon">⏳</div>
+        <div class="name">时变</div>
+        <div class="desc">随时间积累<br>保留历史快照</div>
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>记忆口诀：</strong><span class="hl">"主集非时"</span> → 面向<strong>主</strong>题、<strong>集</strong>成、<strong>非</strong>易失、<strong>时</strong>变。
+    数据仓库存储的是<span class="hl">历史归档数据</span>，结构简单适合分析，与传统数据库(面向操作)有本质区别。
+  </div>
+</div>
+
+<!-- Tab 3: OLTP vs OLAP -->
+<div id="compare" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playCompareAnimation()">▶ 高亮</button>
+    <table class="compare-table" id="cmpTable">
+      <thead>
+        <tr><th>对比维度</th><th style="color:#b45309;">OLTP（联机事务处理）</th><th style="color:#15803d;">OLAP（联机分析处理）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="label">目标</td><td>日常操作、业务处理</td><td>分析决策、报表统计</td></tr>
+        <tr><td class="label">数据特征</td><td>当前数据、最新状态</td><td>历史数据、聚集数据</td></tr>
+        <tr><td class="label">事务特点</td><td>短小、快速、并发高</td><td>复杂查询、耗时长</td></tr>
+        <tr><td class="label">用户量</td><td>大量用户（一线员工）</td><td>少量用户（决策者/分析师）</td></tr>
+        <tr><td class="label">典型场景</td><td>超市POS收银系统</td><td>区域经理分析季度报表</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="explain">
+    <strong>关键区别：</strong>OLTP像<span class="hl">"前台柜台"</span>，处理每一笔交易；OLAP像<span class="hl">"幕后分析师"</span>，汇总分析历史数据辅助决策。
+  </div>
+</div>
+
+<!-- Tab 4: Pseudo Code -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 商业智能(BI) 三要素</span>
+<span class="var">BI</span> = <span class="fn">数据仓库</span>(Data Warehouse) + <span class="fn">OLAP</span> + <span class="fn">数据挖掘</span>
+
+<span class="cm">// 数据仓库四大特征</span>
+<span class="kw">class</span> <span class="fn">DataWarehouse</span> {
+    面向主题    <span class="cm">// 按业务主题(销售/客户)组织</span>
+    集成        <span class="cm">// 统一编码，消除不一致</span>
+    非易失      <span class="cm">// 数据载入后不更新、不删除</span>
+    时变        <span class="cm">// 随时间变化，保留历史快照</span>
+}
+
+<span class="cm">// ETL流程：从数据源到数据仓库</span>
+<span class="kw">function</span> <span class="fn">ETL</span>(sources) {
+    <span class="kw">for</span> (src <span class="kw">of</span> sources) {
+        data = <span class="fn">Extract</span>(src)      <span class="cm">// 抽取: 从POS/ERP/CRM取数据</span>
+        data = <span class="fn">Transform</span>(data)   <span class="cm">// 转换: 统一格式/编码/清洗</span>
+        <span class="fn">Load</span>(data, warehouse)    <span class="cm">// 加载: 写入数据仓库(只追加)</span>
+    }
+}
+
+<span class="cm">// OLAP vs OLAP</span>
+<span class="fn">OLTP</span>(pos_system)   <span class="cm">// → 每秒处理大量小额交易，当前数据</span>
+<span class="fn">OLAP</span>(warehouse)    <span class="cm">// → 复杂查询，分析过去5年销售趋势</span>
+
+<span class="cm">// 数据挖掘：无假设发现未知规律</span>
+<span class="fn">DataMining</span>(warehouse)  <span class="cm">// → "买尿布的人也爱买啤酒" 🍺🧒</span>
+<span class="cm">// 要求：先知(前所未知) + 有效 + 实用</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>商业智能(BI)是企业对商业数据的<span class="hl">搜集、管理和分析</span>过程。
+  数据仓库是BI的<span class="hl">基础</span>，存储历史归档数据；OLAP提供<span class="hl">多维分析</span>能力；数据挖掘则在没有明确假设下发现<span class="hl">未知信息</span>。
+</div>
+
+<div class="sub-title">💡 实际应用举例</div>
+<div class="tag-list">
+  <span class="tag-item">🏢 企业分析过去5年销售趋势，辅助决策</span>
+  <span class="tag-item">🛒 超市POS收银系统 → OLTP典型场景</span>
+  <span class="tag-item">📊 区域经理分析各门店季度报表 → OLAP</span>
+  <span class="tag-item">🍺 数据挖掘："买尿布的人也爱买啤酒"</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>支持复杂分析查询</li>
+      <li>历史数据集中管理</li>
+      <li>辅助决策，提升竞争力</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>建设周期长</li>
+      <li>数据量大，存储成本高</li>
+      <li>不适合实时操作</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">商业智能BI</span>
+    <span class="keyword">数据仓库</span>
+    <span class="keyword">面向主题</span>
+    <span class="keyword">OLTP</span>
+    <span class="keyword">OLAP</span>
+    <span class="keyword">数据挖掘</span>
+    <span class="keyword">非易失</span>
+    <span class="keyword">时变</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="db_design_steps.html" style="color:#0369a1;"><strong>数据库设计步骤</strong></a> = 数据仓库建设是其延伸，但数仓更侧重历史数据分析</li>
+    <li><a href="db_optimization.html" style="color:#0369a1;"><strong>数据库优化</strong></a> = OLAP查询优化与索引策略不同于OLTP</li>
+    <li><strong>ETL工具</strong> = 数据仓库建设的核心流程（抽取→转换→加载）</li>
+    <li><strong>数据集市</strong> = 数据仓库的子集，面向特定部门/主题的小型数仓</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let archTimer = null;
+function playArchAnimation() {
+  const boxes = ['a1','a2','a3','a4','a5'];
+  let idx = 0;
+  if (archTimer) clearInterval(archTimer);
+  // reset
+  boxes.forEach(id => document.getElementById(id).classList.remove('active'));
+  archTimer = setInterval(() => {
+    boxes.forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById(boxes[idx]).classList.add('active');
+    idx = (idx + 1) % boxes.length;
+  }, 700);
+  setTimeout(() => { clearInterval(archTimer); archTimer = null; }, boxes.length * 700 + 200);
+}
+
+let featTimer = null;
+function playFeatureAnimation() {
+  const cards = ['f1','f2','f3','f4'];
+  cards.forEach(id => document.getElementById(id).classList.remove('lit'));
+  let idx = 0;
+  if (featTimer) clearInterval(featTimer);
+  featTimer = setInterval(() => {
+    document.getElementById(cards[idx]).classList.add('lit');
+    idx++;
+    if (idx >= cards.length) { clearInterval(featTimer); featTimer = null; }
+  }, 500);
+}
+
+let cmpTimer = null;
+function playCompareAnimation() {
+  const rows = document.querySelectorAll('#cmpTable tbody tr');
+  rows.forEach(r => r.style.background = '');
+  let idx = 0;
+  if (cmpTimer) clearInterval(cmpTimer);
+  cmpTimer = setInterval(() => {
+    rows.forEach(r => r.style.background = '');
+    rows[idx].style.background = '#eff6ff';
+    rows[idx].style.transition = 'background 0.3s';
+    idx++;
+    if (idx >= rows.length) { clearInterval(cmpTimer); cmpTimer = null; }
+  }, 600);
+}
+
+// Auto-play on load
+window.addEventListener('load', () => {
+  setTimeout(playArchAnimation, 400);
+});
+</script>
+</body>
+</html>

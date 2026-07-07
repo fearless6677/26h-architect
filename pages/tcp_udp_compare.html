@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCP与UDP协议对比 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 10; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* TCP / UDP comparison animation */
+.compare-grid { display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap; }
+.compare-col { flex: 1; min-width: 280px; border-radius: 8px; padding: 16px; position: relative; }
+.compare-col.tcp-col { background: #eff6ff; border: 2px solid #93c5fd; }
+.compare-col.udp-col { background: #fef3c7; border: 2px solid #fcd34d; }
+.compare-col h3 { font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.compare-col.tcp-col h3 { color: #1d4ed8; }
+.compare-col.udp-col h3 { color: #92400e; }
+.step-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; font-size: 12px; }
+.step-box { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; opacity: 0; transform: translateX(-8px); transition: all 0.4s ease; }
+.step-box.show { opacity: 1; transform: translateX(0); }
+.tcp-col .step-box { background: #dbeafe; color: #1d4ed8; }
+.udp-col .step-box { background: #fde68a; color: #92400e; }
+.step-arrow { color: #94a3b8; font-size: 14px; }
+.step-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+.step-status.ok { background: #bbf7d0; color: #15803d; }
+.step-status.fail { background: #fecaca; color: #b91c1c; }
+.step-status.skip { background: #e2e8f0; color: #64748b; }
+.common-bar { margin-top: 16px; background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 8px; padding: 12px 16px; text-align: center; font-size: 13px; color: #0369a1; font-weight: 600; }
+.speed-bar { height: 6px; border-radius: 3px; margin-top: 8px; background: #e2e8f0; overflow: hidden; }
+.speed-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.tcp-col .speed-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); width: 0; }
+.udp-col .speed-fill { background: linear-gradient(90deg, #f59e0b, #f97316); width: 0; }
+.speed-label { font-size: 11px; color: #64748b; margin-top: 4px; text-align: right; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 网络协议 › TCP与UDP协议对比</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">网络协议</span>
+  <span class="exam-tag">🔥 必考</span>
+  <span class="hour-tag">⏰ 第3小时</span>
+  <h1>TCP与UDP协议对比</h1>
+  <p class="one-liner">TCP可靠面向连接适合小数据量；UDP不可靠无连接适合大数据量快传输；两者共有端口寻址</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="compare-grid">
+      <!-- TCP Column -->
+      <div class="compare-col tcp-col">
+        <h3>🛡️ TCP — 可靠传输</h3>
+        <div class="step-row"><span class="step-box" id="t1">三次握手</span><span class="step-arrow">→</span><span class="step-status ok" id="ts1" style="opacity:0">连接建立</span></div>
+        <div class="step-row"><span class="step-box" id="t2">发送数据段</span><span class="step-arrow">→</span><span class="step-status ok" id="ts2" style="opacity:0">ACK确认</span></div>
+        <div class="step-row"><span class="step-box" id="t3">差错校验</span><span class="step-arrow">→</span><span class="step-status ok" id="ts3" style="opacity:0">重传机制</span></div>
+        <div class="step-row"><span class="step-box" id="t4">流量控制</span><span class="step-arrow">→</span><span class="step-status ok" id="ts4" style="opacity:0">滑动窗口</span></div>
+        <div class="step-row"><span class="step-box" id="t5">拥塞控制</span><span class="step-arrow">→</span><span class="step-status ok" id="ts5" style="opacity:0">慢启动</span></div>
+        <div class="step-row"><span class="step-box" id="t6">四次挥手</span><span class="step-arrow">→</span><span class="step-status ok" id="ts6" style="opacity:0">连接断开</span></div>
+        <div class="speed-bar"><div class="speed-fill" id="tcp-speed"></div></div>
+        <div class="speed-label" id="tcp-speed-label">传输速度：较慢</div>
+      </div>
+      <!-- UDP Column -->
+      <div class="compare-col udp-col">
+        <h3>⚡ UDP — 快速传输</h3>
+        <div class="step-row"><span class="step-box" id="u1">直接发送</span><span class="step-arrow">→</span><span class="step-status skip" id="us1" style="opacity:0">无需连接</span></div>
+        <div class="step-row"><span class="step-box" id="u2">数据报</span><span class="step-arrow">→</span><span class="step-status skip" id="us2" style="opacity:0">不等ACK</span></div>
+        <div class="step-row"><span class="step-box" id="u3">无校验重传</span><span class="step-arrow">→</span><span class="step-status fail" id="us3" style="opacity:0">丢失不管</span></div>
+        <div class="step-row"><span class="step-box" id="u4">无流量控制</span><span class="step-arrow">→</span><span class="step-status skip" id="us4" style="opacity:0">全速发送</span></div>
+        <div class="step-row"><span class="step-box" id="u5">无拥塞控制</span><span class="step-arrow">→</span><span class="step-status skip" id="us5" style="opacity:0">最大带宽</span></div>
+        <div class="step-row"><span class="step-box" id="u6">发送完毕</span><span class="step-arrow">→</span><span class="step-status skip" id="us6" style="opacity:0">无需断开</span></div>
+        <div class="speed-bar"><div class="speed-fill" id="udp-speed"></div></div>
+        <div class="speed-label" id="udp-speed-label">传输速度：极快</div>
+      </div>
+    </div>
+    <div class="common-bar" id="common-bar" style="opacity:0">
+      🤝 共同点：都有 <strong>端口寻址</strong> 能力
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// TCP vs UDP —— 传输层两大核心协议</span>
+
+<span class="cm">// ═══ TCP：可靠、面向连接 ═══</span>
+<span class="kw">TCP</span> 特性：
+  ├─ <span class="fn">三次握手</span> 建立连接（SYN → SYN-ACK → ACK）
+  ├─ <span class="fn">差错校验</span> + <span class="fn">超时重传</span> → 数据完整性
+  ├─ <span class="fn">流量控制</span>（滑动窗口）→ 不淹没接收方
+  ├─ <span class="fn">拥塞控制</span>（慢启动/拥塞避免）→ 不压垮网络
+  └─ <span class="fn">四次挥手</span> 断开连接
+  适用：<span class="st">数据量小，可靠性要求高</span>
+  场景：HTTP / FTP / SSH / 文件传输
+
+<span class="cm">// ═══ UDP：不可靠、无连接 ═══</span>
+<span class="kw">UDP</span> 特性：
+  ├─ <span class="fn">无连接</span> → 直接发送，无需握手
+  ├─ <span class="fn">无重传</span> → 丢包不管
+  ├─ <span class="fn">无流控/拥塞控制</span> → 全速发送
+  └─ 开销极小（8字节头 vs TCP 20字节头）
+  适用：<span class="st">数据量大，可靠性要求不高，要求速度快</span>
+  场景：视频直播 / DNS查询 / 在线游戏 / VoIP
+
+<span class="cm">// ═══ 共同点 ═══</span>
+<span class="kw">共同</span>：<span class="st">都有端口寻址能力</span>（TCP/UDP端口 0~65535）</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>TCP是<span class="hl">可靠的、面向连接</span>的协议，具有差错校验重传、流量控制、拥塞控制，适用于数据量小且可靠性要求高的场景。
+  UDP是<span class="hl">不可靠的、无连接</span>的协议，适用于数据量大、对可靠性要求不高但要求速度快的场景。两者共同点是都有<span class="hl">端口寻址</span>能力。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📁 文件传输(HTTP/FTP)使用TCP保证数据完整性</span>
+  <span class="tag-item">📺 视频直播/DNS查询使用UDP追求速度</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>TCP保证数据完整有序到达</li>
+      <li>UDP传输效率高、开销小</li>
+      <li>TCP有流量控制和拥塞控制</li>
+      <li>UDP适合实时应用(直播/游戏)</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>TCP开销大、速度慢</li>
+      <li>UDP不保证送达和顺序</li>
+      <li>TCP头部20字节，开销大</li>
+      <li>UDP无拥塞控制，可能丢包</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">TCP</span>
+    <span class="keyword">UDP</span>
+    <span class="keyword">面向连接</span>
+    <span class="keyword">无连接</span>
+    <span class="keyword">可靠</span>
+    <span class="keyword">不可靠</span>
+    <span class="keyword">端口寻址</span>
+    <span class="keyword">流量控制</span>
+    <span class="keyword">拥塞控制</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>OSI七层模型</strong> = TCP/UDP位于传输层（第4层）</li>
+    <li><strong>应用层协议</strong> = HTTP/FTP用TCP，DNS用UDP</li>
+    <li><strong>三次握手/四次挥手</strong> = TCP连接建立与断开过程</li>
+    <li><strong>端口号</strong> = 0~65535，区分不同应用进程</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+
+function resetAnimation() {
+  if (animTimer) clearTimeout(animTimer);
+  const ids = ['t1','t2','t3','t4','t5','t6','u1','u2','u3','u4','u5','u6'];
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('show'); });
+  const sids = ['ts1','ts2','ts3','ts4','ts5','ts6','us1','us2','us3','us4','us5','us6'];
+  sids.forEach(id => { const el = document.getElementById(id); if(el) el.style.opacity = '0'; });
+  document.getElementById('tcp-speed').style.width = '0';
+  document.getElementById('udp-speed').style.width = '0';
+  const cb = document.getElementById('common-bar');
+  if(cb) cb.style.opacity = '0';
+}
+
+function showStep(id, statusId, delay) {
+  animTimer = setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('show');
+    if (statusId) {
+      setTimeout(() => {
+        const s = document.getElementById(statusId);
+        if (s) s.style.opacity = '1';
+      }, 200);
+    }
+  }, delay);
+}
+
+function playAnimation() {
+  resetAnimation();
+
+  // TCP steps (slower, sequential)
+  showStep('t1', 'ts1', 200);
+  showStep('t2', 'ts2', 800);
+  showStep('t3', 'ts3', 1400);
+  showStep('t4', 'ts4', 2000);
+  showStep('t5', 'ts5', 2600);
+  showStep('t6', 'ts6', 3200);
+
+  // UDP steps (fast, all at once feel)
+  showStep('u1', 'us1', 200);
+  showStep('u2', 'us2', 500);
+  showStep('u3', 'us3', 800);
+  showStep('u4', 'us4', 1100);
+  showStep('u5', 'us5', 1400);
+  showStep('u6', 'us6', 1700);
+
+  // Speed bars
+  setTimeout(() => {
+    document.getElementById('tcp-speed').style.width = '35%';
+  }, 3400);
+  setTimeout(() => {
+    document.getElementById('udp-speed').style.width = '95%';
+  }, 1900);
+
+  // Common bar
+  setTimeout(() => {
+    document.getElementById('common-bar').style.opacity = '1';
+  }, 3800);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

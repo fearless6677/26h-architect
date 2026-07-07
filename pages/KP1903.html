@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式操作系统内核架构与实时调度算法 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Architecture comparison */
+.arch-row { display: flex; gap: 20px; margin: 16px 0; flex-wrap: wrap; justify-content: center; }
+.arch-box { flex: 1; min-width: 260px; max-width: 380px; border-radius: 10px; padding: 16px; position: relative; }
+.arch-box.macro { background: #fef3c7; border: 2px solid #f59e0b; }
+.arch-box.micro { background: #ede9fe; border: 2px solid #8b5cf6; }
+.arch-box h5 { font-size: 14px; margin-bottom: 10px; text-align: center; }
+.arch-box.macro h5 { color: #92400e; }
+.arch-box.micro h5 { color: #5b21b6; }
+.layer { border-radius: 6px; padding: 8px 12px; font-size: 12px; text-align: center; margin: 4px 0; font-weight: 600; transition: all 0.3s; }
+.layer.user { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+.layer.kern { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+.layer.combined { background: linear-gradient(135deg, #dbeafe, #fee2e2); color: #1e293b; border: 1px solid #94a3b8; }
+.arrow-between { text-align: center; font-size: 18px; color: #94a3b8; margin: 2px 0; }
+.arch-highlight { transform: scale(1.04); box-shadow: 0 0 12px rgba(139,92,246,0.3); }
+
+/* Task state diagram */
+.state-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+.state-circle { width: 90px; height: 90px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; transition: all 0.4s; cursor: pointer; }
+.state-circle.running { background: #dcfce7; border: 3px solid #22c55e; color: #15803d; }
+.state-circle.ready { background: #dbeafe; border: 3px solid #3b82f6; color: #1d4ed8; }
+.state-circle.blocked { background: #fef3c7; border: 3px solid #f59e0b; color: #92400e; }
+.state-circle.active-state { transform: scale(1.15); box-shadow: 0 0 20px rgba(34,197,94,0.5); }
+.state-arrow { font-size: 11px; color: #64748b; text-align: center; max-width: 80px; }
+.state-arrow span { display: block; font-weight: 600; color: #1e40af; font-size: 12px; }
+
+/* Schedule algorithm cards */
+.algo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+.algo-card { border-radius: 8px; padding: 14px; text-align: center; transition: all 0.3s; cursor: pointer; }
+.algo-card.edf { background: #eff6ff; border: 2px solid #3b82f6; }
+.algo-card.llf { background: #f0fdf4; border: 2px solid #22c55e; }
+.algo-card.rms { background: #fdf4ff; border: 2px solid #a855f7; }
+.algo-card h5 { font-size: 15px; margin-bottom: 4px; }
+.algo-card.edf h5 { color: #1d4ed8; }
+.algo-card.llf h5 { color: #15803d; }
+.algo-card.rms h5 { color: #7e22ce; }
+.algo-card .rule { font-size: 12px; color: #475569; margin-bottom: 6px; }
+.algo-card .key { font-size: 11px; font-weight: 700; border-radius: 12px; padding: 2px 10px; display: inline-block; }
+.algo-card.edf .key { background: #dbeafe; color: #1d4ed8; }
+.algo-card.llf .key { background: #dcfce7; color: #15803d; }
+.algo-card.rms .key { background: #f3e8ff; color: #7e22ce; }
+.algo-card.algo-active { transform: scale(1.05); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+
+/* Schedule demo */
+.demo-timeline { margin: 16px 0; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; }
+.demo-bar { display: flex; align-items: center; height: 28px; margin: 3px 0; border-radius: 4px; font-size: 11px; font-weight: 600; color: #fff; transition: all 0.4s; }
+.demo-bar.tA { background: #3b82f6; }
+.demo-bar.tB { background: #22c55e; }
+.demo-bar.tC { background: #a855f7; }
+.demo-bar.idle { background: #e2e8f0; color: #94a3b8; }
+.demo-label { width: 60px; font-size: 12px; color: #475569; font-weight: 600; flex-shrink: 0; }
+.time-axis { display: flex; margin-left: 60px; border-top: 1px solid #94a3b8; padding-top: 4px; margin-top: 8px; }
+.time-axis span { flex: 1; font-size: 10px; color: #94a3b8; text-align: center; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.section-label { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式操作系统 › 内核架构与实时调度算法</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式操作系统</span>
+  <span class="exam-tag">⭐ 高频考点</span>
+  <h1>嵌入式操作系统内核架构与实时调度算法</h1>
+  <p class="one-liner">嵌入式OS内核分宏内核(同空间)与微内核(不同空间)，任务三态(执行/就绪/阻塞)，强实时调度算法EDF/LLF/RMS是高频考点</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'arch')">🏗️ 内核架构</div>
+  <div class="tab" onclick="switchTab(this,'state')">🔄 任务三态</div>
+  <div class="tab" onclick="switchTab(this,'schedule')">⏱️ 调度算法</div>
+  <div class="tab" onclick="switchTab(this,'demo')">🎬 调度演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- Tab 1: 内核架构对比 -->
+<div id="arch" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playArchAnim()">▶ 对比</button>
+    <div class="section-label">内核架构对比</div>
+    <div class="arch-row">
+      <div class="arch-box macro" id="macroBox">
+        <h5>🔴 宏内核（Monolithic）</h5>
+        <div class="layer combined" id="macroLayer">
+          用户服务 + 内核服务<br><small>同一地址空间</small>
+        </div>
+        <div class="arrow-between">↕ 直接调用</div>
+        <div class="layer kern">内核核心</div>
+        <p style="font-size:11px;color:#92400e;margin-top:8px;text-align:center;">例：传统Linux内核</p>
+      </div>
+      <div class="arch-box micro" id="microBox">
+        <h5>🟣 微内核（Microkernel）</h5>
+        <div class="layer user" id="microUser">
+          用户服务<br><small>用户空间</small>
+        </div>
+        <div class="arrow-between" id="microArrow">↕ 消息传递（跨空间）</div>
+        <div class="layer kern" id="microKern">
+          微内核（最小化）<br><small>内核空间</small>
+        </div>
+        <p style="font-size:11px;color:#5b21b6;margin-top:8px;text-align:center;">例：HarmonyOS / QNX</p>
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>核心区别：</strong>宏内核 = 用户服务与内核服务在<span class="hl">同一空间</span>，代码耦合高但调用快；
+    微内核 = 在<span class="hl">不同空间</span>，结构清晰、代码量少，但跨空间调用有性能开销。
+  </div>
+</div>
+
+<!-- Tab 2: 任务三态 -->
+<div id="state" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playStateAnim()">▶ 状态转换</button>
+    <div class="section-label">任务三种状态与转换</div>
+    <div class="state-row">
+      <div class="state-circle ready" id="stReady">就绪<br><small>Ready</small></div>
+      <div class="state-arrow">
+        调度分配CPU<br>
+        <span>→ 执行 →</span>
+      </div>
+      <div class="state-circle running" id="stRunning">执行<br><small>Running</small></div>
+      <div class="state-arrow">
+        等待事件/I/O<br>
+        <span>→ 阻塞 →</span>
+      </div>
+      <div class="state-circle blocked" id="stBlocked">阻塞<br><small>Blocked</small></div>
+    </div>
+    <div style="text-align:center;margin-top:8px;">
+      <div class="state-arrow" style="display:inline-block;max-width:none;">
+        阻塞完成 → 回到<span style="color:#1d4ed8;font-weight:700;">就绪</span>（不是直接回执行！）
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>记忆要点：</strong>任务三态 = <span class="hl">执行 / 就绪 / 阻塞</span>。
+    执行→阻塞（等I/O）；阻塞→就绪（I/O完成）；就绪→执行（被调度）。
+    <span class="hl">阻塞不能直接变执行</span>，必须先回到就绪队列。
+  </div>
+</div>
+
+<!-- Tab 3: 调度算法 -->
+<div id="schedule" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAlgoAnim()">▶ 高亮</button>
+    <div class="section-label">调度算法分类</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;">
+      <div style="background:#f1f5f9;padding:8px 16px;border-radius:8px;font-size:12px;">
+        <strong style="color:#1e40af;">离线调度</strong> = 时间驱动，确定性，缺乏灵活性
+      </div>
+      <div style="background:#f1f5f9;padding:8px 16px;border-radius:8px;font-size:12px;">
+        <strong style="color:#1e40af;">在线调度</strong> = 优先级驱动，灵活
+      </div>
+      <div style="background:#f1f5f9;padding:8px 16px;border-radius:8px;font-size:12px;">
+        <strong style="color:#1e40af;">静态</strong> = 设计时确定优先级
+      </div>
+      <div style="background:#f1f5f9;padding:8px 16px;border-radius:8px;font-size:12px;">
+        <strong style="color:#1e40af;">动态</strong> = 运行中确定优先级
+      </div>
+      <div style="background:#f1f5f9;padding:8px 16px;border-radius:8px;font-size:12px;">
+        <strong style="color:#1e40af;">抢占式</strong> vs <strong style="color:#1e40af;">非抢占式</strong>
+      </div>
+    </div>
+    <div class="section-label">强实时调度算法（重点！）</div>
+    <div class="algo-grid">
+      <div class="algo-card edf" id="cardEdf">
+        <h5>EDF</h5>
+        <div class="rule">最早截止时间优先</div>
+        <div class="key">截止时间越早 → 优先级越高</div>
+      </div>
+      <div class="algo-card llf" id="cardLlf">
+        <h5>LLF</h5>
+        <div class="rule">最低松弛度优先</div>
+        <div class="key">紧急程度越高 → 优先级越高</div>
+      </div>
+      <div class="algo-card rms" id="cardRms">
+        <h5>RMS ⭐</h5>
+        <div class="rule">单调速率调度</div>
+        <div class="key">周期越短 → 优先级越高（最优！）</div>
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>区分口诀：</strong>EDF看<span class="hl">截止时间</span>（deadline），LLF看<span class="hl">松弛度/紧急度</span>（laxity），RMS看<span class="hl">周期长短</span>（period）。
+    <span class="hl">RMS被认为是最优的静态调度算法</span>——判断题常考！
+  </div>
+</div>
+
+<!-- Tab 4: 调度演示 -->
+<div id="demo" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playDemoAnim()">▶ 演示</button>
+    <div class="section-label">EDF调度演示：任务A(deadline=10ms) vs 任务B(deadline=20ms)</div>
+    <div class="demo-timeline" id="demoTimeline">
+      <div style="display:flex;align-items:center;">
+        <div class="demo-label">任务A</div>
+        <div style="flex:1;display:flex;position:relative;height:28px;" id="demoA"></div>
+      </div>
+      <div style="display:flex;align-items:center;">
+        <div class="demo-label">任务B</div>
+        <div style="flex:1;display:flex;position:relative;height:28px;" id="demoB"></div>
+      </div>
+      <div style="display:flex;align-items:center;">
+        <div class="demo-label">CPU</div>
+        <div style="flex:1;display:flex;position:relative;height:28px;" id="demoCpu"></div>
+      </div>
+      <div class="time-axis" id="timeAxis"></div>
+    </div>
+    <div class="explain" style="margin-top:12px;">
+      EDF规则：<span class="hl">截止时间越早，优先级越高</span>。
+      任务A截止时间10ms &lt; 任务B截止时间20ms → A先执行。
+    </div>
+  </div>
+</div>
+
+<!-- Tab 5: 伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ===== 嵌入式OS调度算法伪代码 =====</span>
+
+<span class="cm">// EDF: 最早截止时间优先</span>
+<span class="kw">function</span> <span class="fn">EDF_Schedule</span>(taskQueue) {
+    <span class="kw">return</span> taskQueue.<span class="fn">sort</span>((a, b) =>
+        a.deadline - b.deadline  <span class="cm">// 截止时间越早，优先级越高</span>
+    )[<span class="st">0</span>];
+}
+
+<span class="cm">// LLF: 最低松弛度优先</span>
+<span class="kw">function</span> <span class="fn">LLF_Schedule</span>(taskQueue) {
+    <span class="kw">return</span> taskQueue.<span class="fn">sort</span>((a, b) =>
+        a.laxity - b.laxity      <span class="cm">// 松弛度越小 = 越紧急</span>
+    )[<span class="st">0</span>];                        <span class="cm">// laxity = deadline - 已执行时间</span>
+}
+
+<span class="cm">// RMS: 单调速率（周期越短优先级越高）</span>
+<span class="kw">function</span> <span class="fn">RMS_Schedule</span>(taskQueue) {
+    <span class="kw">return</span> taskQueue.<span class="fn">sort</span>((a, b) =>
+        a.period - b.period      <span class="cm">// 周期越短，优先级越高</span>
+    )[<span class="st">0</span>];                        <span class="cm">// ⭐ 被认为是最优静态调度</span>
+}
+
+<span class="cm">// 任务状态转换</span>
+<span class="kw">enum</span> TaskState { <span class="st">RUNNING</span>, <span class="st">READY</span>, <span class="st">BLOCKED</span> }
+<span class="cm">// RUNNING → 等待I/O → BLOCKED</span>
+<span class="cm">// BLOCKED → I/O完成 → READY（不能直接→RUNNING！）</span>
+<span class="cm">// READY → 被调度 → RUNNING</span></pre>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔴 宏内核：传统Linux，同空间，耦合高</span>
+  <span class="tag-item">🟣 微内核：HarmonyOS/QNX，不同空间，结构清晰</span>
+  <span class="tag-item">⏱️ EDF：截止时间驱动</span>
+  <span class="tag-item">⏱️ LLF：松弛度/紧急度驱动</span>
+  <span class="tag-item">⭐ RMS：周期驱动，最优静态调度</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 考试重点（为什么重要）</h4>
+    <ul>
+      <li>宏内核 vs 微内核对比是案例题常考内容</li>
+      <li>三种实时调度算法(EDF/LLF/RMS)的区分是选择/案例题重点</li>
+      <li>RMS被认为最优，是判断题常考点</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 易错点 / 注意事项</h4>
+    <ul>
+      <li>宏内核代码耦合度高，稳定性较差</li>
+      <li>微内核跨空间调用可能有性能开销</li>
+      <li>调度算法需根据实时性要求合理选择</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词（必背）</h4>
+  <div>
+    <span class="keyword">宏内核</span>
+    <span class="keyword">微内核</span>
+    <span class="keyword">EOS特点</span>
+    <span class="keyword">任务三态</span>
+    <span class="keyword">执行/就绪/阻塞</span>
+    <span class="keyword">EDF</span>
+    <span class="keyword">LLF</span>
+    <span class="keyword">RMS</span>
+    <span class="keyword">抢占调度</span>
+    <span class="keyword">离线调度</span>
+    <span class="keyword">在线调度</span>
+    <span class="keyword">静态调度</span>
+    <span class="keyword">动态调度</span>
+    <span class="keyword">单调速率最优</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>KP1902</strong> = 嵌入式操作系统基础概念（前置知识）</li>
+    <li><strong>KP1904</strong> = 嵌入式OS内存管理与文件系统（后续知识）</li>
+    <li><strong>KP1905</strong> = 嵌入式系统开发方法与工具链（扩展知识）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// Architecture animation
+function playArchAnim() {
+  const macro = document.getElementById('macroLayer');
+  const microUser = document.getElementById('microUser');
+  const microKern = document.getElementById('microKern');
+  const microArrow = document.getElementById('microArrow');
+
+  // Highlight macro
+  macro.style.boxShadow = '0 0 16px rgba(245,158,11,0.5)';
+  macro.style.transform = 'scale(1.05)';
+  setTimeout(() => {
+    macro.style.boxShadow = 'none';
+    macro.style.transform = 'scale(1)';
+  }, 1200);
+
+  // Highlight micro
+  setTimeout(() => {
+    microUser.style.boxShadow = '0 0 16px rgba(139,92,246,0.5)';
+    microUser.style.transform = 'scale(1.05)';
+    microKern.style.boxShadow = '0 0 16px rgba(139,92,246,0.5)';
+    microKern.style.transform = 'scale(1.05)';
+    microArrow.style.color = '#8b5cf6';
+    microArrow.style.fontWeight = '700';
+    setTimeout(() => {
+      microUser.style.boxShadow = 'none';
+      microUser.style.transform = 'scale(1)';
+      microKern.style.boxShadow = 'none';
+      microKern.style.transform = 'scale(1)';
+      microArrow.style.color = '#94a3b8';
+      microArrow.style.fontWeight = 'normal';
+    }, 1200);
+  }, 1400);
+}
+
+// State animation
+function playStateAnim() {
+  const ready = document.getElementById('stReady');
+  const running = document.getElementById('stRunning');
+  const blocked = document.getElementById('stBlocked');
+
+  const sequence = [
+    { el: ready, cls: 'active-state', dur: 600 },
+    { el: running, cls: 'active-state', dur: 800 },
+    { el: blocked, cls: 'active-state', dur: 600 },
+    { el: ready, cls: 'active-state', dur: 600 },  // blocked → ready
+    { el: running, cls: 'active-state', dur: 600 },  // ready → running
+  ];
+
+  let delay = 0;
+  sequence.forEach(s => {
+    setTimeout(() => {
+      s.el.classList.add(s.cls);
+      setTimeout(() => s.el.classList.remove(s.cls), s.dur);
+    }, delay);
+    delay += s.dur + 200;
+  });
+}
+
+// Algorithm highlight animation
+function playAlgoAnim() {
+  const cards = [
+    document.getElementById('cardEdf'),
+    document.getElementById('cardLlf'),
+    document.getElementById('cardRms'),
+  ];
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.classList.add('algo-active');
+      setTimeout(() => card.classList.remove('algo-active'), 800);
+    }, i * 900);
+  });
+}
+
+// Schedule demo animation
+function playDemoAnim() {
+  const demoA = document.getElementById('demoA');
+  const demoB = document.getElementById('demoB');
+  const demoCpu = document.getElementById('demoCpu');
+  const timeAxis = document.getElementById('timeAxis');
+
+  // Clear previous
+  demoA.innerHTML = '';
+  demoB.innerHTML = '';
+  demoCpu.innerHTML = '';
+  timeAxis.innerHTML = '';
+
+  // EDF: A has deadline=10ms, B has deadline=20ms
+  // A runs first (0-6ms), then B runs (6-14ms)
+  const segments = [
+    { task: 'A', start: 0, width: 30, label: 'A执行' },    // 0-6ms
+    { task: 'B', start: 6, width: 40, label: 'B执行' },    // 6-14ms
+    { task: 'idle', start: 14, width: 30, label: '' },      // 14-20ms
+  ];
+
+  segments.forEach((seg, i) => {
+    setTimeout(() => {
+      // CPU bar
+      const cpuBar = document.createElement('div');
+      cpuBar.className = 'demo-bar ' + (seg.task === 'idle' ? 'idle' : 't' + seg.task);
+      cpuBar.style.width = seg.width + '%';
+      cpuBar.style.justifyContent = 'center';
+      cpuBar.textContent = seg.label;
+      demoCpu.appendChild(cpuBar);
+
+      // Task A bar
+      const aBar = document.createElement('div');
+      aBar.className = 'demo-bar ' + (seg.task === 'A' ? 'tA' : 'idle');
+      aBar.style.width = seg.width + '%';
+      aBar.style.justifyContent = 'center';
+      aBar.textContent = seg.task === 'A' ? 'A' : '';
+      demoA.appendChild(aBar);
+
+      // Task B bar
+      const bBar = document.createElement('div');
+      bBar.className = 'demo-bar ' + (seg.task === 'B' ? 'tB' : 'idle');
+      bBar.style.width = seg.width + '%';
+      bBar.style.justifyContent = 'center';
+      bBar.textContent = seg.task === 'B' ? 'B' : '';
+      demoB.appendChild(bBar);
+    }, i * 600);
+  });
+
+  // Time axis
+  setTimeout(() => {
+    const times = ['0ms', '4ms', '6ms', '10ms', '14ms', '20ms'];
+    times.forEach(t => {
+      const span = document.createElement('span');
+      span.textContent = t;
+      timeAxis.appendChild(span);
+    });
+  }, 2000);
+}
+
+window.addEventListener('load', () => {
+  setTimeout(playArchAnim, 400);
+});
+</script>
+</body>
+</html>

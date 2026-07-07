@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>架构设计方法（TOGAF/ADM/CSF/SST/BSP） · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 信息系统架构 › 架构设计方法（TOGAF/ADM/CSF/SST/BSP）</span></nav>
+<div class="ct">
+<div><span class="tag c">信息系统架构</span><span class="tag e">3~5分（选择+案例高频，论文高频）</span>
+<h1>架构设计方法（TOGAF/ADM/CSF/SST/BSP）</h1><p class="ol">TOGAF/ADM架构框架与三大信息化总体规划方法（CSF/SST/BSP）是架构设计的核心方法论</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>（1）TOGAF框架：由The Open Group制订的企业架构标准框架，目标为节省成本、实现ROI、统一语言、避免锁定。核心思想是模块化架构。组件包括：架构开发方法(ADM)、ADM指南和技术、内容框架、企业连续序列和工具、参考模型、能力框架。（2）ADM阶段：预备→需求管理→架构愿景→业务架构→信息系统架构→技术架构→机会和解决方案→迁移规划→实施治理→架构变更管理（环形）。（3）信息化内容与模式：4方面（信息网络体系、信息产业基础、社会运行环境、效用积累过程），6要素，7平台，9特征。两种架构模式：数据导向（关注数据模型和质量）和流程导向（关注端到端流程整合）。（4）信息化建设生命周期：系统规划→系统分析→系统设计→系统实施→系统运行和维护。（5）总体规划方法：CSF关键成功因素法（分析企业成功关键因素→确定需求→规划）、SST战略目标集转化法（反映各人要求→分层→转化为IS目标）、BSP企业系统规划法（自上而下识别目标/过程/数据，自下而上设计系统）。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">ISA-15-05</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>CSF法：分析找出企业成功关键因素→围绕关键因素确定需求→规划</li><li>BSP法：自上而下识别系统目标和企业过程→分析数据→自下而上设计IS</li><li>ADM环形阶段：预备→愿景→业务→IS→技术→机会→迁移→治理→变更</li><li>信息化两种架构模式：数据导向 vs 流程导向</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>TOGAF提供标准化、模块化的企业架构方法论</li><li>CSF/SST/BSP三种方法从不同角度解决规划需求</li><li>ADM环形流程支持持续迭代和变更管理</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>ADM是环形流程，迭代周期较长</li><li>三种规划方法各有侧重，需根据企业实际选择</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">TOGAF</span><span class="k">ADM</span><span class="k">模块化架构</span><span class="k">CSF关键成功因素法</span><span class="k">SST战略目标集转化法</span><span class="k">BSP企业系统规划法</span><span class="k">信息化建设生命周期</span><span class="k">数据导向</span><span class="k">流程导向</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="kp15_04.html">kp15_04</a></li></ul></div>
+</div></body></html>

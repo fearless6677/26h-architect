@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>应用程序与数据库交互方式 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .var { color: #93c5fd; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Evolution Timeline */
+.timeline { position: relative; padding: 20px 0; margin: 16px 0; }
+.timeline::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #3b82f6, #8b5cf6, #06b6d4); transform: translateX(-50%); border-radius: 2px; }
+.timeline-item { display: flex; align-items: center; margin: 20px 0; position: relative; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
+.timeline-item.visible { opacity: 1; transform: translateY(0); }
+.timeline-item:nth-child(odd) { flex-direction: row; }
+.timeline-item:nth-child(even) { flex-direction: row-reverse; }
+.timeline-content { width: 45%; padding: 16px; border-radius: 8px; background: white; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.timeline-dot { width: 16px; height: 16px; background: white; border: 4px solid #3b82f6; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 2; }
+.timeline-item.active .timeline-dot { background: #3b82f6; box-shadow: 0 0 12px rgba(59,130,246,0.6); }
+.timeline-content h5 { font-size: 14px; color: #1e40af; margin-bottom: 6px; }
+.timeline-content p { font-size: 12px; color: #64748b; }
+.timeline-content .era-tag { display: inline-block; background: #eff6ff; color: #2563eb; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 6px; }
+
+/* Flow Diagram */
+.flow-box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.flow-box.l1 { background: #fef2f2; border: 2px solid #f87171; color: #991b1b; }
+.flow-box.l2 { background: #fffbeb; border: 2px solid #fbbf24; color: #92400e; }
+.flow-box.l3 { background: #f0fdf4; border: 2px solid #4ade80; color: #166534; }
+.flow-box.l4 { background: #eff6ff; border: 2px solid #60a5fa; color: #1e40af; }
+.flow-box.highlight { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.flow-arrow { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; margin: 0 4px; }
+.flow-arrow .arrow-flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: arrowMove 1.5s linear infinite; }
+@keyframes arrowMove { 0% { left: -20px; } 100% { left: 36px; } }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+.play-btn:hover { background: #1d4ed8; transform: scale(1.05); }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 应用与数据库交互 › 应用程序与数据库交互方式</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">应用与数据库交互</span>
+  <span class="exam-tag">📘 了解</span>
+  <h1>应用程序与数据库交互方式</h1>
+  <p class="one-liner">应用程序和数据库之间的'翻译官'不断进化——从说方言(库函数)到说普通话(ODBC/JDBC)再到直接'心灵感应'(ORM)。</p>
+  <p class="one-liner" style="margin-top:4px;font-size:13px;color:#94a3b8;">📅 第8小时</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 演进动画</div>
+  <div class="tab" onclick="switchTab(this,'timeline')">📅 时间线</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'examples')">💡 实例</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放演进</button>
+    <p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:16px;">交互方式演进：库函数 → 嵌入式SQL → 通用接口 → ORM</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;margin:12px 0;">
+      <div class="flow-box l1" id="f1">🗄️ 库函数<br><small>(OCI)</small></div>
+      <div class="flow-arrow"><div class="arrow-flow" style="animation-delay:.2s"></div></div>
+      <div class="flow-box l2" id="f2">📝 嵌入式SQL<br><small>(SQL嵌入代码)</small></div>
+      <div class="flow-arrow"><div class="arrow-flow" style="animation-delay:.4s"></div></div>
+      <div class="flow-box l3" id="f3">🔌 通用接口<br><small>(ODBC/JDBC)</small></div>
+      <div class="flow-arrow"><div class="arrow-flow" style="animation-delay:.6s"></div></div>
+      <div class="flow-box l4" id="f4">🧠 ORM<br><small>(全自动/半自动)</small></div>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+      <div id="anim-desc" style="font-size:13px;color:#475569;padding:12px;background:white;border-radius:8px;border:1px solid #e2e8f0;min-height:60px;transition:all 0.3s;">
+        点击 <strong>播放演进</strong> 查看各阶段特点
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="timeline" class="tab-content">
+  <div class="anim-area">
+    <p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:16px;">数据库交互技术演进时间线</p>
+    <div class="timeline">
+      <div class="timeline-item" id="t1">
+        <div class="timeline-content" style="margin-right:auto;">
+          <span class="era-tag">第1阶段</span>
+          <h5>库函数 (如 Oracle OCI)</h5>
+          <p>最底层的API调用，直接调用数据库提供的函数库。<br>✅ 性能最好 ❌ 强依赖特定DB，难移植</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="timeline-item" id="t2">
+        <div class="timeline-content" style="margin-left:auto;">
+          <span class="era-tag">第2阶段</span>
+          <h5>嵌入式 SQL</h5>
+          <p>将SQL语句直接写入高级语言源代码中。<br>✅ 代码与SQL混合 ❌ 需要预编译器处理</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="timeline-item" id="t3">
+        <div class="timeline-content" style="margin-right:auto;">
+          <span class="era-tag">第3阶段</span>
+          <h5>通用接口 (ODBC / JDBC)</h5>
+          <p>实现与DBMS无关的统一访问标准。<br>✅ 跨数据库 ✅ 统一接口 ❌ 仍需写SQL</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+      <div class="timeline-item" id="t4">
+        <div class="timeline-content" style="margin-left:auto;">
+          <span class="era-tag">第4阶段</span>
+          <h5>ORM (对象关系映射)</h5>
+          <p>将面向对象语言中的对象与数据库表映射。<br>✅ 开发效率高 ✅ 面向对象操作数据库 ❌ 复杂SQL不够灵活</p>
+        </div>
+        <div class="timeline-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ====== 1. 库函数 (OCI) —— 强依赖特定DB ======</span>
+<span class="var">OCIEnv</span> env;
+<span class="fn">OCIEnvCreate</span>(&amp;env, OCI_DEFAULT);      <span class="cm">// 初始化Oracle环境</span>
+<span class="fn">OCIStmtExecute</span>(svc, stmt, err);       <span class="cm">// 执行SQL —— 只能用于Oracle!</span>
+
+<span class="cm">// ====== 2. 嵌入式SQL —— SQL混在代码中 ======</span>
+<span class="kw">EXEC SQL</span> SELECT name INTO :name_var FROM users WHERE id = :id;  <span class="cm">// 需要预编译</span>
+
+<span class="cm">// ====== 3. ODBC/JDBC —— 统一接口，跨数据库 ======</span>
+<span class="cm">// ODBC (Windows): Access/MySQL/SQL Server 统一访问</span>
+<span class="var">Connection</span> conn = <span class="fn">DriverManager.getConnection</span>(<span class="st">"jdbc:mysql://localhost/db"</span>);
+<span class="var">Statement</span> stmt = conn.<span class="fn">createStatement</span>();
+<span class="var">ResultSet</span> rs = stmt.<span class="fn">executeQuery</span>(<span class="st">"SELECT * FROM users"</span>);
+
+<span class="cm">// ====== 4. ORM —— 面向对象操作数据库 ======</span>
+<span class="cm">// Hibernate (全自动): 写对象自动变SQL</span>
+<span class="var">User</span> user = <span class="kw">new</span> <span class="fn">User</span>(<span class="st">"张三"</span>, 25);
+session.<span class="fn">save</span>(user);  <span class="cm">// 自动生成 INSERT INTO users ...</span>
+
+<span class="cm">// Mybatis (半自动): 手写SQL但灵活</span>
+<span class="var">User</span> user = userMapper.<span class="fn">selectById</span>(1);  <span class="cm">// XML中定义SQL语句</span></pre>
+</div>
+
+<div id="examples" class="tab-content">
+  <div class="anim-area" style="padding:20px;">
+    <div style="margin-bottom:16px;">
+      <div style="background:white;border-radius:8px;padding:16px;border:1px solid #e2e8f0;margin-bottom:12px;">
+        <h5 style="color:#1e40af;margin-bottom:8px;">🔌 ODBC 实例</h5>
+        <p style="font-size:13px;color:#475569;">Windows下统一访问 Access / MySQL / SQL Server 的接口。只需换驱动，代码不用改。</p>
+      </div>
+      <div style="background:white;border-radius:8px;padding:16px;border:1px solid #e2e8f0;margin-bottom:12px;">
+        <h5 style="color:#15803d;margin-bottom:8px;">☕ JDBC 实例</h5>
+        <p style="font-size:13px;color:#475569;">Java程序连接 MySQL 的标准方式。<code>DriverManager.getConnection("jdbc:mysql://...")</code></p>
+      </div>
+      <div style="background:white;border-radius:8px;padding:16px;border:1px solid #e2e8f0;margin-bottom:12px;">
+        <h5 style="color:#7c3aed;margin-bottom:8px;">🧠 Hibernate (全自动 ORM)</h5>
+        <p style="font-size:13px;color:#475569;">写Java对象自动映射为SQL。开发者只需操作对象，不需要写SQL语句。</p>
+      </div>
+      <div style="background:white;border-radius:8px;padding:16px;border:1px solid #e2e8f0;">
+        <h5 style="color:#ea580c;margin-bottom:8px;">⚡ Mybatis (半自动 ORM)</h5>
+        <p style="font-size:13px;color:#475569;">需要手写SQL但灵活度高。适合复杂查询场景，SQL写在XML文件中与Java代码分离。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>应用程序与数据库的交互方式不断演进：
+  <span class="hl">库函数(如Oracle OCI)</span>是最底层接口，强依赖特定数据库；
+  <span class="hl">嵌入式SQL</span>将SQL语句写入高级语言源代码中；
+  <span class="hl">通用数据接口标准(ODBC/JDBC)</span>实现了与DBMS无关的统一访问；
+  <span class="hl">ORM(对象关系映射)</span>将面向对象语言中的对象与数据库表映射，典型框架有
+  <span class="hl">Hibernate(全自动)</span>、<span class="hl">Mybatis(半自动)</span>和<span class="hl">JPA(Java自带)</span>。
+  ORM让开发者以操作对象的方式来操作数据库。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔌 ODBC: Windows统一DB接口</span>
+  <span class="tag-item">☕ JDBC: Java连接DB标准</span>
+  <span class="tag-item">🧠 Hibernate: 全自动ORM</span>
+  <span class="tag-item">⚡ Mybatis: 半自动ORM</span>
+  <span class="tag-item">📝 嵌入式SQL: SQL嵌入代码</span>
+  <span class="tag-item">🗄️ OCI: Oracle专用API</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>ORM开发效率高——操作对象=操作数据库</li>
+      <li>通用接口(ODBC/JDBC)可移植性好——换DB不改代码</li>
+      <li>ORM降低学习成本——不用精通SQL也能开发</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>ORM性能有损耗——多了一层转换</li>
+      <li>复杂SQL不够灵活——ORM难以处理复杂查询</li>
+      <li>库函数移植性差——绑定特定数据库</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">ODBC</span>
+    <span class="keyword">JDBC</span>
+    <span class="keyword">ORM</span>
+    <span class="keyword">Hibernate</span>
+    <span class="keyword">Mybatis</span>
+    <span class="keyword">JPA</span>
+    <span class="keyword">嵌入式SQL</span>
+    <span class="keyword">OCI</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>NoSQL与Redis</strong> = 另一种数据库交互范式（非关系型、键值存储）</li>
+    <li><strong>JPA</strong> = Java自带的ORM规范，Hibernate是其实现之一</li>
+    <li><strong>数据库中间件</strong> = 介于应用和数据库之间的通用访问层</li>
+    <li><strong>连接池</strong> = ODBC/JDBC中复用数据库连接的技术</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  // Trigger timeline animation when switching to timeline tab
+  if (id === 'timeline') {
+    animateTimeline();
+  }
+}
+
+function playAnimation() {
+  const desc = document.getElementById('anim-desc');
+  const stages = [
+    { id: 'f1', text: '<strong>第1阶段 · 库函数(OCI)</strong><br>最底层接口，直接调用DB提供的函数。性能最好，但<strong style="color:#dc2626;">强依赖特定数据库</strong>，换DB要重写代码。' },
+    { id: 'f2', text: '<strong>第2阶段 · 嵌入式SQL</strong><br>SQL语句直接写在高级语言源代码中。需要预编译器处理，代码和SQL<strong style="color:#dc2626;">耦合在一起</strong>。' },
+    { id: 'f3', text: '<strong>第3阶段 · 通用接口(ODBC/JDBC)</strong><br>实现与DBMS无关的<strong style="color:#15803d;">统一访问标准</strong>。换数据库只需换驱动，代码不用改！' },
+    { id: 'f4', text: '<strong>第4阶段 · ORM(对象关系映射)</strong><br>操作对象=操作数据库。<strong>Hibernate</strong>全自动，<strong>Mybatis</strong>半自动，<strong>JPA</strong>是Java规范。' }
+  ];
+
+  stages.forEach((stage, i) => {
+    setTimeout(() => {
+      // Reset all
+      for (let j = 1; j <= 4; j++) {
+        document.getElementById('f' + j).classList.remove('highlight');
+      }
+      // Highlight current
+      document.getElementById(stage.id).classList.add('highlight');
+      desc.innerHTML = stage.text;
+    }, i * 1200);
+  });
+
+  // Final: highlight all
+  setTimeout(() => {
+    for (let j = 1; j <= 4; j++) {
+      document.getElementById('f' + j).classList.add('highlight');
+    }
+  }, stages.length * 1200);
+}
+
+function animateTimeline() {
+  const items = document.querySelectorAll('.timeline-item');
+  items.forEach((item, i) => {
+    setTimeout(() => {
+      item.classList.add('visible');
+    }, i * 300);
+  });
+}
+
+// Auto-play animation on load
+window.addEventListener('load', () => {
+  setTimeout(playAnimation, 500);
+  // Also prepare timeline items
+  setTimeout(animateTimeline, 800);
+});
+</script>
+</body>
+</html>

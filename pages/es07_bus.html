@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>总线分类（四种维度详解） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 960px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+
+/* tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; user-select: none; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* areas */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #0369a1; text-decoration: none; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ---- animation specific ---- */
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* dimension selector */
+.dim-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.dim-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid #cbd5e1; background: #fff; cursor: pointer; font-size: 12px; font-weight: 600; color: #475569; transition: all 0.25s; }
+.dim-btn:hover { border-color: #3b82f6; color: #2563eb; }
+.dim-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+/* diagram panels */
+.dim-panel { display: none; }
+.dim-panel.active { display: block; animation: fadeUp 0.35s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* component boxes */
+.chip { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; text-align: center; transition: all 0.35s; min-width: 72px; line-height: 1.4; }
+.chip.cpu { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.chip.mem { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.chip.io  { background: #fefce8; border: 2px solid #eab308; color: #854d0e; }
+.chip.bus { background: #fdf2f8; border: 2px solid #ec4899; color: #9d174d; min-width: 60px; padding: 8px 10px; font-size: 11px; }
+.chip.glow { transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.35); }
+
+/* bus diagram layout */
+.bus-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.bus-row { display: flex; align-items: center; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.bus-line { height: 4px; width: 48px; border-radius: 2px; position: relative; overflow: hidden; }
+.bus-line.data   { background: #3b82f6; }
+.bus-line.addr   { background: #22c55e; }
+.bus-line.ctrl   { background: #f59e0b; }
+.bus-line .pulse { position: absolute; top: 0; left: -16px; width: 16px; height: 100%; border-radius: 2px; }
+.bus-line.data .pulse   { background: linear-gradient(90deg, transparent, #93c5fd, transparent); }
+.bus-line.addr .pulse   { background: linear-gradient(90deg, transparent, #86efac, transparent); }
+.bus-line.ctrl .pulse   { background: linear-gradient(90deg, transparent, #fcd34d, transparent); }
+.bus-line .pulse.go { animation: pulseGo 0.8s ease forwards; }
+@keyframes pulseGo { 0% { left: -16px; } 100% { left: 48px; } }
+
+/* direction diagram */
+.dir-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; padding: 10px 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; transition: all 0.3s; }
+.dir-row:hover { border-color: #3b82f6; }
+.dir-label { font-size: 13px; font-weight: 700; color: #1e293b; min-width: 72px; }
+.dir-desc { font-size: 12px; color: #64748b; flex: 1; }
+.arrows { display: flex; gap: 2px; align-items: center; min-width: 100px; }
+.arrow-r, .arrow-l { font-size: 18px; line-height: 1; }
+.arrow-r { color: #3b82f6; }
+.arrow-l { color: #f59e0b; }
+.arrow-r.active, .arrow-l.active { animation: blink 0.6s ease infinite alternate; }
+@keyframes blink { from { opacity: 0.3; } to { opacity: 1; } }
+
+/* parallel / serial */
+.ps-row { display: flex; gap: 24px; justify-content: center; margin: 16px 0; flex-wrap: wrap; }
+.ps-card { flex: 1; min-width: 260px; padding: 16px; border-radius: 10px; text-align: center; }
+.ps-card.parallel { background: #eff6ff; border: 2px solid #3b82f6; }
+.ps-card.serial { background: #fef2f2; border: 2px solid #f87171; }
+.ps-card h5 { font-size: 14px; margin-bottom: 8px; }
+.ps-card.parallel h5 { color: #1d4ed8; }
+.ps-card.serial h5 { color: #b91c1c; }
+.bit-lane { display: flex; gap: 4px; justify-content: center; margin: 6px 0; align-items: center; }
+.bit { width: 18px; height: 18px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; transition: all 0.3s; }
+.bit.p { background: #3b82f6; }
+.bit.s { background: #f87171; }
+.bit.go { transform: scale(1.25); box-shadow: 0 0 8px rgba(0,0,0,0.2); }
+.ps-note { font-size: 11px; color: #64748b; margin-top: 6px; }
+
+/* legend */
+.legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; font-size: 11px; color: #64748b; }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 总线分类（四种维度详解）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <h1>总线分类（四种维度详解）</h1>
+  <p class="one-liner">总线按信息种类、连接部件、传输方向和信号类型四种维度分类</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- ========== ANIMATION TAB ========== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playDimension()">▶ 播放</button>
+
+    <div class="dim-bar">
+      <button class="dim-btn active" onclick="switchDim(this,0)">① 按信息种类</button>
+      <button class="dim-btn" onclick="switchDim(this,1)">② 按连接部件</button>
+      <button class="dim-btn" onclick="switchDim(this,2)">③ 按传输方向</button>
+      <button class="dim-btn" onclick="switchDim(this,3)">④ 按信号类型</button>
+    </div>
+
+    <!-- Panel 0: 按信息种类 -->
+    <div class="dim-panel active" id="panel0">
+      <div class="bus-diagram">
+        <div class="bus-row">
+          <div class="chip cpu" id="cpu0">CPU</div>
+        </div>
+        <div class="bus-row">
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+            <div class="bus-line data" id="bl0d"><div class="pulse"></div></div>
+            <div class="bus-line addr" id="bl0a"><div class="pulse"></div></div>
+            <div class="bus-line ctrl" id="bl0c"><div class="pulse"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;font-size:11px;font-weight:600;">
+            <span style="color:#1d4ed8;">数据总线 DB ↕</span>
+            <span style="color:#15803d;">地址总线 AB →</span>
+            <span style="color:#854d0e;">控制总线 CB ↕</span>
+          </div>
+        </div>
+        <div class="bus-row" style="gap:16px;">
+          <div class="chip mem" id="mem0">Memory</div>
+          <div class="chip io" id="io0">I/O</div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:#3b82f6;"></span>数据总线 — 传数据，双向</span>
+        <span><span class="dot" style="background:#22c55e;"></span>地址总线 — 指定地址，单向(CPU→)</span>
+        <span><span class="dot" style="background:#f59e0b;"></span>控制总线 — 控制信号，双向</span>
+      </div>
+    </div>
+
+    <!-- Panel 1: 按连接部件 -->
+    <div class="dim-panel" id="panel1">
+      <div class="bus-diagram">
+        <div class="bus-row" style="gap:12px;">
+          <div class="chip cpu" id="cpu1">CPU<br><span style="font-size:10px;font-weight:400;">内部ALU↔寄存器</span></div>
+          <div style="font-size:11px;color:#9d174d;font-weight:700;">← 片内总线 →</div>
+        </div>
+        <div class="bus-row" style="gap:8px;">
+          <div class="chip cpu">CPU</div>
+          <div class="bus-line data"><div class="pulse"></div></div>
+          <div class="chip bus" id="sysbus">系统总线</div>
+          <div class="bus-line data"><div class="pulse"></div></div>
+          <div class="chip mem">SDRAM</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;text-align:center;">↑ 系统/板级总线：连接核心组件</div>
+        <div class="bus-row" style="gap:8px;margin-top:4px;">
+          <div class="chip cpu">CPU</div>
+          <div class="bus-line addr"><div class="pulse"></div></div>
+          <div class="chip bus" id="localbus">局部总线</div>
+          <div class="bus-line addr"><div class="pulse"></div></div>
+          <div class="chip io">GPU</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;text-align:center;">↑ 局部总线：连接少数高速组件</div>
+        <div class="bus-row" style="gap:8px;margin-top:4px;">
+          <div class="chip cpu">主机</div>
+          <div class="bus-line ctrl"><div class="pulse"></div></div>
+          <div class="chip bus" id="commbus">通信总线</div>
+          <div class="bus-line ctrl"><div class="pulse"></div></div>
+          <div class="chip io">外设</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;text-align:center;">↑ 通信总线：主机连接外部设备（UART/USB/SPI）</div>
+      </div>
+    </div>
+
+    <!-- Panel 2: 按传输方向 -->
+    <div class="dim-panel" id="panel2">
+      <div class="dir-row" id="dir-simplex">
+        <div class="dir-label">单工</div>
+        <div class="arrows">
+          <span class="arrow-r active">→</span><span class="arrow-r active">→</span><span class="arrow-r active">→</span>
+        </div>
+        <div class="dir-desc">只能<strong>单向</strong>传输（如地址总线）</div>
+      </div>
+      <div class="dir-row" id="dir-half">
+        <div class="dir-label">半双工</div>
+        <div class="arrows">
+          <span class="arrow-r" id="dh-r">→</span>
+          <span class="arrow-l" id="dh-l">←</span>
+        </div>
+        <div class="dir-desc"><strong>轮流</strong>双向，同一时刻只能一个方向（如I²C）</div>
+      </div>
+      <div class="dir-row" id="dir-full">
+        <div class="dir-label">全双工</div>
+        <div class="arrows">
+          <span class="arrow-r active">→</span>
+          <span class="arrow-l active">←</span>
+        </div>
+        <div class="dir-desc"><strong>同时</strong>双向传输（如UART TX+RX）</div>
+      </div>
+    </div>
+
+    <!-- Panel 3: 按信号类型 -->
+    <div class="dim-panel" id="panel3">
+      <div class="ps-row">
+        <div class="ps-card parallel">
+          <h5>并行总线</h5>
+          <div class="bit-lane" id="par-lane">
+            <div class="bit p">D0</div>
+            <div class="bit p">D1</div>
+            <div class="bit p">D2</div>
+            <div class="bit p">D3</div>
+            <div class="bit p">D4</div>
+            <div class="bit p">D5</div>
+            <div class="bit p">D6</div>
+            <div class="bit p">D7</div>
+          </div>
+          <div class="ps-note">8位同时传输 → 速度快<br>一致性要求高 · 距离<span style="color:#dc2626;font-weight:700;">近</span><br>例：ISA、PCI</div>
+        </div>
+        <div class="ps-card serial">
+          <h5>串行总线</h5>
+          <div class="bit-lane" id="ser-lane">
+            <div class="bit s" id="sb">D0</div>
+          </div>
+          <div class="ps-note">逐位依次传输 → 距离<span style="color:#15803d;font-weight:700;">远</span><br>线少、成本低、抗干扰好<br>例：UART、SPI、I²C、USB</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- anim-area -->
+</div>
+
+<!-- ========== CODE TAB ========== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 总线分类 —— 四种维度</span>
+
+<span class="cm">// ① 按信息种类</span>
+<span class="kw">数据总线</span> (DB)  : <span class="st">CPU ↔ Memory</span>   <span class="cm">// 传送数据，双向</span>
+<span class="kw">地址总线</span> (AB)  : <span class="st">CPU → Memory</span>   <span class="cm">// 指定地址，单向</span>
+<span class="kw">控制总线</span> (CB)  : <span class="st">CPU ↔ 各部件</span>   <span class="cm">// 传送控制信号，双向</span>
+
+<span class="cm">// ② 按连接部件</span>
+<span class="fn">片内总线</span>       : <span class="st">CPU内部 ALU ↔ 寄存器</span>
+<span class="fn">系统/板级总线</span>  : <span class="st">CPU ↔ Memory ↔ I/O</span>    <span class="cm">// 核心组件</span>
+<span class="fn">局部总线</span>       : <span class="st">CPU ↔ 少数高速组件</span>     <span class="cm">// 如GPU</span>
+<span class="fn">通信总线</span>       : <span class="st">主机 ↔ 外设</span>           <span class="cm">// UART/SPI/USB</span>
+
+<span class="cm">// ③ 按传输方向</span>
+<span class="kw">单工</span>    →→→    : <span class="st">只能单向</span>
+<span class="kw">半双工</span>  →←     : <span class="st">轮流双向</span>  (同一时刻单方向)
+<span class="kw">全双工</span>  ↔      : <span class="st">同时双向</span>
+
+<span class="cm">// ④ 按信号类型</span>
+<span class="fn">并行总线</span> : <span class="st">多位同时传输, 距离近, 一致性要求高</span>  <span class="cm">// ISA, PCI</span>
+<span class="fn">串行总线</span> : <span class="st">一位一位传, 距离远, 线少成本低</span>     <span class="cm">// UART, SPI, I2C, USB</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>总线是计算机各部件之间的<span class="hl">公共信息通道</span>。
+  掌握四种分类维度——<span class="hl">信息种类</span>（数据/地址/控制）、
+  <span class="hl">连接部件</span>（片内/系统/局部/通信）、
+  <span class="hl">传输方向</span>（单工/半双工/全双工）、
+  <span class="hl">信号类型</span>（并行/串行）——是嵌入式考试必考基础。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🧠 片内总线：CPU内部ALU与寄存器间的数据通路</span>
+  <span class="tag-item">🔗 系统总线：ARM处理器与SDRAM间的连接</span>
+  <span class="tag-item">⚡ 并行总线：ISA、PCI总线</span>
+  <span class="tag-item">📡 串行总线：UART、SPI、I²C、USB</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优势对比</h4>
+    <ul>
+      <li>并行总线：多位同时传输，速度快</li>
+      <li>串行总线：线少成本低，距离可远</li>
+      <li>分类清晰，便于选型和设计</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 注意事项</h4>
+    <ul>
+      <li>并行总线：一致性要求高，距离近（线间干扰）</li>
+      <li>串行总线：逐位传输，单次带宽低</li>
+      <li>半双工不能同时收发，全双工需要更多线路</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">数据总线</span>
+    <span class="keyword">地址总线</span>
+    <span class="keyword">控制总线</span>
+    <span class="keyword">单工/半双工/全双工</span>
+    <span class="keyword">并行总线距离近</span>
+    <span class="keyword">串行总线距离远</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="es06_memory.html">es06 存储器层次结构</a> — 总线连接 CPU 与各级存储器</li>
+    <li><a href="es08_watchdog.html">es08 看门狗定时器</a> — 通过总线挂载到系统总线</li>
+    <li><strong>对比记忆</strong>：并行=多车道高速短途、串行=单车道长途省钱</li>
+    <li><strong>考试技巧</strong>：看到"距离近→并行"、"距离远→串行"直接选</li>
+  </ul>
+</div>
+
+</div><!-- container -->
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* dimension switching */
+function switchDim(btn, idx) {
+  document.querySelectorAll('.dim-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.dim-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel' + idx).classList.add('active');
+}
+
+/* play animations per dimension */
+function playDimension() {
+  const activeIdx = [...document.querySelectorAll('.dim-btn')].findIndex(b => b.classList.contains('active'));
+  if (activeIdx === 0) playDim0();
+  else if (activeIdx === 1) playDim1();
+  else if (activeIdx === 2) playDim2();
+  else if (activeIdx === 3) playDim3();
+}
+
+/* ① 信息种类：pulse along each bus line, glow endpoints */
+function playDim0() {
+  const lines = ['bl0d','bl0a','bl0c'];
+  const chips = ['cpu0','mem0','io0'];
+  lines.forEach((lid, i) => {
+    setTimeout(() => {
+      const pulse = document.querySelector('#' + lid + ' .pulse');
+      pulse.classList.remove('go');
+      void pulse.offsetWidth;
+      pulse.classList.add('go');
+    }, i * 250);
+  });
+  chips.forEach((cid, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(cid);
+      el.classList.add('glow');
+      setTimeout(() => el.classList.remove('glow'), 600);
+    }, i * 200 + 100);
+  });
+}
+
+/* ② 连接部件：highlight each bus level */
+function playDim1() {
+  const ids = ['cpu1','sysbus','localbus','commbus'];
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.add('glow'); setTimeout(() => el.classList.remove('glow'), 700); }
+    }, i * 350);
+  });
+}
+
+/* ③ 传输方向： animate half-duplex alternating */
+function playDim2() {
+  const dhR = document.getElementById('dh-r');
+  const dhL = document.getElementById('dh-l');
+  /* start both inactive */
+  dhR.classList.remove('active');
+  dhL.classList.remove('active');
+  /* alternate */
+  let step = 0;
+  const interval = setInterval(() => {
+    if (step % 2 === 0) {
+      dhR.classList.add('active'); dhL.classList.remove('active');
+    } else {
+      dhR.classList.remove('active'); dhL.classList.add('active');
+    }
+    step++;
+    if (step >= 6) clearInterval(interval);
+  }, 400);
+}
+
+/* ④ 信号类型: wave through parallel bits, scroll serial bit */
+function playDim3() {
+  const parBits = document.querySelectorAll('#par-lane .bit');
+  const serBit = document.getElementById('sb');
+  /* parallel: all light up together */
+  parBits.forEach((b, i) => {
+    setTimeout(() => {
+      b.classList.add('go');
+      setTimeout(() => b.classList.remove('go'), 500);
+    }, i * 60);
+  });
+  /* serial: one bit travels through */
+  const labels = ['D0','D1','D2','D3','D4','D5','D6','D7'];
+  labels.forEach((lbl, i) => {
+    setTimeout(() => {
+      serBit.textContent = lbl;
+      serBit.classList.add('go');
+      setTimeout(() => serBit.classList.remove('go'), 350);
+    }, i * 200);
+  });
+}
+
+/* auto-play on load */
+window.addEventListener('load', () => setTimeout(playDim0, 600));
+</script>
+</body>
+</html>

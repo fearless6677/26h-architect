@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络分类(LAN/WAN/MAN)与以太网 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.layer-box { transition: all 0.3s; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 网络分类与以太网 › 网络分类(LAN/WAN/MAN)与以太网</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">网络分类与以太网</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>网络分类(LAN/WAN/MAN)与以太网</h1>
+  <p class="one-liner">LAN是家里/办公室的小网络，WAN是跨城市跨国家的大网络，以太网是LAN最常用的组网方式。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div style="display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-size:12px;font-weight:600;color:#1d4ed8;margin-bottom:6px">LAN 局域网</div>
+        <div style="display:flex;gap:4px;justify-content:center">
+          <div class="box blue" id="nw1" style="font-size:10px;padding:6px 8px">PC</div>
+          <div class="box blue" id="nw2" style="font-size:10px;padding:6px 8px">PC</div>
+          <div class="box blue" id="nw3" style="font-size:10px;padding:6px 8px">PC</div>
+        </div>
+        <div style="font-size:10px;color:#64748b;margin-top:4px">802.3以太网 / 802.11WiFi</div>
+      </div>
+      <div style="font-size:20px;color:#94a3b8">⟷</div>
+      <div style="text-align:center">
+        <div style="font-size:12px;font-weight:600;color:#15803d;margin-bottom:6px">WAN 广域网</div>
+        <div style="display:flex;gap:4px;justify-content:center">
+          <div class="box green" id="nw4" style="font-size:10px;padding:6px 8px">路由器</div>
+          <div class="box green" id="nw5" style="font-size:10px;padding:6px 8px">路由器</div>
+        </div>
+        <div style="font-size:10px;color:#64748b;margin-top:4px">通信子网 + 资源子网</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:12px;font-size:11px;color:#64748b">
+      以太网帧：最小64字节 · 最大1518字节 · 5G = SBA + 网络切片
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area">网络分类（按覆盖范围）：
+LAN(局域网)  → IEEE 802.3(以太网), 802.11(WiFi)
+MAN(城域网)  → IEEE 802.6, 三层: 核心层+汇聚层+接入层
+WAN(广域网)  → 通信子网+资源子网, 需路由器/网关
+
+<span class="cm">// 以太网帧长度规则</span>
+最小帧长 = 64字节 (防冲突，按检测冲突最长时间定)
+最大帧长 = 1518字节
+
+<span class="cm">// WiFi标准演进</span>
+802.11b → 802.11g → 802.11n(200Mb/s) → 802.11ac(1Gb/s)
+
+<span class="cm">// 5G核心特征</span>
+服务化架构(SBA): 网络功能灵活定制、按需组合
+网络切片: 单个物理网上切出多个逻辑网(不同业务)</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>LAN(局域网)覆盖范围小，以太网是最常见的LAN技术(IEEE 802.3)，最小帧长64字节、最大1518字节。WAN(广域网)覆盖广，由通信子网和资源子网组成。WLAN用IEEE 802.11标准(WiFi)。5G的两大核心特征是服务化架构(SBA)和网络切片。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">办公室内10台电脑通过交换机和网线组成LAN，使用以太网协议通信</span>
+  <span class="tag-item">手机通过WiFi(802.11ac)以1Gb/s速率流媒体播放视频</span>
+  <span class="tag-item">5G网络切片：同一张5G物理网络切出一个低时延切片给自动驾驶，一个大带宽切片给视频直播</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>LAN覆盖范围有限，不适合跨地域通信</li>
+      <li>以太网最小帧长限制了对极短数据传输的效率</li>
+      <li>5G网络建设成本高，基站密度大，覆盖范围受限于基站部署</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">LAN</span>
+    <span class="keyword">WAN</span>
+    <span class="keyword">MAN</span>
+    <span class="keyword">以太网</span>
+    <span class="keyword">最小帧长64字节</span>
+    <span class="keyword">最大帧长1518字节</span>
+    <span class="keyword">IEEE 802.3</span>
+    <span class="keyword">IEEE 802.11</span>
+    <span class="keyword">WLAN</span>
+    <span class="keyword">5G</span>
+    <span class="keyword">SBA</span>
+    <span class="keyword">网络切片</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+      <li><a href="./net_devices.html" style="color:#2563eb;text-decoration:none">网络设备分层与路由协议</a></li>
+      <li><a href="./net_osi_model.html" style="color:#2563eb;text-decoration:none">OSI七层模型与TCP/IP协议栈</a></li>
+      <li><a href="./net_engineering.html" style="color:#2563eb;text-decoration:none">网络工程分层设计与冗余</a></li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+
+    function playAnimation() {
+      ['nw1','nw2','nw3','nw4','nw5'].forEach((id,i) => {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          el.classList.add('processing');
+          setTimeout(() => el.classList.remove('processing'), 400);
+        }, i * 250);
+      });
+    }
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

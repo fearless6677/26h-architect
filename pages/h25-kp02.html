@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architectural Style · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .en { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.explain .term { display: inline-block; background: #fef3c7; border: 1px solid #fcd34d; padding: 1px 8px; border-radius: 10px; font-size: 13px; color: #92400e; font-weight: 600; margin: 2px 2px; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Definition block */
+.def-block { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 2px solid #3b82f6; border-radius: 12px; padding: 24px; margin-bottom: 20px; position: relative; }
+.def-block .def-label { position: absolute; top: -10px; left: 16px; background: #2563eb; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 12px; border-radius: 10px; letter-spacing: 0.5px; }
+.def-block .def-text { font-size: 15px; color: #1e3a5f; line-height: 2; font-style: italic; }
+.def-block .def-text em { font-style: normal; color: #dc2626; font-weight: 700; text-decoration: underline; text-decoration-color: rgba(220,38,38,0.3); }
+
+/* Vocabulary cards */
+.vocab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.vocab-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; transition: all 0.35s cubic-bezier(.4,0,.2,1); cursor: default; }
+.vocab-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(37,99,235,0.12); border-color: #93c5fd; }
+.vocab-card .en-word { font-size: 18px; font-weight: 700; color: #2563eb; margin-bottom: 4px; }
+.vocab-card .cn-word { font-size: 13px; color: #64748b; }
+.vocab-card .icon { font-size: 28px; margin-bottom: 6px; }
+
+/* Architecture diagram */
+.arch-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 0; }
+.arch-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.arch-box { padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; }
+.arch-box.style-box { background: #ede9fe; border: 2px solid #8b5cf6; color: #5b21b6; }
+.arch-box.family-box { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.arch-box.system-box { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.arch-connector { font-size: 12px; color: #94a3b8; }
+.arch-arrow { font-size: 20px; color: #8b5cf6; }
+
+/* UNIX shell demo */
+.shell-demo { background: #1e293b; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.shell-line { font-family: 'Consolas', monospace; font-size: 13px; color: #e2e8f0; margin: 4px 0; opacity: 0; transition: opacity 0.4s; }
+.shell-line .prompt { color: #22c55e; }
+.shell-line .pipe-char { color: #f472b6; font-weight: 700; }
+.shell-line .comment { color: #64748b; }
+.shell-line.visible { opacity: 1; }
+.shell-label { font-size: 12px; color: #94a3b8; margin-bottom: 8px; font-family: 'Consolas', monospace; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Animate in */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.anim-in { animation: fadeUp 0.5s ease forwards; }
+
+/* Pulse highlight */
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); } 50% { box-shadow: 0 0 16px 4px rgba(37,99,235,0.2); } }
+.pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+/* Data flow in pipe */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #8b5cf6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 架构风格 › Architectural Style 英文核心概念</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">架构风格（英文）</span>
+  <span class="exam-tag">📝 名词解释 1-2分</span>
+  <span class="hour-tag">🕐 第25小时</span>
+  <h1>Architectural Style 架构风格英文核心概念</h1>
+  <p class="one-liner">架构风格英文定义：定义构件和连接器词汇表及组合约束的系统族，典型例子是UNIX shell的管道-过滤器架构。</p>
+</div>
+
+<!-- ===== 英文原文定义 ===== -->
+<div class="def-block">
+  <span class="def-label">📖 ENGLISH DEFINITION</span>
+  <div class="def-text">
+    An <em>architectural style</em> defines a <em>vocabulary</em> of <em>components</em> and <em>connector</em> types, and a set of <em>constraints</em> on how they can be combined.
+  </div>
+</div>
+
+<!-- ===== Tabs ===== -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'shell')">🖥️ UNIX Shell</div>
+</div>
+
+<!-- ===== 动画演示 ===== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <!-- Vocabulary Cards -->
+    <div class="vocab-grid" id="vocabGrid">
+      <div class="vocab-card" id="vc1">
+        <div class="icon">🧱</div>
+        <div class="en-word">Component</div>
+        <div class="cn-word">构件 / 组件</div>
+      </div>
+      <div class="vocab-card" id="vc2">
+        <div class="icon">🔗</div>
+        <div class="en-word">Connector</div>
+        <div class="cn-word">连接器</div>
+      </div>
+      <div class="vocab-card" id="vc3">
+        <div class="icon">📏</div>
+        <div class="en-word">Constraints</div>
+        <div class="cn-word">约束规则</div>
+      </div>
+      <div class="vocab-card" id="vc4">
+        <div class="icon">🧬</div>
+        <div class="en-word">Semantic Models</div>
+        <div class="cn-word">语义模型</div>
+      </div>
+    </div>
+
+    <!-- Architecture diagram -->
+    <div class="arch-diagram">
+      <div class="arch-row">
+        <div class="arch-box style-box" id="styleBox">Architectural Style</div>
+      </div>
+      <div class="arch-connector">defines ↓</div>
+      <div class="arch-row">
+        <div class="arch-box family-box" id="famBox">Family of Systems</div>
+      </div>
+      <div class="arch-connector">in terms of ↓</div>
+      <div class="arch-row">
+        <div class="arch-box system-box" id="cBox">Components</div>
+        <span class="arch-arrow">+</span>
+        <div class="arch-box system-box" id="cnBox">Connectors</div>
+        <span class="arch-arrow">+</span>
+        <div class="arch-box system-box" id="ctBox">Constraints</div>
+      </div>
+      <div class="arch-connector">combined →</div>
+      <div class="flow-row">
+        <div class="arch-box system-box" id="pf1" style="font-size:12px; padding:8px 14px;">cat</div>
+        <div class="pipe"><div class="flow"></div></div>
+        <div class="arch-box system-box" id="pf2" style="font-size:12px; padding:8px 14px;">grep</div>
+        <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+        <div class="arch-box system-box" id="pf3" style="font-size:12px; padding:8px 14px;">sort</div>
+        <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+        <div class="arch-box family-box" id="pf4" style="font-size:12px; padding:8px 14px;">Output</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 伪代码 ===== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// Architectural Style = 一种架构的"定义模板"</span>
+<span class="cm">// 就像语法：规定了"词汇"和"组合规则"</span>
+
+<span class="kw">class</span> <span class="fn">ArchitecturalStyle</span> {
+    <span class="en">vocabulary</span> = {
+        <span class="en">components</span>:   [<span class="st">"filter"</span>, <span class="st">"pipe"</span>, <span class="st">"repository"</span>, ...],
+        <span class="en">connectors</span>:   [<span class="st">"pipe"</span>, <span class="st">"RPC"</span>, <span class="st">"event-bus"</span>, ...]
+    }
+    <span class="en">constraints</span> = [
+        <span class="st">"过滤器之间只能单向传递"</span>,
+        <span class="st">"每个过滤器独立运行"</span>,
+        <span class="st">"前一个的输出 = 后一个的输入"</span>
+    ]
+}
+
+<span class="cm">// 例子: Pipe-and-Filter Style</span>
+<span class="kw">const</span> <span class="fn">pipeFilter</span> = <span class="kw">new</span> ArchitecturalStyle()
+pipeFilter.components = [<span class="st">"cat"</span>, <span class="st">"grep"</span>, <span class="st">"sort"</span>, <span class="st">"wc"</span>]
+pipeFilter.connectors = [<span class="st">"|"</span>]  <span class="cm">// UNIX管道符号</span>
+
+<span class="cm">// 经典：cat file | grep "error" | sort | wc -l</span></pre>
+</div>
+
+<!-- ===== UNIX Shell 演示 ===== -->
+<div id="shell" class="tab-content">
+  <div class="shell-demo">
+    <div class="shell-label"># Pipe-and-Filter: 最经典的架构风格实例</div>
+    <div class="shell-line" id="sl1"><span class="prompt">$</span> cat access.log <span class="pipe-char">|</span> grep "ERROR" <span class="pipe-char">|</span> sort <span class="pipe-char">|</span> uniq -c <span class="pipe-char">|</span> sort -rn</div>
+    <div class="shell-line" id="sl2"><span class="comment">  └─ cat ─┘   └── grep ──┘   └─ sort ┘   └── uniq ──┘   └─ sort ─┘</span></div>
+    <div class="shell-line" id="sl3"><span class="comment">     ↑ 每个都是独立的 <b style="color:#fbbf24">filter</b>，用 <b style="color:#f472b6">|</b> (pipe/connector) 连接</span></div>
+    <div class="shell-line" id="sl4"><span class="comment">     ↑ 完美体现了 architectural style 的定义：</span></div>
+    <div class="shell-line" id="sl5"><span class="comment">       component(cat,grep,sort,uniq) + connector(|) + constraints(单向数据流)</span></div>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>Architectural Style 定义了一个<span class="hl">系统族（family of systems）</span>的组织模式。
+  它规定了<span class="term">component 构件</span>和<span class="term">connector 连接器</span>的词汇表，以及它们的<span class="term">constraints 约束</span>。
+  <br><br>
+  管道-过滤器（<strong>pipe-and-filter</strong>）是最常考的架构风格 —— 每个过滤器（filter）是独立的 component，
+  管道（pipe）是 connector，数据只能从前往后单向流动（constraints）。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📝 pipe-and-filter architecture = 管道-过滤器架构</span>
+  <span class="tag-item">🏗️ structural organization = 结构化组织</span>
+  <span class="tag-item">🧬 semantic models = 语义模型</span>
+  <span class="tag-item">🖥️ UNIX shell = cat | grep | sort</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 学习优势</h4>
+    <ul>
+      <li>概念清晰，属于名词解释范畴</li>
+      <li>与中文知识点互通，已有基础容易理解</li>
+      <li>核心术语仅4个：component / connector / constraints / semantic models</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 备考难点</h4>
+    <ul>
+      <li>需要记住英文定义而非仅记中文概念</li>
+      <li>考试以英文原文出题，需熟悉术语</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词（英文）</h4>
+  <div>
+    <span class="keyword">architectural style</span>
+    <span class="keyword">component</span>
+    <span class="keyword">connector</span>
+    <span class="keyword">constraints</span>
+    <span class="keyword">pipe-and-filter</span>
+    <span class="keyword">semantic models</span>
+  </div>
+  <p style="margin-top:12px; font-size:13px; color:#92400e;">
+    ⭐ <strong>考试权重：</strong>1-2分（名词解释）&nbsp;|&nbsp;📍 <strong>出处：</strong>第25小时
+    <br>
+    💡 <strong>答题模板：</strong>「An architectural style defines a vocabulary of components and connector types, and a set of constraints on how they can be combined. The most typical example is the pipe-and-filter architecture, as seen in UNIX shell programs.」
+  </p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>h25-kp01</strong> — 本小时前一知识点</li>
+    <li><strong>第3小时 架构风格</strong> — 中文部分的架构风格总论</li>
+    <li><strong>管道-过滤器（pipe-filter.html）</strong> — 最典型架构风格的详细讲解</li>
+    <li><strong>其他架构风格</strong> — 数据仓库风格、黑板风格、事件驱动风格等同样遵循此定义模式</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+
+  // Re-trigger shell animation when switching to shell tab
+  if (id === 'shell') {
+    playShellAnimation();
+  }
+}
+
+function playAnimation() {
+  // Phase 1: Vocab cards highlight
+  const vocabCards = ['vc1','vc2','vc3','vc4'];
+  vocabCards.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('pulse');
+      setTimeout(() => el.classList.remove('pulse'), 1200);
+    }, i * 300);
+  });
+
+  // Phase 2: Architecture boxes
+  const archBoxes = ['styleBox','famBox','cBox','cnBox','ctBox'];
+  archBoxes.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('anim-in');
+    }, 1200 + i * 250);
+  });
+
+  // Phase 3: Pipe-filter flow
+  const pfBoxes = ['pf1','pf2','pf3','pf4'];
+  pfBoxes.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('pulse');
+      setTimeout(() => el.classList.remove('pulse'), 800);
+    }, 2800 + i * 350);
+  });
+}
+
+function playShellAnimation() {
+  for (let i = 1; i <= 5; i++) {
+    setTimeout(() => {
+      document.getElementById('sl' + i).classList.add('visible');
+    }, (i - 1) * 350);
+  }
+}
+
+// Auto-play on load
+window.addEventListener('load', () => {
+  setTimeout(playAnimation, 500);
+  // Also prepare shell lines (hidden initially)
+  document.querySelectorAll('.shell-line').forEach(el => el.classList.remove('visible'));
+});
+</script>
+</body>
+</html>

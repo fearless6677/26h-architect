@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文各部分写作技巧与备考策略 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef9c3; color: #a16207; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .code-tag { display: inline-block; background: #f1f5f9; color: #475569; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* 动画区域 */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* 论文结构流程 */
+.essay-flow { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.essay-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.essay-box { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 100px; }
+.essay-box.theory { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.essay-box.practice { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.essay-box.highlight { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.35); }
+.essay-box.practice.highlight { box-shadow: 0 0 16px rgba(34,197,94,0.35); }
+.arrow-down { width: 4px; height: 20px; background: #cbd5e1; border-radius: 2px; margin: 0 auto; position: relative; }
+.arrow-down::after { content: '▼'; position: absolute; bottom: -10px; left: -4px; font-size: 10px; color: #94a3b8; }
+.step-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* Why+How 结构 */
+.why-how-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 12px 0; transition: all 0.3s; }
+.why-how-box:hover { border-color: #3b82f6; }
+.why-how-row { display: flex; gap: 12px; align-items: stretch; }
+.why-part { flex: 1; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 12px; }
+.why-part h5 { color: #b91c1c; font-size: 13px; margin-bottom: 6px; }
+.how-part { flex: 1; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 12px; }
+.how-part h5 { color: #15803d; font-size: 13px; margin-bottom: 6px; }
+.why-part p, .how-part p { font-size: 12px; color: #475569; line-height: 1.7; }
+
+/* 代码区域 */
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .hl { color: #fbbf24; }
+
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 备考步骤 */
+.step-flow { display: flex; align-items: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.step-node { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; transition: all 0.3s; }
+.step-node.active { background: #2563eb; color: #fff; transform: scale(1.08); }
+.step-arrow { color: #94a3b8; font-size: 16px; }
+
+/* 策略卡片 */
+.strategy-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+.strategy-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; transition: all 0.3s; }
+.strategy-card:hover { border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.strategy-card h5 { font-size: 14px; color: #1e293b; margin-bottom: 8px; }
+.strategy-card p { font-size: 12px; color: #475569; line-height: 1.7; }
+.strategy-card .icon { font-size: 24px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 论文写作 › 论文各部分写作技巧与备考策略</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">论文写作</span>
+  <span class="exam-tag">⚖️ 中频</span>
+  <span class="code-tag">SA-26-03</span>
+  <span class="hour-tag">📖 26h</span>
+  <h1>论文各部分写作技巧与备考策略</h1>
+  <p class="one-liner">理论部分紧扣题干分论点，实践部分采用Why+How结构，备考应精写一篇反复修改</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 写作结构</div>
+  <div class="tab" onclick="switchTab(this,'whyhow')">📐 Why+How</div>
+  <div class="tab" onclick="switchTab(this,'strategy')">📋 备考策略</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 模板伪代码</div>
+</div>
+
+<!-- 动画演示 Tab -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放流程</button>
+    <div class="essay-flow">
+      <div class="essay-row" style="justify-content:center;">
+        <div class="essay-box theory" id="e1">
+          📝 理论部分
+          <span class="step-label">紧扣题干分论点</span>
+        </div>
+      </div>
+      <div class="arrow-down"></div>
+      <div class="essay-row" style="justify-content:center;">
+        <div class="essay-box theory" id="e2" style="min-width:260px;">
+          分论点①→独立成段→自身语言阐述
+          <span class="step-label">概念 + 原理 + 要点</span>
+        </div>
+      </div>
+      <div class="arrow-down"></div>
+      <div class="essay-row" style="justify-content:center;">
+        <div class="essay-box theory" id="e3" style="min-width:260px;">
+          分论点②→独立成段→自身语言阐述
+          <span class="step-label">概念 + 原理 + 要点</span>
+        </div>
+      </div>
+      <div class="arrow-down"></div>
+      <div class="essay-row" style="justify-content:center;">
+        <div class="essay-box practice" id="e4">
+          🔧 实践部分
+          <span class="step-label">提炼小标题</span>
+        </div>
+      </div>
+      <div class="arrow-down"></div>
+      <div class="essay-row" style="justify-content:center;">
+        <div class="essay-box practice" id="e5" style="min-width:260px;">
+          分论点 → Why(分析原因) + How(解决方案)
+          <span class="step-label">每段围绕一个分论点</span>
+        </div>
+      </div>
+      <div class="arrow-down"></div>
+      <div class="essay-row" style="justify-content:center;">
+        <div class="essay-box" id="e6" style="background:#fef9c3;border:2px solid #eab308;color:#854d0e;">
+          🎯 得分关键
+          <span class="step-label">理论与实践前后呼应</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Why+How 结构 Tab -->
+<div id="whyhow" class="tab-content">
+  <div class="anim-area">
+    <p style="font-size:14px;color:#1e293b;font-weight:600;margin-bottom:16px;">实践部分每段结构：Why（分析原因）→ How（解决方案）</p>
+
+    <div class="why-how-box" id="wh1">
+      <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:8px;">📌 分论点：需求变更管理</div>
+      <div class="why-how-row">
+        <div class="why-part">
+          <h5>🔴 Why（分析原因）</h5>
+          <p>项目中期客户频繁提出新需求，导致开发团队反复返工，进度严重滞后，团队成员士气低落。</p>
+        </div>
+        <div class="how-part">
+          <h5>🟢 How（解决方案）</h5>
+          <p>建立变更控制委员会(CCB)，所有变更需提交申请并评估影响；使用变更追踪工具记录每项变更，确保可追溯。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="why-how-box" id="wh2">
+      <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:8px;">📌 分论点：架构评审机制</div>
+      <div class="why-how-row">
+        <div class="why-part">
+          <h5>🔴 Why（分析原因）</h5>
+          <p>初期架构设计缺乏评审，后期发现性能瓶颈时修改成本极高，团队陷入被动救火状态。</p>
+        </div>
+        <div class="how-part">
+          <h5>🟢 How（解决方案）</h5>
+          <p>在需求分析完成后组织ATAM架构评审，邀请干系人参与；识别敏感点和风险点，在编码前修正架构缺陷。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="explain">
+    <strong>核心思路：</strong>每段先<span class="hl">分析"为什么出问题"</span>（展示你对项目的理解），再<span class="hl">给出"怎么解决"</span>（展示你的架构能力）。阅卷老师看到的不是空洞理论，而是<span class="hl">真实项目中的思考过程</span>。
+  </div>
+</div>
+
+<!-- 备考策略 Tab -->
+<div id="strategy" class="tab-content">
+  <div class="strategy-cards">
+    <div class="strategy-card" id="s1">
+      <div class="icon">📚</div>
+      <h5>协同准备</h5>
+      <p>论文理论与<strong>科目一、科目二</strong>协同准备。同一套理论知识点，三科共用，减少重复记忆。</p>
+    </div>
+    <div class="strategy-card" id="s2">
+      <div class="icon">✍️</div>
+      <h5>精写一篇</h5>
+      <p>先<strong>精写一篇</strong>完整论文，然后<strong>朗读修改</strong>不通顺的地方，再<strong>请人批改</strong>。一篇打磨到完美比写十篇粗稿更有效。</p>
+    </div>
+    <div class="strategy-card" id="s3">
+      <div class="icon">🎯</div>
+      <h5>选熟悉项目</h5>
+      <p>选自己<strong>亲身参与的、熟悉的</strong>项目作为论文素材。细节真实才能打动阅卷老师，编造的项目容易露馅。</p>
+    </div>
+    <div class="strategy-card" id="s4">
+      <div class="icon">📝</div>
+      <h5>近三年真题</h5>
+      <p>时间允许则<strong>写近三年真题</strong>。真题反映最新命题趋势，练习时严格计时（2小时2500字+）。</p>
+    </div>
+  </div>
+
+  <div class="anim-area" style="margin-top:16px;">
+    <button class="play-btn" onclick="playStrategy()">▶ 播放备考流程</button>
+    <p style="font-size:14px;font-weight:600;color:#1e293b;margin-bottom:12px;">备考路径：</p>
+    <div class="step-flow">
+      <span class="step-node" id="st1">① 学理论(科一二协同)</span>
+      <span class="step-arrow">→</span>
+      <span class="step-node" id="st2">② 选项目素材</span>
+      <span class="step-arrow">→</span>
+      <span class="step-node" id="st3">③ 精写第一篇</span>
+      <span class="step-arrow">→</span>
+      <span class="step-node" id="st4">④ 朗读修改</span>
+      <span class="step-arrow">→</span>
+      <span class="step-node" id="st5">⑤ 请人批改</span>
+      <span class="step-arrow">→</span>
+      <span class="step-node" id="st6">⑥ 刷近三年真题</span>
+    </div>
+  </div>
+</div>
+
+<!-- 代码模板 Tab -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ═══════ 论文写作模板 ═══════</span>
+
+<span class="cm">// 一、摘要 (300字)</span>
+<span class="kw">摘要</span> = 项目背景 + <span class="hl">本文主题</span> + 主要工作 + 效果
+
+<span class="cm">// 二、理论部分 —— 分论点逐一作答</span>
+<span class="kw">function</span> <span class="fn">写理论部分</span>(题干关键词) {
+    分论点列表 = <span class="fn">提炼</span>(题干关键词)  <span class="cm">// 从题目中提取3~5个分论点</span>
+    <span class="kw">for</span> (分论点 <span class="kw">of</span> 分论点列表) {
+        <span class="fn">独立成段</span>(分论点)            <span class="cm">// 每个分论点单独一段！</span>
+        <span class="fn">用自己的话阐述</span>(概念, 原理)  <span class="cm">// 不要照抄教材原文</span>
+        <span class="fn">说明要点</span>(分论点)            <span class="cm">// 展开说明核心内容</span>
+    }
+}
+
+<span class="cm">// 三、实践部分 —— Why + How 结构</span>
+<span class="kw">function</span> <span class="fn">写实践部分</span>(亲历项目) {
+    小标题列表 = <span class="fn">提炼小标题</span>(项目经验)
+    <span class="kw">for</span> (论点 <span class="kw">of</span> 小标题列表) {
+        <span class="fn">Why</span>(论点)  <span class="cm">// 分析：项目中遇到了什么问题？</span>
+        <span class="fn">How</span>(论点)  <span class="cm">// 解决：你用了什么方法？效果如何？</span>
+    }
+}
+
+<span class="cm">// 四、结尾 —— 呼应理论</span>
+<span class="kw">总结</span> = 实践成效 + <span class="hl">与理论部分前后呼应</span> + 不足与展望
+
+<span class="cm">// ⚠️ 关键：理论与实践必须呼应！这是高分核心！</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>理论部分<span class="hl">分论点逐一完整作答</span>，用自己的语言阐述；实践部分<span class="hl">提炼小标题</span>，每段围绕分论点采用 Why(分析) + How(解决) 结构。备考时理论与科一二<span class="hl">协同准备</span>，<span class="hl">精写一篇反复修改</span>再扩展。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📝 理论分论点独立成段</span>
+  <span class="tag-item">🔧 实践用Why+How结构</span>
+  <span class="tag-item">📚 三科协同减少重复</span>
+  <span class="tag-item">✍️ 精写→朗读→批改</span>
+  <span class="tag-item">🎯 选亲历真实项目</span>
+  <span class="tag-item">📅 时间够写近三年真题</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 这样做的好处</h4>
+    <ul>
+      <li>理论与实践前后呼应，阅卷老师觉得你"知行合一"</li>
+      <li>分论点独立成段，结构清晰易读，踩点给分</li>
+      <li>Why+How结构展示真实思考，不是空洞堆砌</li>
+      <li>协同备考效率高，一套知识三科复用</li>
+      <li>精写打磨比盲目多篇质量更高</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 常见误区</h4>
+    <ul>
+      <li>死记硬背理论 → 难以灵活运用，换个题干就不会</li>
+      <li>照抄教材原文 → 阅卷老师一眼看穿，得分低</li>
+      <li>实践部分只写"做了什么"不写"为什么" → 像流水账</li>
+      <li>编造不熟悉的项目 → 细节经不起推敲</li>
+      <li>理论实践脱节 → 前面讲A后面写B，前后不呼应</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">分论点</span>
+    <span class="keyword">Why+How</span>
+    <span class="keyword">协同准备</span>
+    <span class="keyword">精写一篇</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>SA-26-02 论文整体结构</strong> = 本知识点的上层框架，这里讲的是各部分的具体写法</li>
+    <li><strong>科目一·综合知识</strong> = 理论部分的知识来源，与论文协同准备</li>
+    <li><strong>科目二·案例分析</strong> = 案例题的Why+How思维可迁移到论文实践部分</li>
+    <li><strong>ATAM架构评估</strong> = 论文实践部分常用素材，展示你的架构分析能力</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const ids = ['e1','e2','e3','e4','e5','e6'];
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 600);
+    }, i * 400);
+  });
+}
+
+function playStrategy() {
+  for (let i = 1; i <= 6; i++) {
+    setTimeout(() => {
+      const el = document.getElementById('st' + i);
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 600);
+    }, (i - 1) * 500);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

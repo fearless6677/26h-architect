@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>论文考试目的与范围 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #2563eb; text-decoration: none; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 动画区域样式 */
+.purpose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+.purpose-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; transition: all 0.4s ease; cursor: default; }
+.purpose-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+.purpose-card .icon { font-size: 28px; margin-bottom: 6px; }
+.purpose-card .num { font-size: 11px; color: #94a3b8; font-weight: 600; }
+.purpose-card .title { font-size: 14px; font-weight: 700; color: #1e293b; margin: 4px 0; }
+.purpose-card .desc { font-size: 12px; color: #64748b; }
+.purpose-card.highlight { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 16px rgba(37,99,235,0.2); }
+
+.score-bar { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+.score-bar .label { font-size: 13px; color: #475569; font-weight: 600; min-width: 80px; }
+.score-bar .bar-track { flex: 1; height: 24px; background: #e2e8f0; border-radius: 12px; overflow: hidden; position: relative; }
+.score-bar .bar-fill { height: 100%; border-radius: 12px; background: linear-gradient(90deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; font-size: 12px; color: #fff; font-weight: 700; width: 0; transition: width 1.2s ease; }
+
+.topic-flow { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
+.topic-box { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; cursor: default; }
+.topic-box.choice { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.topic-box.scope { background: #f0f9ff; border: 2px solid #38bdf8; color: #0369a1; }
+.topic-box.active { transform: scale(1.1); box-shadow: 0 4px 12px rgba(56,189,248,0.4); }
+.arrow-right { color: #94a3b8; font-size: 18px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 论文写作 › 论文考试目的与范围</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">论文写作</span>
+  <span class="exam-tag">⭐ 考试权重：高</span>
+  <span class="hour-tag">🕐 第26小时</span>
+  <h1>论文考试目的与范围</h1>
+  <p class="one-liner">论文考试考查实践经验、分析问题、解决问题和书面表达四大能力，满分75分，四选一选题。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'framework')">💻 写作框架</div>
+</div>
+
+<!-- 动画演示 -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <!-- 分数条 -->
+    <div class="score-bar">
+      <span class="label">论文满分</span>
+      <div class="bar-track">
+        <div class="bar-fill" id="scoreBar">75分</div>
+      </div>
+    </div>
+
+    <!-- 四大考查目的 -->
+    <p style="font-size:13px;color:#64748b;margin:12px 0 4px;font-weight:600;">📎 论文考查的四大目的：</p>
+    <div class="purpose-grid" id="purposeGrid">
+      <div class="purpose-card" id="card1">
+        <div class="num">目的 ①</div>
+        <div class="icon">🔧</div>
+        <div class="title">实践经验</div>
+        <div class="desc">是否具备足够的实践经验</div>
+      </div>
+      <div class="purpose-card" id="card2">
+        <div class="num">目的 ②</div>
+        <div class="icon">🔍</div>
+        <div class="title">分析问题能力</div>
+        <div class="desc">是否具备足够的分析问题能力</div>
+      </div>
+      <div class="purpose-card" id="card3">
+        <div class="num">目的 ③</div>
+        <div class="icon">💡</div>
+        <div class="title">解决问题能力</div>
+        <div class="desc">是否具备足够的解决问题能力</div>
+      </div>
+      <div class="purpose-card" id="card4">
+        <div class="num">目的 ④</div>
+        <div class="icon">✍️</div>
+        <div class="title">书面表达能力</div>
+        <div class="desc">是否具备足够的书面表达能力</div>
+      </div>
+    </div>
+
+    <!-- 选题流程 -->
+    <p style="font-size:13px;color:#64748b;margin:20px 0 8px;font-weight:600;">📝 选题方式：四选一</p>
+    <div class="topic-flow" id="topicFlow">
+      <div class="topic-box choice" id="choice">题目（四选一）</div>
+      <span class="arrow-right">→</span>
+      <div class="topic-box scope">系统建模</div>
+      <div class="topic-box scope">软件架构设计</div>
+      <div class="topic-box scope">系统设计</div>
+      <div class="topic-box scope">可靠性分析</div>
+      <div class="topic-box scope">安全性设计</div>
+    </div>
+  </div>
+</div>
+
+<!-- 写作框架 -->
+<div id="framework" class="tab-content">
+  <pre class="code-area"><span class="cm">// 论文写作框架 —— 2500~3000字，2~2.5小时</span>
+
+<span class="kw">一、摘要</span>（<span class="num">300~330字</span>）
+  <span class="fn">├──</span> 项目背景（<span class="num">1~2句</span>）
+  <span class="fn">├──</span> 论文主题相关做法（<span class="num">3~5句</span>）
+  <span class="fn">└──</span> 效果总结（<span class="num">1~2句</span>）
+
+<span class="kw">二、正文</span>（<span class="num">2200~2700字</span>）
+  <span class="fn">├──</span> <span class="st">项目背景</span>（<span class="num">400~500字</span>）
+  <span class="fn">│</span>   <span class="fn">├──</span> 项目简介、角色、时间、技术栈
+  <span class="fn">│</span>   <span class="fn">└──</span> 过渡段：引出论文主题
+  <span class="fn">│</span>
+  <span class="fn">├──</span> <span class="st">主体论述</span>（<span class="num">1500~1800字</span>）  <span class="cm">// ★ 核心得分区</span>
+  <span class="fn">│</span>   <span class="fn">├──</span> 论点1 + 实际做法 + 遇到的问题 + 解决方法
+  <span class="fn">│</span>   <span class="fn">├──</span> 论点2 + 实际做法 + 遇到的问题 + 解决方法
+  <span class="fn">│</span>   <span class="fn">└──</span> 论点3 + 实际做法 + 遇到的问题 + 解决方法
+  <span class="fn">│</span>
+  <span class="fn">└──</span> <span class="st">总结</span>（<span class="num">300~400字</span>）
+  <span class="fn">    ├──</span> 项目成果与效果
+  <span class="fn">    ├──</span> 不足与改进
+  <span class="fn">    └──</span> 展望
+
+<span class="cm">// 关键：主体部分必须体现"实践经验+分析问题+解决问题+书面表达"</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>论文满分<span class="hl">75分</span>，是压轴科目。题目一般<span class="hl">四选一</span>，考查你四大能力——
+  有没有<span class="hl">实际项目经验</span>、能不能<span class="hl">分析问题</span>、能不能<span class="hl">解决问题</span>、能不能<span class="hl">写清楚</span>。
+  范围覆盖系统建模、软件架构设计、系统设计、系统可靠性分析与设计、系统安全性和保密性设计等。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📊 满分75分</span>
+  <span class="tag-item">📋 四选一选题</span>
+  <span class="tag-item">✏️ 2500~3000字</span>
+  <span class="tag-item">⏱️ 2~2.5小时</span>
+  <span class="tag-item">🎯 第26小时</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 备考策略</h4>
+    <ul>
+      <li>提前准备、掌握框架、有针对性地训练即可过关</li>
+      <li>准备一个真实项目背景，反复使用</li>
+      <li>按"摘要→背景→主体→总结"框架练习</li>
+      <li>主体部分按"论点+做法+问题+解决"展开</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 常见失分</h4>
+    <ul>
+      <li>项目背景虚构、缺乏真实感</li>
+      <li>只有理论没有实际做法和遇到的问题</li>
+      <li>字数不够或时间分配不合理</li>
+      <li>摘要与正文不一致</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">论文满分75分</span>
+    <span class="keyword">四选一</span>
+    <span class="keyword">实践经验</span>
+    <span class="keyword">分析问题能力</span>
+    <span class="keyword">解决问题能力</span>
+    <span class="keyword">书面表达能力</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="L26-02.html">L26-02</a> · 论文写作结构与要点</li>
+    <li><a href="L26-03.html">L26-03</a> · 论文写作常见题型</li>
+    <li><a href="L26-04.html">L26-04</a> · 论文写作实战技巧</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // 分数条动画
+  const bar = document.getElementById('scoreBar');
+  bar.style.width = '0';
+  setTimeout(() => { bar.style.width = '100%'; }, 50);
+
+  // 四个目的卡片依次高亮
+  for (let i = 1; i <= 4; i++) {
+    setTimeout(() => {
+      const card = document.getElementById('card' + i);
+      card.classList.add('highlight');
+      setTimeout(() => card.classList.remove('highlight'), 600);
+    }, 300 + (i - 1) * 500);
+  }
+
+  // 选题范围框依次高亮
+  const scopeBoxes = document.querySelectorAll('.topic-box.scope');
+  scopeBoxes.forEach((box, idx) => {
+    setTimeout(() => {
+      box.classList.add('active');
+      setTimeout(() => box.classList.remove('active'), 500);
+    }, 2600 + idx * 350);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 400));
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>非对称加密算法（RSA/SM2） · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 加密技术 › 非对称加密算法（RSA/SM2）</span></nav>
+<div class="ct">
+<div><span class="tag c">加密技术</span><span class="tag e">必考</span>
+<h1>非对称加密算法（RSA/SM2）</h1><p class="ol">非对称加密用两把不同的钥匙——公钥(公开)加密，私钥(保密)解密，解决了"怎么安全传钥匙"的难题。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>非对称加密算法的加密密钥和解密密钥不同，又称公钥加密算法。主要算法有RSA（基于大素数分解困难性，安全密钥长度已达2048位，速度比对称加密慢约1000倍）和SM2（基于椭圆曲线离散对数问题，相同安全程度下密钥更短、计算量更小）。非对称加密有两个核心用途：①公钥加密+私钥解密→实现保密通信；②私钥加密+公钥解密→实现数字签名。它解决了对称加密的密钥分发难题。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">非对称加密(公钥加密,私钥解密):
+ RSA: 基于大素数分解困难性, 密钥≥2048位, 速度比对称慢1000倍
+ SM2: 基于椭圆曲线, 密钥更短, 计算量更小 → 国密标准
+
+保密通信: 发送方用 接收方公钥 加密 → 接收方用 自己私钥 解密
+数字签名: 发送方用 自己私钥 加密 → 接收方用 发送方公钥 解密验证
+
+特点: 解决密钥分发问题
+缺点: 速度慢, 不适合大数据</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>甲给乙发加密邮件：甲用乙的公钥加密，乙用自己的私钥解密</li><li>乙对邮件做数字签名：乙用自己的私钥签名，任何人用乙的公钥可验证</li><li>网上银行的HTTPS证书就是用RSA/SM2非对称加密来协商对称密钥</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>解决密钥分发问题</li><li>支持数字签名和不可否认性</li><li>密钥管理简单(n用户只需n对密钥)</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>计算速度极慢(比对称加密慢约1000倍)</li><li>不适合大数据量直接加密</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">非对称加密</span><span class="k">RSA</span><span class="k">SM2</span><span class="k">公钥</span><span class="k">私钥</span><span class="k">大素数分解</span><span class="k">椭圆曲线</span><span class="k">2048位</span><span class="k">保密通信</span><span class="k">数字签名</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="SEC-03.html">SEC-03</a></li><li><a href="SEC-05.html">SEC-05</a></li><li><a href="SEC-06.html">SEC-06</a></li></ul></div>
+</div></body></html>

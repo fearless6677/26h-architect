@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>无服务器技术（Serverless） · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 云原生架构相关技术 › 无服务器技术（Serverless）</span></nav>
+<div class="ct">
+<div><span class="tag c">云原生架构相关技术</span><span class="tag e">2~4分（单选）</span>
+<h1>无服务器技术（Serverless）</h1><p class="ol">Serverless四大特点：全托管（免运维）、通用性（结合BaaS API）、自动弹性伸缩（免容量规划）、按量计费（免闲置付费）。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>无服务器技术（Serverless）的特点：（1）全托管的计算服务——客户只需编写代码构建应用，无须关注基于服务器等基础设施的开发、运维、安全、高可用等工作；（2）通用性——结合云BaaS（后端云服务）API的能力，能够支撑云上所有重要类型的应用；（3）自动弹性伸缩——让用户无须为资源使用提前进行容量规划；（4）按量计费——让企业使用成本有效降低，无须为闲置资源付费。关注点包括：计算资源弹性调度（容错、资源利用率、性能、数据驱动）、负载均衡和流控、安全性。</p></div>
+
+<div class="s"><h3>📌 实际例子</h3><ul><li>Serverless适用场景：事件驱动的数据计算任务、计算时间短的请求/响应应用、无复杂相互调用的长周期任务</li><li>典型应用：AWS Lambda、阿里云函数计算</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>开发者只关注业务代码</li><li>自动弹性免容量规划</li><li>按量计费降低成本</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>冷启动延迟</li><li>供应商锁定风险</li><li>不适合长时间运行的任务</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">Serverless</span><span class="k">无服务器</span><span class="k">全托管</span><span class="k">BaaS</span><span class="k">按量计费</span><span class="k">自动弹性伸缩</span><span class="k">事件驱动</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="17-1.html">17-1</a></li><li><a href="17-5.html">17-5</a></li></ul></div>
+</div></body></html>

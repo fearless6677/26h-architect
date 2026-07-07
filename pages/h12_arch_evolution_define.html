@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构演化与定义的关系 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Animation specific styles */
+.arch-diagram { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.elements-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.element-box {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  text-align: center; transition: all 0.5s ease; min-width: 90px; position: relative;
+}
+.element-box.component { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.element-box.connector { background: #fdf4ff; border: 2px solid #a855f7; color: #7e22ce; }
+.element-box.constraint { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.element-box .icon { font-size: 20px; margin-bottom: 4px; }
+.element-box .label { font-size: 11px; font-weight: 400; color: #64748b; }
+
+.element-box.added {
+  animation: addPop 0.6s ease;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.5);
+  border-color: #22c55e;
+}
+.element-box.removed {
+  animation: removeFade 0.6s ease;
+  opacity: 0.3;
+  transform: scale(0.85);
+}
+.element-box.modified {
+  animation: modifyPulse 0.6s ease;
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.5);
+  border-color: #eab308;
+}
+
+.connector-line {
+  width: 40px; height: 3px; background: #a855f7; border-radius: 2px;
+  position: relative; transition: all 0.4s;
+}
+.connector-line::after {
+  content: '▶'; position: absolute; right: -6px; top: -8px;
+  color: #a855f7; font-size: 12px;
+}
+.connector-line.modified { background: #eab308; box-shadow: 0 0 8px rgba(234,179,8,0.4); }
+.connector-line.modified::after { color: #eab308; }
+
+@keyframes addPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes removeFade {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.3; }
+}
+@keyframes modifyPulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.operation-badge {
+  position: absolute; top: -10px; right: -10px;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  opacity: 0; transition: opacity 0.3s;
+}
+.operation-badge.add { background: #22c55e; }
+.operation-badge.del { background: #ef4444; }
+.operation-badge.mod { background: #eab308; }
+
+.step-controls { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+.step-btn {
+  background: #2563eb; border: none; color: #fff; padding: 8px 18px;
+  border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s;
+}
+.step-btn:hover { background: #1d4ed8; }
+.step-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+.step-indicator { font-size: 12px; color: #64748b; text-align: center; margin-top: 8px; }
+.legend { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #64748b; }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+.legend-dot.c { background: #3b82f6; }
+.legend-dot.k { background: #a855f7; }
+.legend-dot.s { background: #f97316; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 架构演化基础 › 软件架构演化与定义的关系</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">架构演化基础</span>
+  <span class="exam-tag">🔥 常考</span>
+  <span class="hour-tag">🕐 第12小时</span>
+  <h1>软件架构演化与定义的关系</h1>
+  <p class="one-liner">软件架构演化关注组件、连接件和约束的添加、修改和删除</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="autoPlay()">▶ 自动播放</button>
+
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot c"></span>组件 Component</span>
+      <span class="legend-item"><span class="legend-dot k"></span>连接件 Connector</span>
+      <span class="legend-item"><span class="legend-dot s"></span>约束 Constraint</span>
+    </div>
+
+    <div class="arch-diagram" id="archDiagram">
+      <!-- Initial state: 3 components, 2 connectors -->
+      <div class="elements-row" id="componentRow">
+        <div class="element-box component" id="comp1">
+          <span class="icon">📦</span>
+          <span>组件A</span>
+          <span class="label">业务模块</span>
+          <span class="operation-badge add" id="badge-comp1">+</span>
+        </div>
+        <div class="element-box component" id="comp2">
+          <span class="icon">📦</span>
+          <span>组件B</span>
+          <span class="label">数据服务</span>
+          <span class="operation-badge mod" id="badge-comp2">✎</span>
+        </div>
+        <div class="element-box component" id="comp3">
+          <span class="icon">📦</span>
+          <span>组件C</span>
+          <span class="label">缓存服务</span>
+          <span class="operation-badge del" id="badge-comp3">−</span>
+        </div>
+      </div>
+
+      <div class="elements-row">
+        <div class="connector-line" id="conn1"></div>
+        <div class="connector-line" id="conn2"></div>
+      </div>
+
+      <div class="elements-row" id="constraintRow">
+        <div class="element-box constraint" id="cons1">
+          <span class="icon">🔒</span>
+          <span>约束α</span>
+          <span class="label">性能约束</span>
+          <span class="operation-badge add" id="badge-cons1">+</span>
+        </div>
+        <div class="element-box constraint" id="cons2">
+          <span class="icon">🔒</span>
+          <span>约束β</span>
+          <span class="label">安全约束</span>
+          <span class="operation-badge del" id="badge-cons2">−</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-controls">
+      <button class="step-btn" id="prevBtn" onclick="prevStep()" disabled>◀ 上一步</button>
+      <button class="step-btn" onclick="nextStep()">下一步 ▶</button>
+      <button class="step-btn" onclick="resetAnim()">↺ 重置</button>
+    </div>
+    <div class="step-indicator" id="stepIndicator">初始状态 — 点击"下一步"查看演化操作</div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 架构演化 = f(组件, 连接件, 约束)</span>
+<span class="cm">// 演化的本质就是对三大要素进行 增 / 删 / 改</span>
+
+<span class="kw">架构演化</span> {
+  <span class="fn">组件</span> {
+    <span class="st">Add Object</span>      <span class="cm">// 新增一个业务模块</span>
+    <span class="st">Delete Object</span>   <span class="cm">// 移除某过时服务</span>
+    <span class="st">Modify Object</span>   <span class="cm">// 修改组件内部逻辑</span>
+  }
+  <span class="fn">连接件</span> {
+    <span class="st">Add Connector</span>    <span class="cm">// 新增服务间调用关系</span>
+    <span class="st">Delete Connector</span> <span class="cm">// 移除旧接口调用</span>
+    <span class="st">Modify Connector</span> <span class="cm">// 改同步→异步</span>
+  }
+  <span class="fn">约束</span> {
+    <span class="st">Add Constraint</span>    <span class="cm">// 增加新的性能/安全约束</span>
+    <span class="st">Delete Constraint</span> <span class="cm">// 删除不再适用的约束</span>
+  }
+}
+
+<span class="cm">// 演化目的：保障好特性 | 管控复杂性 | 降低修改成本 | 保证一致性</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>软件架构的三大要素是<span class="hl">组件</span>、<span class="hl">连接件</span>和<span class="hl">约束</span>。
+  架构演化的本质就是对这三大要素进行<span class="hl">增删改</span>。
+  演化的目的是保障系统好特性、管控复杂性和变化性、降低检修修改成本、保证演化的一致性和正确性。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📦 添加新业务模块 → Add Object</span>
+  <span class="tag-item">🗑️ 移除过时服务 → Delete Object</span>
+  <span class="tag-item">🔄 修改服务间调用 → 连接件变更</span>
+  <span class="tag-item">🔒 增加安全约束 → Add Constraint</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 演化目的（好处）</h4>
+    <ul>
+      <li>保障系统好特性</li>
+      <li>管控复杂性和变化性</li>
+      <li>降低检修和修改成本</li>
+      <li>保证演化一致性和正确性</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 演化风险</h4>
+    <ul>
+      <li>演化本身带来风险和成本</li>
+      <li>若管控不当可能导致架构退化</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">组件</span>
+    <span class="keyword">连接件</span>
+    <span class="keyword">约束</span>
+    <span class="keyword">添加</span>
+    <span class="keyword">修改</span>
+    <span class="keyword">删除</span>
+    <span class="keyword">复杂性</span>
+    <span class="keyword">一致性</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="h12_obj_evolution.html"><strong>对象演化</strong></a> — 组件级别的演化细节（Add/Modify/Delete Object）</li>
+    <li><span style="color:#94a3b8;font-size:12px">[演化定义]</span> — 连接件级别的演化细节（消息格式与协议变更）</li>
+    <li><strong>架构退化</strong> — 演化管控不当的后果，架构逐渐偏离设计意图</li>
+    <li><strong>架构一致性</strong> — 演化过程中需保证实现与设计保持一致</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let currentStep = 0;
+const totalSteps = 6;
+
+const steps = [
+  { text: '初始状态 — 3个组件、2个连接件、2个约束', action: resetAll },
+  { text: '步骤1: Add Object — 新增组件D（新业务模块）', action: step1 },
+  { text: '步骤2: Modify Object — 修改组件B（内部逻辑变更）', action: step2 },
+  { text: '步骤3: Delete Object — 移除组件C（过时服务）', action: step3 },
+  { text: '步骤4: Modify Connector — 连接件改为异步调用', action: step4 },
+  { text: '步骤5: Add/Delete Constraint — 增加性能约束α、移除旧约束β', action: step5 },
+];
+
+function resetAll() {
+  document.querySelectorAll('.element-box').forEach(el => {
+    el.classList.remove('added', 'removed', 'modified');
+    el.style.display = '';
+  });
+  document.querySelectorAll('.connector-line').forEach(el => {
+    el.classList.remove('modified');
+    el.style.display = '';
+  });
+  document.querySelectorAll('.operation-badge').forEach(el => {
+    el.style.opacity = '0';
+  });
+}
+
+function step1() {
+  // Add new component D
+  const row = document.getElementById('componentRow');
+  let newComp = document.getElementById('comp4');
+  if (!newComp) {
+    newComp = document.createElement('div');
+    newComp.className = 'element-box component';
+    newComp.id = 'comp4';
+    newComp.innerHTML = '<span class="icon">🆕</span><span>组件D</span><span class="label">新模块</span><span class="operation-badge add" style="opacity:1">+</span>';
+    row.appendChild(newComp);
+  }
+  setTimeout(() => {
+    newComp.classList.add('added');
+  }, 50);
+}
+
+function step2() {
+  const comp2 = document.getElementById('comp2');
+  comp2.classList.add('modified');
+  document.getElementById('badge-comp2').style.opacity = '1';
+}
+
+function step3() {
+  const comp3 = document.getElementById('comp3');
+  comp3.classList.add('removed');
+  document.getElementById('badge-comp3').style.opacity = '1';
+}
+
+function step4() {
+  document.querySelectorAll('.connector-line').forEach(el => {
+    el.classList.add('modified');
+  });
+}
+
+function step5() {
+  const cons1 = document.getElementById('cons1');
+  const cons2 = document.getElementById('cons2');
+  cons1.classList.add('added');
+  document.getElementById('badge-cons1').style.opacity = '1';
+  cons2.classList.add('removed');
+  document.getElementById('badge-cons2').style.opacity = '1';
+}
+
+function nextStep() {
+  if (currentStep >= totalSteps) return;
+  currentStep++;
+  steps[currentStep].action();
+  updateIndicator();
+}
+
+function prevStep() {
+  if (currentStep <= 0) return;
+  currentStep--;
+  resetAll();
+  // Remove dynamically added comp4
+  const comp4 = document.getElementById('comp4');
+  if (comp4) comp4.remove();
+  // Replay up to currentStep
+  for (let i = 1; i <= currentStep; i++) {
+    steps[i].action();
+  }
+  updateIndicator();
+}
+
+function updateIndicator() {
+  const indicator = document.getElementById('stepIndicator');
+  indicator.textContent = steps[currentStep].text;
+  document.getElementById('prevBtn').disabled = (currentStep === 0);
+}
+
+function resetAnim() {
+  currentStep = 0;
+  resetAll();
+  const comp4 = document.getElementById('comp4');
+  if (comp4) comp4.remove();
+  updateIndicator();
+}
+
+function autoPlay() {
+  resetAnim();
+  let i = 1;
+  const timer = setInterval(() => {
+    if (i > totalSteps) { clearInterval(timer); return; }
+    currentStep = i;
+    steps[i].action();
+    updateIndicator();
+    i++;
+  }, 1200);
+}
+
+// Auto-play on load
+window.addEventListener('load', () => setTimeout(autoPlay, 800));
+</script>
+</body>
+</html>

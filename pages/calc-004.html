@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可靠性计算与容错技术 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}.nav .bc{color:#64748b;font-size:13px;margin-left:12px}.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}li{font-size:13px;color:#475569;margin:4px 0}.kw{display:flex;gap:8px;flex-wrap:wrap}.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 计算题 › 可靠性计算与容错技术</span></nav>
+<div class="ct">
+<div><span class="tag c">计算题</span><span class="tag e">medium</span>
+<h1>可靠性计算与容错技术</h1><p class="ol">MTTF=1/失效率，MTTR=1/修复率，MTBF=MTTF+MTTR；串并联系统可靠度计算；N版本程序设计（前向恢复）vs恢复块（后向恢复）。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>可靠性基本公式：MTTF（平均无故障时间）= 1/λ（失效率）；MTTR（平均故障修复时间）= 1/μ（修复率）；MTBF（平均故障间隔时间）= MTTF + MTTR。系统可靠度：串联系统R = R1×R2×...×Rn；并联系统R = 1-(1-R1)(1-R2)...(1-Rn)。容错技术分类：硬件冗余（三模冗余表决器）、软件冗余、信息冗余（海明校验/循环冗余校验）、时间冗余（多次运行）。N版本程序设计：N个独立团队开发相同功能程序，通过表决器选择正确结果，属于前向恢复。恢复块方法：主块执行失败后切换到后备块，验证测试通过则输出，属于后向恢复。双机容错：热备（主坏备上）、互备（各自服务，坏时接手）、双工（同时同服务轮流工作）。</p></div>
+
+<div class="s"><h3>📌 实际例子</h3><ul><li>串联3个部件，可靠度分别为0.9, 0.8, 0.7：R = 0.9×0.8×0.7 = 0.504</li><li>并联2个部件，可靠度分别为0.9, 0.8：R = 1-(1-0.9)(1-0.8) = 1-0.02 = 0.98</li><li>N版本程序设计vs恢复块：N版本用表决器（前向恢复，实时性好）；恢复块用后备块替换（后向恢复，实时性差）</li></ul></div>
+
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">MTTF</span><span class="k">MTTR</span><span class="k">MTBF</span><span class="k">串联</span><span class="k">并联</span><span class="k">N版本</span><span class="k">恢复块</span><span class="k">前向恢复</span><span class="k">后向恢复</span><span class="k">容错</span></div></div>
+</div></body></html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PV操作与前趋图 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}.nav .bc{color:#64748b;font-size:13px;margin-left:12px}.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}li{font-size:13px;color:#475569;margin:4px 0}.kw{display:flex;gap:8px;flex-wrap:wrap}.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 计算题 › PV操作与前趋图</span></nav>
+<div class="ct">
+<div><span class="tag c">计算题</span><span class="tag e">medium</span>
+<h1>PV操作与前趋图</h1><p class="ol">PV操作核心：互斥信号量初值=1，同步信号量初值=0或资源数；前趋图箭头出=V操作，箭头入=P操作。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>PV操作解题步骤：(1)分析是互斥还是同步问题；(2)互斥信号量初值为1（临界资源），同步信号量初值为0（协作关系）或资源数量；(3)进入临界区P操作，退出V操作；(4)前趋图中箭头出发端为V操作，箭头指向端为P操作。生产者-消费者模型是经典同步问题。</p></div>
+
+<div class="s"><h3>📌 实际例子</h3><ul><li>书店问题：最多n个购书者，设S1=0（同步购书→收费）、S2=0（同步收费→离开）、Sn=n（互斥进入）。购书者：P(Sn)→购书→V(S1)→P(S2)→V(Sn)；收银员：P(S1)→收费→V(S2)</li><li>前趋图：P1→P2,P3,P4，P2→P5，P3→P5，P4→P6，P5→P7，P6→P7，P7→P8。P1执行后V(S1)V(S2)，P2执行前P(S1)</li><li>仓库问题：放P1需检查P2数量和P1上限，放P2需检查P1数量和P2上限。同步信号量2个（初值k-1和i-1），互斥信号量1个（初值1）</li></ul></div>
+
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">P操作</span><span class="k">V操作</span><span class="k">互斥</span><span class="k">同步</span><span class="k">信号量初值</span><span class="k">前趋图</span><span class="k">临界区</span></div></div>
+</div></body></html>

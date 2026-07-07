@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信息系统架构风格与分类 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 信息系统架构 › 信息系统架构风格与分类</span></nav>
+<div class="ct">
+<div><span class="tag c">信息系统架构</span><span class="tag e">3~5分（选择题高频考点）</span>
+<h1>信息系统架构风格与分类</h1><p class="ol">五大架构风格（数据流/调用返回/独立构件/虚拟机/仓库）及信息系统逻辑结构三种综合方式</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>信息系统架构遵循通用的架构风格，分为五大类：（1）数据流风格：批处理、管道-过滤器；（2）调用/返回风格：主程序/子程序、面向对象、层次结构；（3）独立构件风格：进程通信、事件系统；（4）虚拟机风格：解释器、规则系统；（5）仓库风格：数据库、超文本、黑板。信息系统物理结构分为单体应用和分布式结构；逻辑结构分为横向综合（同一管理层次各业务职能）、纵向综合（同一业务各管理层次）、纵横综合（各业务各层次统一，建立公用数据库和统一信息处理系统）。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">ISA-15-02</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>数据流风格：批处理序列、管道-过滤器</li><li>调用/返回风格：主程序/子程序、面向对象、层次结构</li><li>独立构件风格：进程通信、事件驱动系统</li><li>仓库风格：数据库系统、黑板系统</li><li>逻辑结构-横向综合：将同一管理层次的各业务职能综合</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>五大风格覆盖绝大多数系统设计场景</li><li>逻辑结构分类（横/纵/纵横）为企业提供清晰的集成路径</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>架构风格选择需结合实际业务需求，不能盲目套用</li><li>某些风格（如数据流）不适合交互式系统</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">数据流风格</span><span class="k">调用返回风格</span><span class="k">独立构件风格</span><span class="k">虚拟机风格</span><span class="k">仓库风格</span><span class="k">横向综合</span><span class="k">纵向综合</span><span class="k">纵横综合</span><span class="k">管道-过滤器</span><span class="k">层次结构</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="kp15_01.html">kp15_01</a></li><li><a href="kp15_03.html">kp15_03</a></li></ul></div>
+</div></body></html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信息安全体系架构与WPDRRC模型 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hours-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 5层架构 */
+.layer-stack { display: flex; flex-direction: column; gap: 0; max-width: 600px; margin: 12px auto; }
+.layer { padding: 14px 20px; text-align: center; font-size: 14px; font-weight: 600; color: #fff; position: relative; transition: all 0.3s; cursor: default; }
+.layer .sub { font-size: 11px; font-weight: 400; opacity: 0.9; display: block; margin-top: 2px; }
+.layer.l5 { background: #7c3aed; border-radius: 8px 8px 0 0; }
+.layer.l4 { background: #2563eb; }
+.layer.l3 { background: #0891b2; }
+.layer.l2 { background: #059669; }
+.layer.l1 { background: #d97706; border-radius: 0 0 8px 8px; }
+.layer.highlight { transform: scale(1.04); box-shadow: 0 0 20px rgba(37,99,235,0.5); z-index: 2; }
+.layer-tag { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 10px; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 10px; }
+
+/* WPDRRC环 */
+.wpdrrc-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.wpdrrc-node { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 14px; border-radius: 50%; width: 60px; height: 60px; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; transition: all 0.3s; }
+.wpdrrc-node small { font-size: 9px; font-weight: 400; }
+.wpdrrc-node.n-w { background: #8b5cf6; }
+.wpdrrc-node.n-p { background: #3b82f6; }
+.wpdrrc-node.n-d { background: #06b6d4; }
+.wpdrrc-node.n-r1 { background: #10b981; }
+.wpdrrc-node.n-r2 { background: #f59e0b; }
+.wpdrrc-node.n-c { background: #ef4444; }
+.wpdrrc-node.pulse { transform: scale(1.15); box-shadow: 0 0 18px rgba(0,0,0,0.3); }
+.wpdrrc-arrow { color: #94a3b8; font-size: 18px; }
+.elements-row { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.elem-pill { background: #f1f5f9; border: 2px solid #64748b; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #334155; }
+
+/* OSI深度防御 */
+.defense-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }
+.defense-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: center; transition: all 0.3s; }
+.defense-card.active { border-color: #2563eb; box-shadow: 0 0 12px rgba(37,99,235,0.2); }
+.defense-card h5 { font-size: 13px; color: #1e40af; margin-bottom: 6px; }
+.defense-card p { font-size: 11px; color: #64748b; }
+.defense-icon { font-size: 28px; margin-bottom: 6px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.section-title { font-size: 14px; font-weight: 600; color: #1e40af; margin: 16px 0 8px; text-align: center; }
+
+/* 真题区 */
+.example-box { background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 8px; padding: 16px; margin-top: 16px; }
+.example-box h4 { color: #6d28d9; margin-bottom: 8px; }
+.example-box li { font-size: 13px; color: #475569; margin: 6px 0; }
+.example-box .answer { color: #7c3aed; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 安全体系架构 › 信息安全体系架构与WPDRRC模型</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">安全体系架构</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hours-tag">📖 21.2 / 21.4 / 21.5</span>
+  <h1>信息安全体系架构与WPDRRC模型</h1>
+  <p class="one-liner">安全体系5层（物理→系统→网络→应用→管理），WPDRRC含6环节3要素，OSI采用深度防御架构。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <p class="section-title">▎信息安全体系架构 · 5层模型</p>
+    <div class="layer-stack">
+      <div class="layer l5" id="L5">⑤ 安全管理<span class="sub">体制 · 管理平台 · 人员安全意识</span><span class="layer-tag">顶层</span></div>
+      <div class="layer l4" id="L4">④ 应用安全<span class="sub">资源共享 · 信息存储</span></div>
+      <div class="layer l3" id="L3">③ 网络安全<span class="sub">访问控制 · 通信保密 · 入侵检测 · 安全扫描 · 防病毒</span><span class="layer-tag">关键</span></div>
+      <div class="layer l2" id="L2">② 系统安全<span class="sub">网络结构安全 · 操作系统安全 · 应用系统安全</span><span class="layer-tag">基础</span></div>
+      <div class="layer l1" id="L1">① 物理安全<span class="sub">环境安全 · 设备安全 · 媒体安全</span><span class="layer-tag">前提</span></div>
+    </div>
+
+    <p class="section-title" style="margin-top:24px">▎WPDRRC模型 · 6环节 + 3要素</p>
+    <div class="wpdrrc-row">
+      <div class="wpdrrc-node n-w" id="W">W<small>预警</small></div>
+      <span class="wpdrrc-arrow">→</span>
+      <div class="wpdrrc-node n-p" id="P">P<small>保护</small></div>
+      <span class="wpdrrc-arrow">→</span>
+      <div class="wpdrrc-node n-d" id="D">D<small>检测</small></div>
+      <span class="wpdrrc-arrow">→</span>
+      <div class="wpdrrc-node n-r1" id="R1">R<small>响应</small></div>
+      <span class="wpdrrc-arrow">→</span>
+      <div class="wpdrrc-node n-r2" id="R2">R<small>恢复</small></div>
+      <span class="wpdrrc-arrow">→</span>
+      <div class="wpdrrc-node n-c" id="C">C<small>反击</small></div>
+    </div>
+    <div class="elements-row">
+      <span class="elem-pill">👤 人员</span>
+      <span class="elem-pill">📜 策略</span>
+      <span class="elem-pill">🔧 技术</span>
+    </div>
+
+    <p class="section-title" style="margin-top:24px">▎OSI深度防御 · 3种方式</p>
+    <div class="defense-grid">
+      <div class="defense-card" id="D1">
+        <div class="defense-icon">🎯</div>
+        <h5>多点防御</h5>
+        <p>在多个节点部署安全措施</p>
+      </div>
+      <div class="defense-card" id="D2">
+        <div class="defense-icon">📚</div>
+        <h5>分层防御</h5>
+        <p>按OSI层次逐层设防</p>
+      </div>
+      <div class="defense-card" id="D3">
+        <div class="defense-icon">🏗️</div>
+        <h5>支撑基础设施</h5>
+        <p>PKI + 检测响应</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 信息安全体系架构 —— 5层 + WPDRRC + 深度防御</span>
+
+<span class="cm">// ① 五层安全架构（自底向上）</span>
+<span class="kw">class</span> <span class="fn">SecurityArchitecture</span> {
+    layers = [
+        <span class="st">"物理安全"</span>,   <span class="cm">// 前提：环境/设备/媒体</span>
+        <span class="st">"系统安全"</span>,   <span class="cm">// 基础：网络结构/OS/应用系统</span>
+        <span class="st">"网络安全"</span>,   <span class="cm">// 关键：访问控制/通信保密/入侵检测/扫描/防病毒</span>
+        <span class="st">"应用安全"</span>,   <span class="cm">// 资源共享/信息存储（含数据库容灾）</span>
+        <span class="st">"安全管理"</span>,   <span class="cm">// 体制/管理平台/人员意识</span>
+    ]
+}
+
+<span class="cm">// ② WPDRRC模型 = 6环节 × 3要素</span>
+<span class="kw">const</span> <span class="fn">WPDRRC</span> = {
+    phases: [<span class="st">"预警W"</span>, <span class="st">"保护P"</span>, <span class="st">"检测D"</span>, <span class="st">"响应R"</span>, <span class="st">"恢复R"</span>, <span class="st">"反击C"</span>],
+    elements: [<span class="st">"人员"</span>, <span class="st">"策略"</span>, <span class="st">"技术"</span>]
+    <span class="cm">// 每个环节都要有人员执行、策略指导、技术支撑</span>
+}
+
+<span class="cm">// ③ OSI深度防御 —— 3种方式</span>
+<span class="kw">const</span> <span class="fn">DefenseInDepth</span> = [
+    <span class="st">"多点防御"</span>,          <span class="cm">// 多节点部署，单点失守不致命</span>
+    <span class="st">"分层防御"</span>,          <span class="cm">// OSI各层独立设防</span>
+    <span class="st">"支撑基础设施"</span>,      <span class="cm">// PKI(公钥) + 检测响应</span>
+]
+
+<span class="cm">// ⚠️ 注意：数据库容灾 = 网络安全(信息存储) + 应用安全，层次有交叉！</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>安全体系5层<span class="hl">自底向上</span>——物理是前提，系统为基础，网络是关键，应用和管理在上层保障。
+  <span class="hl">WPDRRC</span>不是线性的，6个环节循环往复，每个环节都需要<span class="hl">人员、策略、技术</span>三要素支撑。
+  OSI深度防御的思路：不要把所有鸡蛋放一个篮子里——<span class="hl">多点 + 分层 + 基础设施</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏢 物理安全：机房门禁、UPS、防火</span>
+  <span class="tag-item">🔐 网络安全：防火墙、IDS、VPN</span>
+  <span class="tag-item">🛡️ WPDRRC：企业安全体系设计框架</span>
+  <span class="tag-item">🏗️ OSI深度防御：PKI基础设施</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>覆盖面广，从物理到管理全链路</li>
+      <li>适合论文和案例分析题</li>
+      <li>与工程实践紧密结合</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>层次划分存在交叉（如数据库容灾同时属于网络安全和应用安全）</li>
+      <li>实际部署成本高，需要大量人力物力</li>
+    </ul>
+  </div>
+</div>
+
+<div class="example-box">
+  <h4>📝 典型真题</h4>
+  <ul>
+    <li>真题：'数据库容灾属于？'—— <span class="answer">网络安全（信息存储安全）+ 应用安全</span></li>
+    <li>论文题：基于WPDRRC模型设计某企业安全体系，需覆盖 <span class="answer">6环节 × 3要素</span></li>
+    <li>设计题：OSI深度防御的三种方式—— <span class="answer">多点防御、分层防御、支撑基础设施</span></li>
+  </ul>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">物理安全</span>
+    <span class="keyword">系统安全</span>
+    <span class="keyword">网络安全</span>
+    <span class="keyword">应用安全</span>
+    <span class="keyword">安全管理</span>
+    <span class="keyword">WPDRRC模型</span>
+    <span class="keyword">深度防御</span>
+    <span class="keyword">OSI安全架构</span>
+    <span class="keyword">数据库容灾</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>SA21-01</strong> — 信息安全基础概念，为本页5层模型铺垫</li>
+    <li><strong>SA21-04</strong> — 安全技术与实现，WPDRRC的技术落地</li>
+    <li><strong>PKI公钥基础设施</strong> — OSI深度防御的支撑基础设施核心</li>
+    <li><strong>等保2.0</strong> — 国内信息安全等级保护，对应5层架构的工程实践</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // 5层自底向上高亮
+  const layers = ['L1','L2','L3','L4','L5'];
+  layers.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 600);
+    }, i * 350);
+  });
+
+  // WPDRRC节点脉冲
+  const nodes = ['W','P','D','R1','R2','C'];
+  nodes.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('pulse');
+      setTimeout(() => el.classList.remove('pulse'), 500);
+    }, 2200 + i * 300);
+  });
+
+  // 深度防御卡片
+  const cards = ['D1','D2','D3'];
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 700);
+    }, 4200 + i * 400);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

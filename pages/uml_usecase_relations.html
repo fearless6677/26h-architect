@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UML用例图三种关系（include/extend/泛化） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 10; }
+.play-btn:hover { background: #1d4ed8; }
+.diagram-title { font-size: 15px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 16px; }
+.diagram-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+.diagram-card { flex: 1; min-width: 240px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; position: relative; transition: all .4s; }
+.diagram-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.diagram-card .rel-type { font-size: 11px; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 8px; }
+.diagram-card .rel-type.include { background: #3b82f6; }
+.diagram-card .rel-type.extend { background: #f59e0b; }
+.diagram-card .rel-type.generalization { background: #8b5cf6; }
+.diagram-card .desc { font-size: 12px; color: #64748b; margin-top: 8px; }
+
+.svg-diagram { width: 100%; height: 120px; margin: 8px 0; }
+
+/* Use case ellipse styles */
+.uc-ellipse { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.8; transition: all .3s; }
+.uc-ellipse.ext { fill: #fffbeb; stroke: #f59e0b; }
+.uc-ellipse.gen { fill: #f5f3ff; stroke: #8b5cf6; }
+.uc-text { font-size: 11px; font-weight: 600; fill: #1e293b; text-anchor: middle; dominant-baseline: central; }
+.rel-label { font-size: 9px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.rel-line { stroke-width: 1.6; fill: none; }
+
+/* Animations */
+@keyframes dashFlow { to { stroke-dashoffset: -20; } }
+@keyframes pulseGlow { 0%,100% { filter: drop-shadow(0 0 0px transparent); } 50% { filter: drop-shadow(0 0 8px rgba(59,130,246,.5)); } }
+@keyframes highlightBox { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+.anim-active .uc-ellipse { animation: highlightBox .6s ease; }
+.anim-active .rel-line { stroke-dasharray: 6 4; animation: dashFlow 1s linear infinite; }
+
+.legend { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+.legend-dot.inc { background: #3b82f6; }
+.legend-dot.ext { background: #f59e0b; }
+.legend-dot.gen { background: #8b5cf6; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› UML建模 › 用例图三种关系</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">UML建模</span>
+  <span class="exam-tag">⭐ 必考</span>
+  <h1>UML用例图三种关系（include / extend / 泛化）</h1>
+  <p class="one-liner">UML用例图包含3种关系：include（必须包含）、extend（可选扩展）、泛化（子类继承父用例）。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放动画</button>
+    <div class="diagram-title">用例图三种关系示意图</div>
+
+    <!-- Include Diagram -->
+    <div class="diagram-card" id="card-include">
+      <span class="rel-type include">&lt;&lt;include&gt;&gt;</span>
+      <svg class="svg-diagram" viewBox="0 0 320 100">
+        <defs>
+          <marker id="arrow-inc" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+            <path d="M0,0 L10,4 L0,8" fill="#3b82f6" />
+          </marker>
+        </defs>
+        <ellipse class="uc-ellipse" id="uc-inc-base" cx="80" cy="50" rx="56" ry="28"/>
+        <text class="uc-text" x="80" y="50">课程学习</text>
+        <line class="rel-line" id="line-inc" x1="136" y1="50" x2="184" y2="50" stroke="#3b82f6" marker-end="url(#arrow-inc)"/>
+        <text class="rel-label" x="160" y="40" fill="#3b82f6">&lt;&lt;include&gt;&gt;</text>
+        <ellipse class="uc-ellipse" id="uc-inc-sub" cx="240" cy="50" rx="56" ry="28"/>
+        <text class="uc-text" x="240" y="50">检查权限</text>
+      </svg>
+      <div class="desc">基用例 <b>必须执行</b> 子用例 → 提取公共动作</div>
+    </div>
+
+    <!-- Extend Diagram -->
+    <div class="diagram-card" id="card-extend">
+      <span class="rel-type extend">&lt;&lt;extend&gt;&gt;</span>
+      <svg class="svg-diagram" viewBox="0 0 320 100">
+        <defs>
+          <marker id="arrow-ext" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+            <path d="M0,0 L10,4 L0,8" fill="#f59e0b" />
+          </marker>
+        </defs>
+        <ellipse class="uc-ellipse ext" id="uc-ext-base" cx="240" cy="50" rx="56" ry="28"/>
+        <text class="uc-text" x="240" y="50">课程学习</text>
+        <line class="rel-line" id="line-ext" x1="136" y1="50" x2="184" y2="50" stroke="#f59e0b" marker-end="url(#arrow-ext)"/>
+        <text class="rel-label" x="160" y="40" fill="#f59e0b">&lt;&lt;extend&gt;&gt;</text>
+        <ellipse class="uc-ellipse ext" id="uc-ext-sub" cx="80" cy="50" rx="56" ry="28"/>
+        <text class="uc-text" x="80" y="50">缴纳学费</text>
+      </svg>
+      <div class="desc">扩展用例 <b>可选地增强</b> 基用例 → 基用例本身是完整的</div>
+    </div>
+
+    <!-- Generalization Diagram -->
+    <div class="diagram-card" id="card-gen">
+      <span class="rel-type generalization">&lt;&lt;泛化&gt;&gt;</span>
+      <svg class="svg-diagram" viewBox="0 0 320 100">
+        <defs>
+          <marker id="arrow-gen" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto">
+            <path d="M0,0 L12,5 L0,10 Z" fill="#fff" stroke="#8b5cf6" stroke-width="1.5" />
+          </marker>
+        </defs>
+        <!-- Parent -->
+        <ellipse class="uc-ellipse gen" id="uc-gen-parent" cx="240" cy="50" rx="56" ry="28"/>
+        <text class="uc-text" x="240" y="50">课程注册</text>
+        <!-- Children -->
+        <line class="rel-line" id="line-gen1" x1="80" y1="28" x2="184" y2="44" stroke="#8b5cf6" marker-end="url(#arrow-gen)"/>
+        <ellipse class="uc-ellipse gen" id="uc-gen-c1" cx="80" cy="28" rx="50" ry="22"/>
+        <text class="uc-text" x="80" y="28">网络注册</text>
+        <line class="rel-line" id="line-gen2" x1="80" y1="72" x2="184" y2="56" stroke="#8b5cf6" marker-end="url(#arrow-gen)"/>
+        <ellipse class="uc-ellipse gen" id="uc-gen-c2" cx="80" cy="72" rx="50" ry="22"/>
+        <text class="uc-text" x="80" y="72">电话注册</text>
+      </svg>
+      <div class="desc">子用例 <b>继承</b> 父用例 → 特殊 / 一般关系</div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot inc"></span> include（必须）</div>
+      <div class="legend-item"><span class="legend-dot ext"></span> extend（可选）</div>
+      <div class="legend-item"><span class="legend-dot gen"></span> 泛化（继承）</div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ────────────────────────────────────────────────</span>
+<span class="cm">// UML用例图三种关系 —— 用伪代码类比理解</span>
+<span class="cm">// ────────────────────────────────────────────────</span>
+
+<span class="cm">// ① &lt;&lt;include&gt;&gt; 包含关系：基用例【必须】执行子用例</span>
+<span class="kw">function</span> <span class="fn">课程学习</span>() {
+    <span class="fn">检查权限</span>();          <span class="cm">// ← 必须调用，缺一不可</span>
+    进入课程页面();
+    开始学习();
+}
+
+<span class="cm">// ② &lt;&lt;extend&gt;&gt; 扩展关系：扩展用例【可选】增强基用例</span>
+<span class="kw">function</span> <span class="fn">课程学习</span>() {
+    检查权限();
+    进入课程页面();
+    开始学习();
+    <span class="kw">if</span> (学费不足) {        <span class="cm">// ← 特定条件才触发</span>
+        <span class="fn">缴纳学费</span>();       <span class="cm">// ← 可选扩展，基用例本身完整</span>
+    }
+}
+
+<span class="cm">// ③ &lt;&lt;generalization&gt;&gt; 泛化关系：子用例继承父用例</span>
+<span class="kw">class</span> <span class="fn">课程注册</span> {           <span class="cm">// ← 父用例（抽象）</span>
+    验证身份();
+    提交注册();
+}
+<span class="kw">class</span> <span class="fn">网络注册</span> <span class="kw">extends</span> <span class="fn">课程注册</span> {  <span class="cm">// ← 子用例（具体）</span>
+    选择在线支付();
+}
+<span class="kw">class</span> <span class="fn">电话注册</span> <span class="kw">extends</span> <span class="fn">课程注册</span> {  <span class="cm">// ← 子用例（具体）</span>
+    人工确认信息();
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>UML用例图中用例间有3种重要关系：<br>
+  ① <span class="hl">包含关系（&lt;&lt;include&gt;&gt;）</span>：基用例执行时<b>必须</b>包含子用例的行为，用于提取公共动作；<br>
+  ② <span class="hl">扩展关系（&lt;&lt;extend&gt;&gt;）</span>：扩展用例在<b>特定条件下</b>对基用例进行补充，基用例本身是完整的；<br>
+  ③ <span class="hl">泛化关系（&lt;&lt;generalization&gt;&gt;）</span>：子用例<b>继承</b>父用例的结构和行为，是特殊/一般的关系。<br>
+  🔑 一句话：<span class="hl">包含是必须的，扩展是可选的，泛化是继承。</span>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📚 课程学习 include 检查权限（必须执行）</span>
+  <span class="tag-item">💰 课程学习 extend 缴纳学费（学费不够时才补缴）</span>
+  <span class="tag-item">📝 课程注册 泛化 网络注册/电话注册</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li><b>include</b>：提取公共行为，减少重复建模</li>
+      <li><b>extend</b>：保持基用例简洁，分离可选逻辑</li>
+      <li><b>泛化</b>：抽象共性，支持多态与复用</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 易混淆点</h4>
+    <ul>
+      <li>include 和 extend 箭头方向相反</li>
+      <li>extend 基用例必须独立完整</li>
+      <li>泛化箭头是空心三角，不是普通箭头</li>
+      <li>include 提取公共，extend 添加可选</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">包含关系</span>
+    <span class="keyword">扩展关系</span>
+    <span class="keyword">泛化关系</span>
+    <span class="keyword">include</span>
+    <span class="keyword">extend</span>
+    <span class="keyword">generalization</span>
+    <span class="keyword">用例图</span>
+    <span class="keyword">公共行为</span>
+    <span class="keyword">基用例完整</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>UML四种关系</strong> = 依赖、关联、泛化、实现（用例图的关系是其中泛化的具体应用）</li>
+    <li><strong>UML 14种图</strong> = 用例图是需求分析阶段最重要的图</li>
+    <li><strong>面向对象继承</strong> = 用例图泛化关系在代码层面的对应</li>
+    <li><strong>vs 类图泛化</strong>：类图泛化是"子类继承父类"，用例图泛化是"子用例继承父用例"</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const cards = ['card-include', 'card-extend', 'card-gen'];
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      const card = document.getElementById(id);
+      card.style.boxShadow = '0 0 16px rgba(59,130,246,0.35)';
+      card.style.borderColor = '#3b82f6';
+      // Add animation class to SVG lines
+      card.querySelectorAll('.rel-line').forEach(l => {
+        l.style.strokeDasharray = '6 4';
+        l.style.animation = 'dashFlow 1s linear infinite';
+      });
+      card.querySelectorAll('.uc-ellipse').forEach(e => {
+        e.style.animation = 'highlightBox .6s ease';
+      });
+      setTimeout(() => {
+        card.style.boxShadow = '';
+        card.style.borderColor = '';
+        card.querySelectorAll('.uc-ellipse').forEach(e => e.style.animation = '');
+      }, 1200);
+    }, i * 600);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面向对象架构演化——对象演化与消息演化 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 架构演化过程 › 面向对象架构演化——对象演化与消息演化</span></nav>
+<div class="ct">
+<div><span class="tag c">架构演化过程</span><span class="tag e">高频</span>
+<h1>面向对象架构演化——对象演化与消息演化</h1><p class="ol">对象演化包括Add Object(AO)和Delete Object(DO)；消息演化包括AM/DM/SMO/OM/CMM五类操作</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>对象演化：AO在需要新功能或拆分功能时发生；DO在移除功能或合并对象时发生。消息演化5种操作：AM(增添消息)、DM(删除消息)、SMO(交换两条消息顺序)、OM(反转发送/接收对象)、CMM(改变消息发送或接收对象)。这些是架构动态行为层面的演化。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">对象演化:
+  AO - Add Object (新功能/拆分)
+  DO - Delete Object (移除/合并)
+
+消息演化:
+  AM  - Add Message
+  DM  - Delete Message
+  SMO - Swap Message Order (交换顺序)
+  OM  - Overturn Message (反转发送/接收)
+  CMM - Change Message Module (改变发送/接收对象)</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>需要新增订单处理功能 → AO(Add Object)</li><li>合并两个相似服务对象 → DO(Delete Object)</li><li>先验证权限再登录改为先登录再验证 → SMO</li><li>消息原来A→B改为B→A → OM</li><li>消息接收方从服务A改为服务B → CMM</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>提供细粒度的演化操作</li><li>可精确描述架构行为变更</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>操作种类多，需仔细分析影响范围</li><li>组合使用复杂度高</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">Add Object</span><span class="k">Delete Object</span><span class="k">Add Message</span><span class="k">Swap Message Order</span><span class="k">Overturn Message</span><span class="k">Change Message Module</span><span class="k">AM</span><span class="k">DM</span><span class="k">SMO</span><span class="k">OM</span><span class="k">CMM</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="h12_fragment_evolution.html">h12_fragment_evolution</a></li><li><span style="color:#94a3b8;font-size:12px">[h12_constraint_evolution]</span></li></ul></div>
+</div></body></html>

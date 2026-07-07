@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件质量属性识别与实现策略 · 系统架构设计师</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}.nav .bc{color:#64748b;font-size:13px;margin-left:12px}.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}li{font-size:13px;color:#475569;margin:4px 0}.kw{display:flex;gap:8px;flex-wrap:wrap}.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}.rel h4{color:#0369a1;margin-bottom:8px}</style>
+</head><body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 真题高频考点 › 软件质量属性识别与实现策略</span></nav>
+<div class="ct">
+<div><span class="tag c">真题高频考点</span><span class="tag e">真题必考</span>
+<h1>软件质量属性识别与实现策略</h1><p class="ol">每年必考质量属性的判断（性能/可用性/安全性/可修改性/可测试性）及对应架构策略的匹配</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>六大核心质量属性：(1)性能——系统响应能力，策略：资源调度（优先级队列）、并发、减少计算复杂度、增加计算资源；(2)可用性——系统正常运行时间比例，策略：Ping/Echo、心跳、主动冗余、被动冗余、异常检测；(3)安全性——阻止非授权使用，策略：认证授权、限制访问、入侵检测、追踪审计；(4)可修改性——快速变更系统的能力，策略：信息隐藏、接口-实现分离、运行时注册、限制模块间通信、中介者；(5)可测试性——发现并定位故障的能力，策略：内置监控器、记录/回放、远程调试接口；(6)可靠性——意外情况下维持运行的能力，策略：容错设计、冗余、检错技术。质量属性场景是ATAM评估的核心输入。</p></div>
+
+<div class="s"><h3>📌 真题举例</h3><ul><li>2009年：1s内完成交易→性能，保证信息安全→安全性，10s内故障恢复→可用性，6h内添加功能→可修改性</li><li>2010年：系统崩溃后0.5h恢复→可用性（主动冗余），并发1000用户0.5s响应→性能（资源调度）</li><li>2012年：车库门0.1s内停止→性能，远程错误诊断→可测试性</li><li>2013年：文件保存与Windows一致→易用性，开放API远程调试→可测试性</li></ul></div>
+
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">性能</span><span class="k">可用性</span><span class="k">安全性</span><span class="k">可修改性</span><span class="k">可测试性</span><span class="k">心跳</span><span class="k">主动冗余</span><span class="k">信息隐藏</span><span class="k">资源调度</span><span class="k">限制访问</span></div></div>
+
+</div></body></html>

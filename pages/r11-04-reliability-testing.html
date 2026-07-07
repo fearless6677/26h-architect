@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件可靠性测试流程 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; font-weight: 600; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.hour-badge { display: inline-block; background: #ede9fe; color: #6d28d9; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+
+/* Flow chart */
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 70px; position: relative; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.orange { background: #fffbeb; border: 2px solid #f59e0b; color: #92400e; }
+.box.purple { background: #faf5ff; border: 2px solid #a855f7; color: #6b21a8; }
+.box.processing { transform: scale(1.1); box-shadow: 0 0 16px rgba(37,99,235,0.45); }
+.box .sub { font-size: 10px; font-weight: 400; color: #64748b; margin-top: 2px; white-space: nowrap; }
+.pipe { width: 32px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 32px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Data cards */
+.data-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+.data-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 13px; }
+.data-card h5 { font-size: 13px; color: #1e40af; margin-bottom: 4px; }
+.data-card p { font-size: 12px; color: #64748b; margin: 0; }
+.example-box { background: #f0fdf4; border-left: 3px solid #22c55e; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 10px 0; font-size: 13px; color: #475569; }
+.example-box strong { color: #15803d; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 软件可靠性 › 可靠性测试流程</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">可靠性测试</span>
+  <span class="exam-tag">🔥 必考</span>
+  <span class="hour-badge">📖 第11小时</span>
+  <h1>软件可靠性测试流程</h1>
+  <p class="one-liner">通过运行剖面和真实测试用例获取可靠性数据</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="flow-row">
+      <div class="box blue" id="s1">确定目标<div class="sub">可靠性目标</div></div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box orange" id="s2">运行剖面<div class="sub">使用行为建模</div></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="box purple" id="s3">设计用例<div class="sub">反映实际使用</div></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="box green" id="s4">实施测试<div class="sub">收集4类时间</div></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.9s"></div></div>
+      <div class="box blue" id="s5">分析结果<div class="sub">记录+报告</div></div>
+    </div>
+    <div class="data-cards" id="dataCards" style="opacity:0; transition: opacity 0.5s;">
+      <div class="data-card"><h5>① 失效时间</h5><p>从开始运行到发生失效的时间</p></div>
+      <div class="data-card"><h5>② 失效间隔时间</h5><p>相邻两次失效之间的运行时长</p></div>
+      <div class="data-card"><h5>③ 分组内失效数</h5><p>每个时间区间内发生的失效次数</p></div>
+      <div class="data-card"><h5>④ 分组累积失效数</h5><p>到某时刻为止的失效累计总数</p></div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 可靠性测试流程</span>
+<span class="fn">1. determine_reliability_target</span>()   <span class="cm">// 确定可靠性目标</span>
+<span class="fn">2. develop_operational_profile</span>()    <span class="cm">// 开发运行剖面(使用行为建模)</span>
+<span class="fn">3. design_test_cases</span>()              <span class="cm">// 设计测试用例</span>
+   <span class="cm">// 反映实际使用，优先测试最重要、最频繁功能</span>
+<span class="fn">4. execute_test</span>()                   <span class="cm">// 测试实施</span>
+   <span class="cm">// 收集4类时间数据：</span>
+   <span class="cm">//   失效时间 / 失效间隔时间</span>
+   <span class="cm">//   分组内失效数 / 分组累积失效数</span>
+<span class="fn">5. analyze_results</span>()                <span class="cm">// 测试结果分析</span>
+   <span class="cm">// 测试记录 + 测试报告</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>软件可靠性测试是为了<span class="hl">获取可靠性数据、评价可靠性水平</span>。
+  分为<span class="hl">广义</span>(建模+统计+分析+评价)和<span class="hl">狭义</span>(按用例在预期环境中测试)两种。
+  关键步骤：确定目标 → 开发运行剖面(使用行为建模) → 设计测试用例(反映真实使用) → 实施测试(收集4类时间数据) → 分析结果。
+</div>
+
+<div class="example-box">
+  <strong>💡 运行剖面示例：</strong>统计发现80%用户只用登录和查询功能，则测试重点覆盖这些高频功能
+</div>
+<div class="example-box">
+  <strong>💡 失效间隔时间：</strong>记录相邻两次失效之间的运行时长，用于拟合失效率模型
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📊 广义 vs 狭义</span>
+  <span class="tag-item">🎯 运行剖面</span>
+  <span class="tag-item">⏱️ 4类时间数据</span>
+  <span class="tag-item">🔄 使用行为建模</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>测试结果贴近实际使用场景</li>
+      <li>可发现真实运行中的失效模式</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>测试周期长，需大量时间收集数据</li>
+      <li>运行剖面建模难度大</li>
+      <li>测试无法穷尽所有使用场景</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">广义</span>
+    <span class="keyword">狭义</span>
+    <span class="keyword">运行剖面</span>
+    <span class="keyword">使用行为建模</span>
+    <span class="keyword">反映实际使用</span>
+    <span class="keyword">失效时间</span>
+    <span class="keyword">失效间隔时间</span>
+    <span class="keyword">分组失效数</span>
+    <span class="keyword">累积失效数</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="r11-01-software-reliability-def.html" style="color:#0369a1;"><strong>软件可靠性定义</strong></a> — 可靠性的基本概念与指标（MTTF/MTBF/MTTR）</li>
+    <li><a href="r11-05-reliability-management.html" style="color:#0369a1;"><strong>可靠性管理</strong></a> — 可靠性测试的上游：制定计划与目标</li>
+    <li><a href="r11-06-reliability-evaluation.html" style="color:#0369a1;"><strong>可靠性评价</strong></a> — 可靠性测试的下游：基于数据进行评价</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // Reset data cards
+  document.getElementById('dataCards').style.opacity = '0';
+  // Animate each step
+  for (let i = 1; i <= 5; i++) {
+    setTimeout(() => {
+      const el = document.getElementById('s' + i);
+      el.classList.add('processing');
+      setTimeout(() => el.classList.remove('processing'), 500);
+    }, (i - 1) * 500);
+  }
+  // Show data cards after step 4
+  setTimeout(() => {
+    document.getElementById('dataCards').style.opacity = '1';
+  }, 2200);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

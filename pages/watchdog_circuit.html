@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>看门狗电路（Watchdog） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.layer-box { transition: all 0.3s; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式硬件 › 看门狗电路（Watchdog）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式硬件</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <h1>看门狗电路（Watchdog）</h1>
+  <p class="one-liner">看门狗=定时心跳检测器，程序正常就定期喂狗续命，超时不喂就叫（重启），专治程序跑飞和死锁。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+      <div class="box blue" id="w1" style="min-width:80px">程序运行</div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box green" id="w2" style="min-width:80px;position:relative">
+        喂狗 🐕
+        <div id="w2t" style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:#22c55e">✓</div>
+      </div>
+      <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="box blue" id="w3" style="min-width:80px">计数器</div>
+      <div class="pipe"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="box green" id="w4" style="min-width:80px;background:#fef2f2;border-color:#f87171">
+        <span id="w4t">正常</span>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#64748b;margin-top:12px">超时未喂狗 → 计数器溢出 → 狗叫(复位MCU)</p>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 看门狗工作流程</span>
+timer = 0
+<span class="kw">while</span>(程序正常运行) {
+  timer++
+  <span class="kw">if</span>(timer &gt;= TIMEOUT) {
+    狗叫() <span class="cm">// 触发中断或复位MCU</span>
+  }
+}
+<span class="cm">// MCU定期喂狗</span>
+feed_watchdog() { timer = 0 } <span class="cm">// 重置计数器</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>看门狗是嵌入式系统必备的系统恢复机制，防止程序跑飞或死锁。原理：MCU正常运行时定期喂狗（重置计数器），若程序异常导致超时未喂狗，计数器溢出触发狗叫模块，发出中断或复位信号重启MCU。组成：输入端→寄存器（基本设置）→计数器（计时）→狗叫模块（决定中断还是复位）。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">工业PLC控制器：程序死锁时看门狗自动重启，避免产线停摆</span>
+  <span class="tag-item">车载ECU：程序异常时看门狗复位，确保刹车系统不失控</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>自动恢复机制，无需人工干预</li>
+      <li>可有效应对程序跑飞、死锁等异常</li>
+      <li>结构简单，硬件开销小</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>如果程序恰好在错误路径上喂狗，看门狗无法检测</li>
+      <li>超时重启会丢失当前运行状态和数据</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">看门狗</span>
+    <span class="keyword">喂狗</span>
+    <span class="keyword">计数器</span>
+    <span class="keyword">超时复位</span>
+    <span class="keyword">系统恢复</span>
+    <span class="keyword">死锁防护</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+      <li><a href="./embedded_processor_types.html" style="color:#2563eb;text-decoration:none">嵌入式微处理器五大类型</a></li>
+      <li><a href="./safety_critical_do178b.html" style="color:#2563eb;text-decoration:none">安全攸关软件与DO-178B标准</a></li>
+      <li><a href="./memory_bus_classification.html" style="color:#2563eb;text-decoration:none">存储器分类与总线体系</a></li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+
+    function playAnimation() {
+      const ids = ['w1','w2','w3','w4'];
+      ids.forEach((id,i) => {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          el.classList.add('processing');
+          setTimeout(() => el.classList.remove('processing'), 500);
+        }, i * 400);
+      });
+      setTimeout(() => {
+        const w4 = document.getElementById('w4t');
+        w4.textContent = '🐕 汪!';
+        w4.style.color = '#dc2626';
+        setTimeout(() => { w4.textContent = '正常'; w4.style.color = ''; }, 1000);
+      }, 2000);
+    }
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

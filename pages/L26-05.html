@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>范文赏析——ATAM架构评估论文写作 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 26px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .hl { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ATAM Phase Flow Animation */
+.phase-flow { display: flex; align-items: flex-start; justify-content: center; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+.phase-step { display: flex; flex-direction: column; align-items: center; width: 180px; transition: all 0.4s; }
+.phase-circle { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; border: 3px solid #cbd5e1; background: #f8fafc; color: #64748b; transition: all 0.4s; position: relative; }
+.phase-label { margin-top: 10px; font-size: 13px; font-weight: 600; color: #475569; text-align: center; transition: all 0.3s; }
+.phase-desc { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 4px; max-width: 150px; line-height: 1.5; }
+.phase-arrow { display: flex; align-items: center; padding-top: 18px; }
+.phase-arrow-line { width: 40px; height: 3px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.phase-arrow-line .flow-dot { position: absolute; top: 0; left: -16px; width: 16px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: arrowFlow 1.8s linear infinite; }
+@keyframes arrowFlow { 0% { left: -16px; } 100% { left: 40px; } }
+.phase-step.active .phase-circle { border-color: #2563eb; background: #eff6ff; color: #2563eb; transform: scale(1.12); box-shadow: 0 0 20px rgba(37,99,235,0.3); }
+.phase-step.active .phase-label { color: #1d4ed8; }
+.phase-step.done .phase-circle { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+.phase-step.done .phase-label { color: #15803d; }
+
+/* Quality Attribute Grid */
+.qa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 16px 0; }
+.qa-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; transition: all 0.3s; cursor: default; }
+.qa-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.qa-card .qa-icon { font-size: 24px; margin-bottom: 4px; }
+.qa-card .qa-name { font-size: 13px; font-weight: 600; color: #1e293b; }
+.qa-card .qa-detail { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+/* Utility Tree */
+.tree-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 16px 0; }
+.tree-root { font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 12px; padding-left: 8px; border-left: 4px solid #2563eb; }
+.tree-branch { margin-left: 24px; margin-bottom: 8px; }
+.tree-branch .branch-title { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+.tree-leaf { margin-left: 20px; font-size: 12px; color: #64748b; padding: 3px 10px; background: #f8fafc; border-radius: 4px; margin-bottom: 4px; border-left: 2px solid #94a3b8; }
+.tree-leaf .leaf-tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; font-weight: 600; }
+.tree-leaf .risk { background: #fef2f2; color: #dc2626; }
+.tree-leaf .sensitive { background: #fffbeb; color: #b45309; }
+.tree-leaf .tradeoff { background: #eff6ff; color: #2563eb; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Writing Tips */
+.writing-tips { background: linear-gradient(135deg, #faf5ff, #f3e8ff); border: 1px solid #c084fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.writing-tips h4 { color: #7c3aed; margin-bottom: 12px; }
+.writing-tips li { font-size: 13px; color: #475569; margin: 6px 0; }
+.writing-tips .tip-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #7c3aed; color: #fff; font-size: 11px; font-weight: 700; margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 论文写作 › ATAM架构评估论文写作</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">论文写作</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hour-tag">📖 第26小时</span>
+  <h1>范文赏析——ATAM架构评估论文写作</h1>
+  <p class="one-liner">论文范文以ATAM架构评估为例，展示风险点/敏感点/权衡点识别与质量效用树生成的完整写作过程。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 评估流程</div>
+  <div class="tab" onclick="switchTab(this,'tree')">🌳 效用树</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 写作模板</div>
+</div>
+
+<!-- Tab 1: 四阶段动画 -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放流程</button>
+    <div class="phase-flow">
+      <div class="phase-step" id="ph1">
+        <div class="phase-circle">①</div>
+        <div class="phase-label">描述介绍</div>
+        <div class="phase-desc">介绍ATAM方法、项目背景与架构</div>
+      </div>
+      <div class="phase-arrow"><div class="phase-arrow-line"><div class="flow-dot"></div></div></div>
+      <div class="phase-step" id="ph2">
+        <div class="phase-circle">②</div>
+        <div class="phase-label">调查分析</div>
+        <div class="phase-desc">识别风险点、敏感点、权衡点，生成质量效用树</div>
+      </div>
+      <div class="phase-arrow"><div class="phase-arrow-line"><div class="flow-dot" style="animation-delay:.4s"></div></div></div>
+      <div class="phase-step" id="ph3">
+        <div class="phase-circle">③</div>
+        <div class="phase-label">测试验证</div>
+        <div class="phase-desc">确定场景优先级，给出应对方案</div>
+      </div>
+      <div class="phase-arrow"><div class="phase-arrow-line"><div class="flow-dot" style="animation-delay:.8s"></div></div></div>
+      <div class="phase-step" id="ph4">
+        <div class="phase-circle">④</div>
+        <div class="phase-label">报告汇总</div>
+        <div class="phase-desc">汇总评估结果，输出评估文档</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">📌 七大质量属性</div>
+      <div class="qa-grid">
+        <div class="qa-card"><div class="qa-icon">⚡</div><div class="qa-name">性能</div><div class="qa-detail">Performance</div></div>
+        <div class="qa-card"><div class="qa-icon">🛡️</div><div class="qa-name">可用性</div><div class="qa-detail">Availability</div></div>
+        <div class="qa-card"><div class="qa-icon">🔒</div><div class="qa-name">安全性</div><div class="qa-detail">Security</div></div>
+        <div class="qa-card"><div class="qa-icon">🔧</div><div class="qa-name">可修改性</div><div class="qa-detail">Modifiability</div></div>
+        <div class="qa-card"><div class="qa-icon">🔄</div><div class="qa-name">可靠性</div><div class="qa-detail">Reliability</div></div>
+        <div class="qa-card"><div class="qa-icon">👤</div><div class="qa-name">易用性</div><div class="qa-detail">Usability</div></div>
+        <div class="qa-card"><div class="qa-icon">✅</div><div class="qa-name">可测试性</div><div class="qa-detail">Testability</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab 2: 质量效用树 -->
+<div id="tree" class="tab-content">
+  <div class="tree-box">
+    <div class="tree-root">🎯 质量效用树（Quality Utility Tree）</div>
+
+    <div class="tree-branch">
+      <div class="branch-title">⚡ 性能</div>
+      <div class="tree-leaf">正常负载下，查询请求响应时间 ≤ 2s <span class="leaf-tag sensitive">敏感点</span></div>
+      <div class="tree-leaf">高并发峰值（1000 QPS）时系统不崩溃 <span class="leaf-tag risk">风险点</span></div>
+    </div>
+
+    <div class="tree-branch">
+      <div class="branch-title">🔒 安全性</div>
+      <div class="tree-leaf">数据传输采用AES-256加密 <span class="leaf-tag tradeoff">权衡点</span></div>
+      <div class="tree-leaf">未授权访问检测与告警 ≤ 5s</div>
+    </div>
+
+    <div class="tree-branch">
+      <div class="branch-title">🔧 可修改性</div>
+      <div class="tree-leaf">新增业务模块不影响现有功能 <span class="leaf-tag tradeoff">权衡点</span></div>
+      <div class="tree-leaf">配置变更无需重启系统</div>
+    </div>
+
+    <div class="tree-branch">
+      <div class="branch-title">🛡️ 可用性</div>
+      <div class="tree-leaf">系统年可用率 ≥ 99.99%</div>
+      <div class="tree-leaf">故障恢复时间（RTO）≤ 30min <span class="leaf-tag risk">风险点</span></div>
+    </div>
+
+    <div style="margin-top: 16px; padding: 12px; background: #f8fafc; border-radius: 6px; font-size: 12px; color: #64748b;">
+      <strong style="color: #1e40af;">💡 三类关键点说明：</strong><br>
+      <span class="leaf-tag risk">风险点</span> = 可能导致质量属性不达标的架构决策<br>
+      <span class="leaf-tag sensitive">敏感点</span> = 对某个质量属性有显著影响的架构决策<br>
+      <span class="leaf-tag tradeoff">权衡点</span> = 同时影响多个质量属性的架构决策（改善一个可能恶化另一个）
+    </div>
+  </div>
+</div>
+
+<!-- Tab 3: 写作模板/伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ========== ATAM论文写作模板 ==========</span>
+
+<span class="kw">一、项目背景与架构描述</span>
+  介绍项目背景 → 说明系统架构风格 → 画出架构图
+
+<span class="kw">二、评估方法选择</span>
+  <span class="fn">选择理由</span>：ATAM是<span class="st">基于场景</span>的架构评估方法
+  <span class="fn">评估目标</span>：关注<span class="hl">性能、可用性、安全性、可修改性</span>等质量属性
+
+<span class="kw">三、评估过程（四阶段）</span>
+  <span class="cm">/* 阶段1：描述和介绍 */</span>
+  → 介绍ATAM方法、利益相关者、架构、质量需求
+
+  <span class="cm">/* 阶段2：调查和分析 ⭐核心 */</span>
+  → 识别<span class="hl">风险点</span>（可能导致问题的决策）
+  → 识别<span class="hl">敏感点</span>（显著影响某质量属性的决策）
+  → 识别<span class="hl">权衡点</span>（同时影响多个质量属性的决策）
+  → 生成<span class="st">质量效用树</span>
+
+  <span class="cm">/* 阶段3：测试 */</span>
+  → 对场景按<span class="hl">重要性/难度</span>排序
+  → 针对高风险场景提出<span class="st">应对方案</span>
+
+  <span class="cm">/* 阶段4：报告 */</span>
+  → 汇总评估结果，输出<span class="st">评估报告文档</span>
+
+<span class="kw">四、评估结论与改进建议</span>
+  总结风险 → 给出架构改进建议 → 展望未来优化方向</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>ATAM（架构权衡分析法）是<span class="hl">基于场景</span>的架构评估方法。
+  论文写作要体现完整的<span class="hl">四阶段过程</span>，重点在第2阶段——识别<span class="hl">风险点、敏感点、权衡点</span>，并生成<span class="hl">质量效用树</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📝 敏感点示例：查询请求处理时间影响系统集群方式和处理过程设计</span>
+  <span class="tag-item">⚖️ 权衡点示例：更改加密级别同时影响安全性和性能</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 范文优点</h4>
+    <ul>
+      <li>范文涵盖架构评估核心知识点</li>
+      <li>可作为写作模板参考</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 注意事项</h4>
+    <ul>
+      <li>需结合实际项目场景来写，避免空泛</li>
+      <li>效用树要具体量化，不能只写概念</li>
+    </ul>
+  </div>
+</div>
+
+<div class="writing-tips">
+  <h4>✍️ 论文写作技巧</h4>
+  <ul>
+    <li><span class="tip-num">1</span>开头先交代项目背景，说明为什么选择ATAM方法</li>
+    <li><span class="tip-num">2</span>质量效用树必须<strong>具体化</strong>——每个叶子节点要有可测量的场景描述</li>
+    <li><span class="tip-num">3</span>风险点/敏感点/权衡点要<strong>结合架构决策</strong>来说明，不能脱离架构谈评估</li>
+    <li><span class="tip-num">4</span>权衡点要体现<strong>"鱼与熊掌不可兼得"</strong>的矛盾关系（如加密级别↑ → 安全性↑ 但性能↓）</li>
+    <li><span class="tip-num">5</span>结尾要有<strong>改进建议</strong>，展示评估的实际价值</li>
+  </ul>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">ATAM</span>
+    <span class="keyword">质量属性</span>
+    <span class="keyword">风险点</span>
+    <span class="keyword">敏感点</span>
+    <span class="keyword">权衡点</span>
+    <span class="keyword">质量效用树</span>
+    <span class="keyword">四阶段</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>L26-02 架构评估方法概述</strong> —— ATAM属于基于场景的评估方法，SAAM也属于此类</li>
+    <li><strong>L26-03 ATAM方法详解</strong> —— 深入了解ATAM的输入输出、九个步骤</li>
+    <li><strong>ATAM vs SAAM</strong>：ATAM关注多质量属性权衡，SAAM主要关注可修改性</li>
+    <li><strong>质量属性</strong>：性能、可用性、安全性、可修改性、可靠性、易用性、可测试性</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  if (animTimer) { clearTimeout(animTimer); }
+  const phases = ['ph1','ph2','ph3','ph4'];
+  // Reset all
+  phases.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+  });
+
+  let i = 0;
+  function nextPhase() {
+    if (i > 0) {
+      document.getElementById(phases[i-1]).classList.remove('active');
+      document.getElementById(phases[i-1]).classList.add('done');
+    }
+    if (i < phases.length) {
+      document.getElementById(phases[i]).classList.add('active');
+      i++;
+      animTimer = setTimeout(nextPhase, 1000);
+    }
+  }
+  nextPhase();
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

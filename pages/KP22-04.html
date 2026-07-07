@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lambda与Kappa架构对比与选型 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Architecture comparison grid */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+.arch-panel { border-radius: 10px; padding: 20px; position: relative; overflow: hidden; transition: box-shadow 0.3s; }
+.arch-panel.lambda { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 2px solid #3b82f6; }
+.arch-panel.kappa { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #22c55e; }
+.arch-panel h3 { font-size: 16px; margin-bottom: 6px; }
+.arch-panel.lambda h3 { color: #1d4ed8; }
+.arch-panel.kappa h3 { color: #15803d; }
+.arch-panel .desc { font-size: 13px; color: #475569; margin-bottom: 12px; }
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 8px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 60px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.orange { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.box.processing { transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.4); }
+.pipe { width: 28px; height: 3px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+.pipe .flow.g { background: linear-gradient(90deg, transparent, #22c55e, transparent); }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 28px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Dimension bars */
+.dim-section { margin: 20px 0; }
+.dim-section h4 { font-size: 14px; color: #1e40af; margin-bottom: 12px; }
+.dim-row { display: flex; gap: 12px; margin: 6px 0; align-items: center; }
+.dim-label { min-width: 72px; font-size: 12px; color: #64748b; font-weight: 600; }
+.dim-bar-wrap { flex: 1; display: flex; gap: 6px; align-items: center; }
+.dim-bar { height: 20px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 600; color: #fff; transition: width 0.8s ease; min-width: 0; }
+.dim-bar.lambda-bar { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.dim-bar.kappa-bar { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.dim-vals { font-size: 11px; color: #94a3b8; min-width: 36px; text-align: right; }
+
+/* Compare table */
+.compare-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+.compare-table th { background: #f1f5f9; color: #1e40af; padding: 10px 12px; text-align: left; border-bottom: 2px solid #cbd5e1; }
+.compare-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #475569; vertical-align: top; }
+.compare-table tr:hover td { background: #f8fafc; }
+.compare-table .dim { font-weight: 600; color: #1e293b; white-space: nowrap; }
+
+/* Decision table */
+.decision-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+.decision-table th { background: #f1f5f9; color: #475569; padding: 8px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+.decision-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; color: #475569; }
+.decision-table tr:hover td { background: #f8fafc; }
+.decision-table .lambda-cell { color: #2563eb; font-weight: 600; }
+.decision-table .kappa-cell { color: #16a34a; font-weight: 600; }
+
+@media (max-width: 640px) {
+  .compare-grid { grid-template-columns: 1fr; }
+  .dim-row { flex-direction: column; gap: 4px; align-items: flex-start; }
+  .pros-cons { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 大数据架构 › Lambda与Kappa架构对比与选型</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">大数据架构</span>
+  <span class="exam-tag">⭐ 案例/论文高频 10-15分</span>
+  <span class="hour-tag">📖 第22小时</span>
+  <h1>Lambda与Kappa架构对比与选型</h1>
+  <p class="one-liner">Lambda适合海量历史数据、成本充足场景；Kappa适合流式计算、成本有限场景——从业务需求、复杂度、成本、历史数据4方面选型</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 架构对比</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'decision')">🧭 选型决策</div>
+</div>
+
+<!-- ===== TAB1: 架构对比 + 动画 ===== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放数据流</button>
+
+    <div class="compare-grid">
+      <!-- Lambda 架构 -->
+      <div class="arch-panel lambda">
+        <h3>🔷 Lambda 架构</h3>
+        <p class="desc">两套系统：批处理层 + 实时层，分别产出批视图与实时视图</p>
+        <!-- 批处理路径 -->
+        <div class="flow-row">
+          <div class="box blue" id="l1">数据源</div>
+          <div class="pipe"><div class="flow"></div></div>
+          <div class="box orange" id="l2">批处理<br><small>Spark/Hadoop</small></div>
+          <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+          <div class="box blue" id="l3">批视图</div>
+        </div>
+        <!-- 实时路径 -->
+        <div class="flow-row">
+          <div class="box blue" id="l4">数据源</div>
+          <div class="pipe"><div class="flow g" style="animation-delay:.2s"></div></div>
+          <div class="box orange" id="l5">实时计算<br><small>Storm/Flink</small></div>
+          <div class="pipe"><div class="flow g" style="animation-delay:.5s"></div></div>
+          <div class="box blue" id="l6">实时视图</div>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          <div class="box blue" id="l7" style="min-width:120px;">服务层（合并视图）</div>
+        </div>
+      </div>
+
+      <!-- Kappa 架构 -->
+      <div class="arch-panel kappa">
+        <h3>🟩 Kappa 架构</h3>
+        <p class="desc">一套流式引擎：所有计算均通过流处理完成，必要时重放全量</p>
+        <div class="flow-row">
+          <div class="box green" id="k1">数据源</div>
+          <div class="pipe"><div class="flow g"></div></div>
+          <div class="box orange" id="k2">消息日志<br><small>Kafka</small></div>
+          <div class="pipe"><div class="flow g" style="animation-delay:.3s"></div></div>
+          <div class="box green" id="k3">流处理<br><small>Flink</small></div>
+        </div>
+        <div class="flow-row">
+          <div class="box green" id="k4">流处理结果</div>
+          <div class="pipe"><div class="flow g" style="animation-delay:.6s"></div></div>
+          <div class="box green" id="k5">服务层</div>
+        </div>
+        <div style="text-align:center;margin-top:12px;font-size:12px;color:#15803d;font-weight:600;">
+          需重算？→ 从头重放消息日志即可
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 维度对比条 -->
+  <div class="dim-section">
+    <h4>📊 核心维度直观对比</h4>
+    <div class="dim-row">
+      <div class="dim-label">复杂度</div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar lambda-bar" data-width="85">高（两套引擎）</div>
+        <div class="dim-vals">Lambda</div>
+      </div>
+    </div>
+    <div class="dim-row">
+      <div class="dim-label"></div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar kappa-bar" data-width="40">低</div>
+        <div class="dim-vals">Kappa</div>
+      </div>
+    </div>
+    <div class="dim-row">
+      <div class="dim-label">计算开销</div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar lambda-bar" data-width="80">大（批+流并行）</div>
+        <div class="dim-vals">Lambda</div>
+      </div>
+    </div>
+    <div class="dim-row">
+      <div class="dim-label"></div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar kappa-bar" data-width="45">较小</div>
+        <div class="dim-vals">Kappa</div>
+      </div>
+    </div>
+    <div class="dim-row">
+      <div class="dim-label">历史数据</div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar lambda-bar" data-width="90">强（批式全量）</div>
+        <div class="dim-vals">Lambda</div>
+      </div>
+    </div>
+    <div class="dim-row">
+      <div class="dim-label"></div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar kappa-bar" data-width="35">弱</div>
+        <div class="dim-vals">Kappa</div>
+      </div>
+    </div>
+    <div class="dim-row">
+      <div class="dim-label">实时性</div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar lambda-bar" data-width="75">满足 ✅</div>
+        <div class="dim-vals">Lambda</div>
+      </div>
+    </div>
+    <div class="dim-row">
+      <div class="dim-label"></div>
+      <div class="dim-bar-wrap">
+        <div class="dim-bar kappa-bar" data-width="75">满足 ✅</div>
+        <div class="dim-vals">Kappa</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 对比表格 -->
+  <table class="compare-table">
+    <thead><tr><th>对比维度</th><th>🔷 Lambda</th><th>🟩 Kappa</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">复杂度与成本</td><td>维护<span class="hl">两套系统</span>（批+实时），开发维护成本高</td><td>只维护<span class="hl">一套流处理系统</span>，成本低</td></tr>
+      <tr><td class="dim">计算开销</td><td>周期性批处理 + 持续实时计算，<span class="hl">开销大</span></td><td>必要时全量重放计算，<span class="hl">开销相对小</span></td></tr>
+      <tr><td class="dim">实时性</td><td>✅ 满足实时性要求</td><td>✅ 满足实时性要求</td></tr>
+      <tr><td class="dim">历史数据处理</td><td>批式全量处理，<span class="hl">吞吐量大</span></td><td>流式全量重放，<span class="hl">吞吐量相对较低</span></td></tr>
+      <tr><td class="dim">数据一致性</td><td>实时层和离线层可能<span class="hl">不一致</span></td><td>单一引擎处理，结果一致</td></tr>
+      <tr><td class="dim">技术栈</td><td>Hadoop / Spark + Storm / Flink</td><td>Flink（核心依赖）</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== TAB2: 伪代码 ===== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ===== Lambda 架构：两套系统 =====</span>
+
+<span class="cm">// 批处理层 —— 周期性全量处理，吞吐大，历史数据强</span>
+<span class="kw">batch</span> <span class="fn">runBatchJob</span>(historyData) {
+    result = <span class="fn">spark.read</span>(<span class="st">"hdfs://all-data"</span>)
+             .<span class="fn">filter</span>(...).<span class="fn">aggregate</span>(...)
+    <span class="kw">write</span> <span class="fn">batchView</span>(result)    <span class="cm">// 产出批视图</span>
+}
+
+<span class="cm">// 实时层 —— 持续增量处理</span>
+<span class="kw">stream</span> <span class="fn">runStreamJob</span>(realtimeStream) {
+    result = <span class="fn">flink.from</span>(realtimeStream).<span class="fn">window</span>(5min).<span class="fn">aggregate</span>(...)
+    <span class="kw">write</span> <span class="fn">realtimeView</span>(result) <span class="cm">// 产出实时视图</span>
+}
+
+<span class="cm">// 服务层：合并批视图 + 实时视图</span>
+<span class="kw">serve</span> = <span class="fn">merge</span>(batchView, realtimeView)
+
+<span class="cm">// ⚠️ 批视图与实时视图可能冲突！两套代码逻辑可能不一致</span>
+
+
+<span class="cm">// ===== Kappa 架构：一套系统 =====</span>
+
+<span class="cm">// 只有流处理，代码统一</span>
+<span class="kw">stream</span> <span class="fn">runStreamJob</span>(logTopic, fromOffset) {
+    result = <span class="fn">flink.from</span>(logTopic, from=<span class="st">BEGINNING</span>).<span class="fn">aggregate</span>(...)
+    <span class="kw">write</span> <span class="fn">servingLayer</span>(result)  <span class="cm">// 唯一视图，无冲突</span>
+}
+
+<span class="cm">// 需要重算？从头重放消息日志即可</span>
+<span class="kw">replay</span>(kafkaLog, from=<span class="st">offset_0</span>)   <span class="cm">// 全量重放 = 批处理效果</span>
+
+<span class="cm">// ✅ 一套代码，逻辑永远一致</span>
+<span class="cm">// ⚠️ 全量重放时吞吐量较低，海量历史数据处理能力弱</span></pre>
+</div>
+
+<!-- ===== TAB3: 选型决策 ===== -->
+<div id="decision" class="tab-content">
+  <div class="anim-area">
+    <h4 style="color:#1e40af;margin-bottom:12px;">🧭 选型决策表：4大因素</h4>
+    <table class="decision-table">
+      <thead><tr><th>决策因素</th><th class="lambda-cell">→ 选 Lambda</th><th class="kappa-cell">→ 选 Kappa</th></tr></thead>
+      <tbody>
+        <tr><td><strong>业务需求</strong></td><td class="lambda-cell">依赖 Hadoop / Spark / Storm 生态</td><td class="kappa-cell">依赖 Flink 偏流式计算</td></tr>
+        <tr><td><strong>历史数据</strong></td><td class="lambda-cell">频繁使用海量历史数据</td><td class="kappa-cell">仅小规模数据集</td></tr>
+        <tr><td><strong>成本预算</strong></td><td class="lambda-cell">成本充足</td><td class="kappa-cell">预算有限</td></tr>
+        <tr><td><strong>算法迭代</strong></td><td class="lambda-cell">算法稳定，不需要频繁修改</td><td class="kappa-cell">频繁修改算法 / 模型参数</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="explain" style="margin-top:12px;">
+    <strong>决策口诀：</strong><br>
+    📊 海量历史 + 成本充足 → <span class="hl">Lambda</span><br>
+    💰 小规模 + 成本有限 → <span class="hl">Kappa</span><br>
+    ⚡ Flink流式 + 算法常变 → <span class="hl">Kappa</span><br>
+    🔧 Hadoop/Spark + 双引擎 → <span class="hl">Lambda</span>
+  </div>
+</div>
+
+<div class="explain" style="margin-top:20px;">
+  <strong>核心：</strong>Lambda = <span class="hl">两套系统</span>（批+流），复杂度高、成本高，但历史数据处理能力强、吞吐量大；
+  Kappa = <span class="hl">一套系统</span>（统一流式），复杂度低、成本低，但历史数据处理弱、吞吐量有限。
+  选型取决于<span class="hl">业务需求、复杂度、成本、历史数据需求</span>四大因素。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏗️ Lambda：Hadoop + Spark + Storm</span>
+  <span class="tag-item">🌊 Kappa：Flink 单一引擎</span>
+  <span class="tag-item">📊 海量历史数据 → Lambda</span>
+  <span class="tag-item">💰 成本有限 → Kappa</span>
+  <span class="tag-item">🔄 算法频繁变更 → Kappa</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 各自优势</h4>
+    <ul>
+      <li><strong>Lambda：</strong>历史数据处理能力强、吞吐量大</li>
+      <li><strong>Kappa：</strong>代码统一维护简单、成本低</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 各自劣势</h4>
+    <ul>
+      <li><strong>Lambda：</strong>需维护两套系统，开发维护成本高</li>
+      <li><strong>Kappa：</strong>吞吐量低，历史数据处理能力弱</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">Lambda vs Kappa</span>
+    <span class="keyword">选型决策</span>
+    <span class="keyword">复杂度对比</span>
+    <span class="keyword">计算开销</span>
+    <span class="keyword">吞吐量</span>
+    <span class="keyword">历史数据</span>
+    <span class="keyword">成本预算</span>
+  </div>
+  <p style="margin-top:10px;font-size:13px;color:#92400e;">
+    ⭐ 案例分析和论文高频对比考点，约 <strong>10-15分</strong>
+  </p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="KP22-02.html" style="color:#0369a1;"><strong>KP22-02</strong> — 批处理 vs 流处理</a> = Lambda/Kappa 的底层计算模型基础</li>
+    <li><a href="KP22-03.html" style="color:#0369a1;"><strong>KP22-03</strong> — Lambda架构详解</a> = Lambda 的双层结构与批视图合并策略</li>
+    <li><a href="KP22-05.html" style="color:#0369a1;"><strong>KP22-05</strong> — 大数据架构实践案例</a> = 视频/广告/证券/电商四大选型案例</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active')});
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  if (id === 'anim') animateBars();
+}
+
+function animateBars() {
+  document.querySelectorAll('.dim-bar').forEach(function(bar) {
+    var w = bar.getAttribute('data-width');
+    if (w) {
+      bar.style.width = '0%';
+      setTimeout(function(){ bar.style.width = w + '%'; }, 50);
+    }
+  });
+}
+
+function playAnimation() {
+  var lambdaIds = ['l1','l2','l3','l4','l5','l6','l7'];
+  lambdaIds.forEach(function(id, i) {
+    setTimeout(function() {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('processing');
+      setTimeout(function(){ el.classList.remove('processing'); }, 450);
+    }, i * 280);
+  });
+
+  var kappaIds = ['k1','k2','k3','k4','k5'];
+  kappaIds.forEach(function(id, i) {
+    setTimeout(function() {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('processing');
+      setTimeout(function(){ el.classList.remove('processing'); }, 450);
+    }, i * 350);
+  });
+}
+
+window.addEventListener('load', function() {
+  setTimeout(playAnimation, 500);
+  setTimeout(animateBars, 800);
+});
+</script>
+</body>
+</html>

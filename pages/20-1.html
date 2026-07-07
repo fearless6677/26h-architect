@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>局域网网络架构 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Architecture diagram styles */
+.arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 16px 0; }
+.arch-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; transition: all 0.3s; cursor: pointer; position: relative; }
+.arch-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.arch-card.active { border-color: #3b82f6; box-shadow: 0 0 16px rgba(37,99,235,0.3); }
+.arch-card h5 { font-size: 14px; color: #1e40af; margin-bottom: 8px; }
+.arch-card p { font-size: 12px; color: #64748b; line-height: 1.6; }
+.arch-icon { font-size: 32px; margin-bottom: 6px; }
+
+/* Layer diagram */
+.layer-stack { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 16px 0; }
+.layer-box { width: 70%; padding: 12px 20px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 600; transition: all 0.3s; position: relative; }
+.layer-box.core { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.layer-box.agg { background: #fefce8; border: 2px solid #eab308; color: #854d0e; }
+.layer-box.access { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.layer-box.highlight { transform: scale(1.05); box-shadow: 0 0 16px rgba(37,99,235,0.3); }
+.layer-arrow { font-size: 18px; color: #94a3b8; }
+
+/* Ring animation */
+.ring-container { display: flex; justify-content: center; align-items: center; margin: 16px 0; }
+.ring { width: 180px; height: 180px; border: 3px dashed #3b82f6; border-radius: 50%; position: relative; animation: ringRotate 12s linear infinite; }
+.ring-node { position: absolute; width: 36px; height: 36px; background: #3b82f6; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; transition: all 0.3s; }
+.ring-node:nth-child(1) { top: -18px; left: 50%; transform: translateX(-50%); }
+.ring-node:nth-child(2) { right: -18px; top: 50%; transform: translateY(-50%); }
+.ring-node:nth-child(3) { bottom: -18px; left: 50%; transform: translateX(-50%); }
+.ring-node:nth-child(4) { left: -18px; top: 50%; transform: translateY(-50%); }
+.ring-node.glow { background: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.6); }
+@keyframes ringRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.ring-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 11px; color: #64748b; text-align: center; pointer-events: none; }
+
+/* Dual core */
+.dual-core { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
+.core-switch { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; }
+.core-switch.glow { box-shadow: 0 0 14px rgba(37,99,235,0.4); }
+.link-line { width: 40px; height: 3px; background: linear-gradient(90deg, #3b82f6, #22c55e); border-radius: 2px; }
+
+/* Single core */
+.single-core-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 16px 0; }
+.single-switch { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; padding: 14px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; text-align: center; transition: all 0.3s; }
+.single-switch.danger { border-color: #ef4444; animation: pulse-danger 1.5s ease infinite; }
+@keyframes pulse-danger { 0%,100% { box-shadow: 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 16px rgba(239,68,68,0.5); } }
+.device-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.device-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px; font-size: 12px; color: #475569; }
+.down-arrow { font-size: 16px; color: #94a3b8; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.arch-detail { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; color: #475569; line-height: 1.9; display: none; }
+.arch-detail.active { display: block; }
+.arch-detail strong { color: #1e40af; }
+.arch-detail .hl { color: #dc2626; font-weight: 600; }
+
+@media (max-width: 600px) {
+  .arch-grid { grid-template-columns: 1fr; }
+  .layer-box { width: 90%; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 通信系统架构 › 局域网网络架构</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">通信系统架构</span>
+  <span class="exam-tag">⭐ 中频选择题</span>
+  <h1>局域网网络架构</h1>
+  <p class="one-liner">局域网网络架构分为单核心、双核心、环型和层次型四种类型，各有不同的优缺点和适用场景。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="arch-grid">
+      <div class="arch-card" id="card-single" onclick="showDetail('single')">
+        <div class="arch-icon">🔹</div>
+        <h5>单核心架构</h5>
+        <p>一台核心交换机，简单省投资</p>
+      </div>
+      <div class="arch-card" id="card-dual" onclick="showDetail('dual')">
+        <div class="arch-icon">🔷🔷</div>
+        <h5>双核心架构</h5>
+        <p>两台核心交换机，可靠性提升</p>
+      </div>
+      <div class="arch-card" id="card-ring" onclick="showDetail('ring')">
+        <div class="arch-icon">🔄</div>
+        <h5>环型架构（RPR）</h5>
+        <p>双动态弹性分组环，自愈保护</p>
+      </div>
+      <div class="arch-card" id="card-layer" onclick="showDetail('layer')">
+        <div class="arch-icon">📊</div>
+        <h5>层次型架构</h5>
+        <p>核心层+汇聚层+接入层三层</p>
+      </div>
+    </div>
+
+    <!-- Detail panels -->
+    <div class="arch-detail" id="detail-single">
+      <strong>单核心架构：</strong>使用<span class="hl">单台核心交换设备</span>，所有接入交换机直接连到核心。结构简单，投资节约，适合小型网络。<br>
+      ⚠️ 但核心一旦故障，整个网络瘫痪——<span class="hl">单点故障</span>风险大。
+    </div>
+    <div class="arch-detail" id="detail-dual">
+      <strong>双核心架构：</strong>采用<span class="hl">两台核心三层交换机</span>互相冗余。一台挂了另一台还能顶，提高可靠性。<br>
+      ⚠️ 但投资更高，且核心设备<span class="hl">端口密度要求较高</span>。
+    </div>
+    <div class="arch-detail" id="detail-ring">
+      <strong>环型架构（RPR）：</strong>多台交换机组成<span class="hl">双动态弹性分组环（RPR）</span>。具备自愈保护能力，节省光纤资源，提供多等级QoS服务。<br>
+      ⚠️ 投资较高，路由冗余设计<span class="hl">实施难度大</span>。
+    </div>
+    <div class="arch-detail" id="detail-layer">
+      <strong>层次型架构：</strong>由三层组成——<br>
+      🔵 <strong>核心层</strong>：高速数据转发，是网络的"高速公路"<br>
+      🟡 <strong>汇聚层</strong>：互访控制、策略管理<br>
+      🟢 <strong>接入层</strong>：终端用户接入<br>
+      ✅ <span class="hl">易扩展、便于分级维护</span>，适用于大中型企业网络。
+    </div>
+
+    <!-- Diagrams -->
+    <div id="diagram-single" class="diagram-panel" style="display:none; margin-top:16px;">
+      <div class="single-core-diagram">
+        <div class="single-switch" id="single-sw">核心交换机</div>
+        <div class="down-arrow">⬇ ⬇ ⬇</div>
+        <div class="device-row">
+          <div class="device-box">接入交换机A</div>
+          <div class="device-box">接入交换机B</div>
+          <div class="device-box">接入交换机C</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="diagram-dual" class="diagram-panel" style="display:none; margin-top:16px;">
+      <div class="dual-core">
+        <div class="core-switch" id="dual-c1">核心交换机 1</div>
+        <div class="link-line"></div>
+        <div class="core-switch" id="dual-c2">核心交换机 2</div>
+      </div>
+      <div class="down-arrow" style="text-align:center;">⬇ ⬇ ⬇</div>
+      <div class="device-row" style="margin-top:8px;">
+        <div class="device-box">汇聚交换机A</div>
+        <div class="device-box">汇聚交换机B</div>
+      </div>
+    </div>
+
+    <div id="diagram-ring" class="diagram-panel" style="display:none; margin-top:16px;">
+      <div class="ring-container">
+        <div class="ring" id="ring-anim">
+          <div class="ring-node">S1</div>
+          <div class="ring-node">S2</div>
+          <div class="ring-node">S3</div>
+          <div class="ring-node">S4</div>
+        </div>
+        <div class="ring-center">RPR<br>自愈环</div>
+      </div>
+    </div>
+
+    <div id="diagram-layer" class="diagram-panel" style="display:none; margin-top:16px;">
+      <div class="layer-stack">
+        <div class="layer-box core" id="layer-core">核心层 —— 高速转发</div>
+        <div class="layer-arrow">⬆⬇</div>
+        <div class="layer-box agg" id="layer-agg">汇聚层 —— 策略控制</div>
+        <div class="layer-arrow">⬆⬇</div>
+        <div class="layer-box access" id="layer-access">接入层 —— 用户接入</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 局域网网络架构 —— 四种类型对比</span>
+
+<span class="cm">// 1. 单核心架构</span>
+<span class="kw">class</span> <span class="fn">SingleCore</span> {
+    core = <span class="st">new</span> Switch(<span class="st">"核心交换机"</span>)   <span class="cm">// 只有一台！</span>
+    risk = <span class="st">"单点故障"</span>               <span class="cm">// 核心挂 = 全网瘫</span>
+}
+
+<span class="cm">// 2. 双核心架构</span>
+<span class="kw">class</span> <span class="fn">DualCore</span> {
+    core1 = <span class="st">new</span> L3Switch(<span class="st">"核心1"</span>)    <span class="cm">// 主</span>
+    core2 = <span class="st">new</span> L3Switch(<span class="st">"核心2"</span>)    <span class="cm">// 备/负载均衡</span>
+    reliability = <span class="st">"高"</span>             <span class="cm">// 冗余备份</span>
+}
+
+<span class="cm">// 3. 环型架构（RPR）</span>
+<span class="kw">class</span> <span class="fn">RingArch</span> {
+    ring = <span class="st">new</span> <span class="fn">RPR</span>()               <span class="cm">// 双动态弹性分组环</span>
+    features = [<span class="st">"自愈保护"</span>, <span class="st">"节省光纤"</span>, <span class="st">"多等级QoS"</span>]
+}
+
+<span class="cm">// 4. 层次型架构</span>
+<span class="kw">class</span> <span class="fn">HierarchicalArch</span> {
+    core = <span class="st">"核心层"</span>     <span class="cm">// 高速数据转发</span>
+    distribution = <span class="st">"汇聚层"</span> <span class="cm">// 互访控制</span>
+    access = <span class="st">"接入层"</span>  <span class="cm">// 用户接入</span>
+    benefit = <span class="st">"易扩展 + 分级维护"</span>
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>局域网有<span class="hl">四种架构</span>——单核心（简单但单点故障）、双核心（冗余但费钱）、环型（RPR自愈保护）、层次型（三层分级，大中型首选）。
+  选哪个看场景：<span class="hl">小型选单核心，大中型选层次型</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏢 小型网络 → 单核心</span>
+  <span class="tag-item">🏗️ 大中型企业 → 层次型</span>
+  <span class="tag-item">🔄 RPR自愈环 → 城域网</span>
+  <span class="tag-item">🔒 高可靠需求 → 双核心</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>层次型架构易扩展、分级维护方便</li>
+      <li>RPR环型架构具备自愈保护能力</li>
+      <li>单核心架构结构简单、投资节约</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>单核心架构存在核心单点故障风险</li>
+      <li>环型架构投资较高且路由冗余设计实施难度大</li>
+      <li>双核心架构核心端口密度要求较高</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">单核心架构</span>
+    <span class="keyword">双核心架构</span>
+    <span class="keyword">环型架构</span>
+    <span class="keyword">层次型架构</span>
+    <span class="keyword">RPR</span>
+    <span class="keyword">核心层</span>
+    <span class="keyword">汇聚层</span>
+    <span class="keyword">接入层</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>20-2 城域网架构</strong> —— 局域网架构向城域延伸</li>
+    <li><strong>20-3 存储网络架构</strong> —— 网络架构在存储领域的应用</li>
+    <li><strong>20-4 无线网络架构</strong> —— 有线与无线架构的融合</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function showDetail(type) {
+  // Reset all cards and details
+  document.querySelectorAll('.arch-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.arch-detail').forEach(d => d.classList.remove('active'));
+  document.querySelectorAll('.diagram-panel').forEach(d => d.style.display = 'none');
+
+  // Activate selected
+  document.getElementById('card-' + type).classList.add('active');
+  document.getElementById('detail-' + type).classList.add('active');
+  document.getElementById('diagram-' + type).style.display = 'block';
+}
+
+function playAnimation() {
+  // Reset
+  document.querySelectorAll('.arch-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.arch-detail').forEach(d => d.classList.remove('active'));
+  document.querySelectorAll('.diagram-panel').forEach(d => d.style.display = 'none');
+
+  const types = ['single', 'dual', 'ring', 'layer'];
+  types.forEach((type, i) => {
+    setTimeout(() => {
+      document.querySelectorAll('.arch-card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.arch-detail').forEach(d => d.classList.remove('active'));
+      document.querySelectorAll('.diagram-panel').forEach(d => d.style.display = 'none');
+      document.getElementById('card-' + type).classList.add('active');
+      document.getElementById('detail-' + type).classList.add('active');
+      document.getElementById('diagram-' + type).style.display = 'block';
+
+      // Type-specific animations
+      if (type === 'single') {
+        const sw = document.getElementById('single-sw');
+        sw.classList.add('danger');
+        setTimeout(() => sw.classList.remove('danger'), 2000);
+      } else if (type === 'dual') {
+        const c1 = document.getElementById('dual-c1');
+        const c2 = document.getElementById('dual-c2');
+        c1.classList.add('glow');
+        setTimeout(() => { c1.classList.remove('glow'); c2.classList.add('glow'); }, 800);
+        setTimeout(() => c2.classList.remove('glow'), 1600);
+      } else if (type === 'ring') {
+        const nodes = document.querySelectorAll('.ring-node');
+        nodes.forEach((n, j) => {
+          setTimeout(() => { n.classList.add('glow'); setTimeout(() => n.classList.remove('glow'), 500); }, j * 300);
+        });
+      } else if (type === 'layer') {
+        const layers = ['layer-core', 'layer-agg', 'layer-access'];
+        layers.forEach((id, j) => {
+          setTimeout(() => {
+            document.getElementById(id).classList.add('highlight');
+            setTimeout(() => document.getElementById(id).classList.remove('highlight'), 600);
+          }, j * 400);
+        });
+      }
+    }, i * 2000);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

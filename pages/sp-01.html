@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统规划步骤 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #4338ca; background: #f1f5f9; }
+.tab.active { color: #4338ca; border-bottom-color: #4338ca; font-weight: 600; background: #eef2ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #4338ca; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 六步流程动画 */
+.flow-col { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 12px 0; }
+.step-box { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: left; transition: all 0.3s; width: 100%; max-width: 560px; }
+.step-box .step-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; }
+.step-box.s1 { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.step-box.s1 .step-num { background: #3b82f6; }
+.step-box.s2 { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.step-box.s2 .step-num { background: #22c55e; }
+.step-box.s3 { background: #fefce8; border: 2px solid #eab308; color: #a16207; }
+.step-box.s3 .step-num { background: #eab308; }
+.step-box.s4 { background: #fdf4ff; border: 2px solid #a855f7; color: #7e22ce; }
+.step-box.s4 .step-num { background: #a855f7; }
+.step-box.s5 { background: #fff1f2; border: 2px solid #f43f5e; color: #be123c; }
+.step-box.s5 .step-num { background: #f43f5e; }
+.step-box.s6 { background: #ecfeff; border: 2px solid #06b6d4; color: #0e7490; }
+.step-box.s6 .step-num { background: #06b6d4; }
+.step-box.active { transform: scale(1.04); box-shadow: 0 0 16px rgba(67,56,202,0.35); }
+.step-arrow { display: flex; flex-direction: column; align-items: center; height: 28px; position: relative; }
+.step-arrow .arrow-line { width: 2px; height: 20px; background: #cbd5e1; }
+.step-arrow .arrow-head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #cbd5e1; }
+.step-arrow .flow-dot { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 50%; background: #4338ca; animation: flowDown 1.2s ease-in-out infinite; }
+@keyframes flowDown { 0% { top: 0; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 18px; opacity: 0; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #4338ca; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #3730a3; }
+.hour-tag { display: inline-block; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 2px 10px; border-radius: 12px; font-size: 11px; color: #64748b; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 系统规划 › 系统规划步骤</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">系统规划</span>
+  <span class="exam-tag">⭐ 低频</span>
+  <span class="hour-tag">第14小时 14.1节</span>
+  <h1>系统规划步骤</h1>
+  <p class="one-liner">系统规划是信息系统生命周期的第一阶段，包括初步调查→确定目标→分析子系统→拟定方案→可行性研究→制订建设方案六个步骤</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="flow-col">
+      <div class="step-box s1" id="s1">
+        <div class="step-num">1</div>
+        <div>对现有系统进行<strong>初步调查</strong></div>
+      </div>
+      <div class="step-arrow"><div class="arrow-line"></div><div class="arrow-head"></div><div class="flow-dot" style="animation-delay:0s"></div></div>
+
+      <div class="step-box s2" id="s2">
+        <div class="step-num">2</div>
+        <div>分析和<strong>确定系统目标</strong></div>
+      </div>
+      <div class="step-arrow"><div class="arrow-line"></div><div class="arrow-head"></div><div class="flow-dot" style="animation-delay:.2s"></div></div>
+
+      <div class="step-box s3" id="s3">
+        <div class="step-num">3</div>
+        <div>分析子系统的组成和<strong>基本功能</strong></div>
+      </div>
+      <div class="step-arrow"><div class="arrow-line"></div><div class="arrow-head"></div><div class="flow-dot" style="animation-delay:.4s"></div></div>
+
+      <div class="step-box s4" id="s4">
+        <div class="step-num">4</div>
+        <div>拟定系统的<strong>实施方案</strong></div>
+      </div>
+      <div class="step-arrow"><div class="arrow-line"></div><div class="arrow-head"></div><div class="flow-dot" style="animation-delay:.6s"></div></div>
+
+      <div class="step-box s5" id="s5">
+        <div class="step-num">5</div>
+        <div>进行<strong>可行性研究</strong>，编写报告，召开论证会</div>
+      </div>
+      <div class="step-arrow"><div class="arrow-line"></div><div class="arrow-head"></div><div class="flow-dot" style="animation-delay:.8s"></div></div>
+
+      <div class="step-box s6" id="s6">
+        <div class="step-num">6</div>
+        <div>制订<strong>系统建设方案</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 系统规划六步法</span>
+<span class="cm">// Step1: 对现有系统进行初步调查</span>
+<span class="cm">// Step2: 分析和确定系统目标</span>
+<span class="cm">// Step3: 分析子系统的组成和基本功能</span>
+<span class="cm">// Step4: 拟定系统的实施方案</span>
+<span class="cm">// Step5: 进行可行性研究，编写可行性研究报告，召开可行性论证会</span>
+<span class="cm">// Step6: 制订系统建设方案</span>
+
+<span class="kw">function</span> <span class="fn">系统规划</span>(企业环境) {
+    <span class="kw">const</span> 现状 = <span class="fn">初步调查</span>(企业环境);         <span class="cm">// Step1</span>
+    <span class="kw">const</span> 目标 = <span class="fn">确定系统目标</span>(现状);           <span class="cm">// Step2</span>
+    <span class="kw">const</span> 子系统 = <span class="fn">分析子系统</span>(目标);            <span class="cm">// Step3</span>
+    <span class="kw">const</span> 方案候选 = <span class="fn">拟定实施方案</span>(子系统);      <span class="cm">// Step4</span>
+    <span class="kw">const</span> 可行性 = <span class="fn">可行性研究</span>(方案候选);          <span class="cm">// Step5</span>
+    <span class="kw">const</span> 建设方案 = <span class="fn">制订建设方案</span>(可行性);      <span class="cm">// Step6</span>
+    <span class="kw">return</span> <span class="fn">编写系统设计任务书</span>(建设方案);        <span class="cm">// 产出物</span>
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>系统规划是信息系统<span class="hl">生命周期的第一个阶段</span>，其任务是对企业的<span class="hl">环境、目标及现有系统的状况</span>进行初步调查，研究建设新系统的<span class="hl">必要性和可能性</span>。根据需要与可能给出拟建系统的备选方案，进行<span class="hl">可行性分析</span>，写出可行性研究报告。报告审议通过后编写<span class="hl">系统设计任务书</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏢 企业ERP系统建设规划</span>
+  <span class="tag-item">📊 数字化转型前期调研</span>
+  <span class="tag-item">📄 可行性研究报告编写</span>
+  <span class="tag-item">📋 系统设计任务书</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>为后续系统建设提供明确方向和依据</li>
+      <li>通过可行性分析降低项目失败风险</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 局限</h4>
+    <ul>
+      <li>规划阶段投入有限，难以全面覆盖所有可能性</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">系统规划步骤</span>
+    <span class="keyword">初步调查</span>
+    <span class="keyword">可行性研究</span>
+    <span class="keyword">系统设计任务书</span>
+    <span class="keyword">信息系统生命周期</span>
+  </div>
+  <p style="font-size:12px;color:#92400e;margin-top:10px;">💡 例：企业决定建设ERP系统，首先进行系统规划：调查现有系统状况→确定目标→分析子系统→拟定方案→可行性分析→编写任务书</p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>系统开发生命周期</strong> = 系统规划是其第一阶段，后续包括分析、设计、实施、运维</li>
+    <li><strong>可行性分析</strong> = 系统规划的核心环节，包括技术/经济/操作可行性</li>
+    <li><strong>系统调查</strong> = 规划阶段的第一步，了解现状和用户需求</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  for (let i = 1; i <= 6; i++) {
+    setTimeout(() => {
+      const el = document.getElementById('s' + i);
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 500);
+    }, (i - 1) * 400);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

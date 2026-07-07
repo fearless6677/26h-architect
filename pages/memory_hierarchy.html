@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存储器层次结构 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Hierarchy animation styles */
+.hierarchy { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 16px 0; }
+.mem-level { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.4s; position: relative; }
+.mem-level .level-label { min-width: 60px; font-size: 11px; color: #94a3b8; }
+.mem-level .level-name { min-width: 120px; }
+.mem-level .level-speed { min-width: 60px; font-size: 12px; }
+.mem-level .level-cap { min-width: 70px; font-size: 12px; }
+.mem-level .level-note { font-size: 11px; color: #94a3b8; }
+
+.mem-level.l0 { background: #fef2f2; border: 2px solid #ef4444; color: #991b1b; width: 50%; }
+.mem-level.l1 { background: #fff7ed; border: 2px solid #f97316; color: #9a3412; width: 58%; }
+.mem-level.l2 { background: #fffbeb; border: 2px solid #f59e0b; color: #92400e; width: 66%; }
+.mem-level.l3 { background: #fefce8; border: 2px solid #eab308; color: #854d0e; width: 74%; }
+.mem-level.l4 { background: #f0fdf4; border: 2px solid #22c55e; color: #166534; width: 82%; }
+.mem-level.l5 { background: #eff6ff; border: 2px solid #3b82f6; color: #1e40af; width: 90%; }
+
+.mem-level.active { transform: scale(1.04); box-shadow: 0 0 20px rgba(37,99,235,0.25); z-index: 2; }
+.arrow-down { color: #94a3b8; font-size: 18px; line-height: 1; margin: 2px 0; }
+.speed-label { position: absolute; left: -100px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #94a3b8; writing-mode: vertical-lr; letter-spacing: 2px; }
+.cap-label { position: absolute; right: -100px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #94a3b8; writing-mode: vertical-lr; letter-spacing: 2px; }
+
+.data-dot { width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; position: absolute; opacity: 0; transition: all 0.5s; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+.legend { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 12px; color: #64748b; }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend .arrow-icon { font-size: 16px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 存储系统 › 存储器层次结构</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">存储系统</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>存储器层次结构（Memory Hierarchy）</h1>
+  <p class="one-liner">存储器按距CPU远近分为片上缓存、片外缓存、主存、外存4层，速度递减，容量递增。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="hierarchy">
+      <div class="mem-level l0" id="m0">
+        <span class="level-label">Level 0</span>
+        <span class="level-name">寄存器</span>
+        <span class="level-speed">~1ns</span>
+        <span class="level-cap">几KB</span>
+        <span class="level-note">(片上)</span>
+      </div>
+      <div class="arrow-down">▼</div>
+      <div class="mem-level l1" id="m1">
+        <span class="level-label">Level 1</span>
+        <span class="level-name">L1 Cache</span>
+        <span class="level-speed">~1ns</span>
+        <span class="level-cap">几十KB</span>
+        <span class="level-note">(片上缓存)</span>
+      </div>
+      <div class="arrow-down">▼</div>
+      <div class="mem-level l2" id="m2">
+        <span class="level-label">Level 2</span>
+        <span class="level-name">L2 Cache</span>
+        <span class="level-speed">~3ns</span>
+        <span class="level-cap">几百KB</span>
+        <span class="level-note">(片上/片外)</span>
+      </div>
+      <div class="arrow-down">▼</div>
+      <div class="mem-level l3" id="m3">
+        <span class="level-label">Level 3</span>
+        <span class="level-name">L3 Cache</span>
+        <span class="level-speed">~10ns</span>
+        <span class="level-cap">几MB</span>
+        <span class="level-note">(片外缓存)</span>
+      </div>
+      <div class="arrow-down">▼</div>
+      <div class="mem-level l4" id="m4">
+        <span class="level-label">Level 4</span>
+        <span class="level-name">主存(内存)</span>
+        <span class="level-speed">~100ns</span>
+        <span class="level-cap">几GB</span>
+        <span class="level-note">(DRAM)</span>
+      </div>
+      <div class="arrow-down">▼</div>
+      <div class="mem-level l5" id="m5">
+        <span class="level-label">Level 5</span>
+        <span class="level-name">外存(磁盘)</span>
+        <span class="level-speed">~10ms</span>
+        <span class="level-cap">几TB</span>
+        <span class="level-note">(Flash/Disk)</span>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="arrow-icon">⬆</span> 速度↑ 成本↑</span>
+      <span><span class="arrow-icon">⬇</span> 容量↑ 成本↓</span>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 存储器层次结构（速度↓，容量↑）</span>
+<span class="st">Level 0:</span> 寄存器       <span class="fn">~1ns</span>     几KB     <span class="cm">(片上)</span>
+<span class="st">Level 1:</span> L1 Cache     <span class="fn">~1ns</span>     几十KB   <span class="cm">(片上缓存)</span>
+<span class="st">Level 2:</span> L2 Cache     <span class="fn">~3ns</span>     几百KB   <span class="cm">(片上/片外)</span>
+<span class="st">Level 3:</span> L3 Cache     <span class="fn">~10ns</span>    几MB     <span class="cm">(片外缓存)</span>
+<span class="st">Level 4:</span> 主存(内存)   <span class="fn">~100ns</span>   几GB     <span class="cm">(DRAM)</span>
+<span class="st">Level 5:</span> 外存(磁盘)   <span class="fn">~10ms</span>    几TB     <span class="cm">(Flash/Disk)</span>
+
+<span class="cm">// 访问速度: L0 &gt; L1 &gt; L2 &gt; L3 &gt; L4 &gt; L5</span>
+<span class="cm">// 存储容量: L0 &lt; L1 &lt; L2 &lt; L3 &lt; L4 &lt; L5</span>
+<span class="cm">// 单位成本: L0 &gt; L1 &gt; L2 &gt; L3 &gt; L4 &gt; L5</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>计算机存储器按与处理器的物理距离分为4层：<span class="hl">片上缓存（Cache）→ 片外缓存 → 主存（内存）→ 外存（磁盘）</span>。
+  访问速度依次降低，容量依次提高，单位成本也依次降低。利用<span class="hl">局部性原理</span>，将 frequently accessed 数据放在高速缓存中以提升性能。
+  按介质可分为SRAM、DRAM、NVRAM、Flash、EPROM、Disk等。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">💾 L1/L2 Cache用SRAM（速度快、价格高）</span>
+  <span class="tag-item">🧠 主存用DRAM（速度较慢、价格低）</span>
+  <span class="tag-item">💿 SSD用Flash作为外存</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>利用局部性原理，以低成本获得高性能</li>
+      <li>层次清晰，利于硬件优化设计</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>高速存储器成本高、容量有限</li>
+      <li>层次越多，一致性维护越复杂</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">片上缓存</span>
+    <span class="keyword">片外缓存</span>
+    <span class="keyword">主存</span>
+    <span class="keyword">外存</span>
+    <span class="keyword">SRAM</span>
+    <span class="keyword">DRAM</span>
+    <span class="keyword">局部性原理</span>
+    <span class="keyword">Cache</span>
+    <span class="keyword">存储器层次</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="von_neumann_arch.html" style="color:#0369a1;text-decoration:none;font-weight:600;">冯·诺依曼架构</a> = 存储器层次结构的理论基础（存储程序概念）</li>
+    <li><a href="bus_system.html" style="color:#0369a1;text-decoration:none;font-weight:600;">总线系统</a> = 连接各层存储器的数据通道</li>
+    <li><strong>局部性原理</strong> = 时间局部性（重复访问）+ 空间局部性（相邻访问）</li>
+    <li><strong>Cache命中率</strong> = 衡量层次结构效率的核心指标</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animating = false;
+function playAnimation() {
+  if (animating) return;
+  animating = true;
+  // Animate from fastest (L0) to slowest (L5)
+  for (let i = 0; i <= 5; i++) {
+    setTimeout(() => {
+      const el = document.getElementById('m' + i);
+      el.classList.add('active');
+      setTimeout(() => {
+        el.classList.remove('active');
+        if (i === 5) animating = false;
+      }, 600);
+    }, i * 500);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

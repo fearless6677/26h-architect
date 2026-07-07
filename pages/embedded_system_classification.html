@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式系统的分类（实时与安全攸关） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.layer-box { transition: all 0.3s; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式分类 › 嵌入式系统的分类（实时与安全攸关）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式分类</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>嵌入式系统的分类（实时与安全攸关）</h1>
+  <p class="one-liner">嵌入式系统分实时/非实时，实时又分强实时（超时=灾难）和弱实时（偶尔超时没关系），还有安全攸关（坏了会死人）之分。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div style="text-align:center">
+      <div class="box blue" id="cl1" style="margin:0 auto 8px">嵌入式系统</div>
+      <div style="display:flex;gap:16px;justify-content:center">
+        <div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:4px">按实时性</div>
+          <div class="box green" id="cl2" style="font-size:12px;min-width:100px">强实时 Hard</div>
+          <div style="margin:4px 0;font-size:16px">↕</div>
+          <div class="box blue" id="cl3" style="font-size:12px;min-width:100px">弱实时 Weak</div>
+          <div style="margin:4px 0;font-size:16px">↕</div>
+          <div class="box green" id="cl4" style="font-size:12px;min-width:100px">非实时</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:4px">按安全性</div>
+          <div class="box blue" id="cl5" style="font-size:12px;min-width:100px">安全攸关</div>
+          <div style="margin:4px 0;font-size:16px">↕</div>
+          <div class="box green" id="cl6" style="font-size:12px;min-width:100px">非安全攸关</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 嵌入式系统分类树</span>
+嵌入式系统 {
+  按实时性: {
+    强实时(Hard): 超时=灾难
+    弱实时(Weak): 偶尔超时可接受
+    非实时: 无严格时间要求
+  }
+  按安全性: {
+    安全攸关: 失效→伤亡/损失
+    非安全攸关: 失效无严重后果
+  }
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>嵌入式系统按实时性分为实时系统和非实时系统。实时系统又分强实时（Hard Real-Time，必须在规定时间内完成，超时即灾难）和弱实时（Weak Real-Time，偶尔超时可接受）。按安全性分为安全攸关系统（失效导致人员伤亡或财产损失）和非安全攸关系统。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">强实时系统：飞机飞控计算机，毫秒级响应，超时=坠机</span>
+  <span class="tag-item">弱实时系统：视频直播播放器，偶尔卡顿但不致命</span>
+  <span class="tag-item">安全攸关系统：核电站控制系统的嵌入式监控软件</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>分类明确，便于选择合适的设计策略</li>
+      <li>安全攸关分类有助于确定可靠性等级</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>强实时系统设计和验证成本高</li>
+      <li>安全攸关系统需要严格的标准认证流程</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">强实时</span>
+    <span class="keyword">弱实时</span>
+    <span class="keyword">Hard Real-Time</span>
+    <span class="keyword">安全攸关</span>
+    <span class="keyword">Safety-Critical</span>
+    <span class="keyword">实时系统定义</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+      <li><a href="./embedded_system_composition.html" style="color:#2563eb;text-decoration:none">嵌入式系统的组成与特点</a></li>
+      <li><a href="./safety_critical_do178b.html" style="color:#2563eb;text-decoration:none">安全攸关软件与DO-178B标准</a></li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+
+    function playAnimation() {
+      ['cl1','cl2','cl3','cl4','cl5','cl6'].forEach((id,i) => {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          el.classList.add('processing');
+          setTimeout(() => el.classList.remove('processing'), 400);
+        }, i * 250);
+      });
+    }
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

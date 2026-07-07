@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据库优化技术(反规范化与分布式优化) · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; overflow: hidden; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .op { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* === Animation Styles === */
+.section-title { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.section-title .badge { background: #e0e7ff; color: #4338ca; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+.section-title .badge-dist { background: #fce7f3; color: #be185d; }
+
+.db-anim { margin-bottom: 18px; }
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 10px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.4s ease; min-width: 70px; position: relative; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.orange { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.box.purple { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.box.red { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.box .sub { font-size: 10px; font-weight: 400; color: #64748b; margin-top: 2px; }
+.box.highlight { transform: scale(1.12); box-shadow: 0 0 18px rgba(37,99,235,0.45); z-index: 1; }
+.box.highlight-green { transform: scale(1.12); box-shadow: 0 0 18px rgba(34,197,94,0.45); z-index: 1; }
+.box.highlight-orange { transform: scale(1.12); box-shadow: 0 0 18px rgba(249,115,22,0.45); z-index: 1; }
+.pipe { width: 32px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; flex-shrink: 0; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+.pipe .flow-orange { background: linear-gradient(90deg, transparent, #f97316, transparent); }
+.pipe .flow-green { background: linear-gradient(90deg, transparent, #22c55e, transparent); }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 32px; } }
+
+.arrow-down { text-align: center; color: #94a3b8; font-size: 18px; margin: 4px 0; }
+.split-label { font-size: 11px; color: #64748b; text-align: center; margin: 4px 0; }
+
+/* Replication animation */
+.repl-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px 0; }
+.master-node { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 2px solid #3b82f6; border-radius: 10px; padding: 14px 20px; text-align: center; font-weight: 700; color: #1d4ed8; font-size: 14px; position: relative; }
+.slave-node { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #22c55e; border-radius: 10px; padding: 10px 16px; text-align: center; font-weight: 600; color: #15803d; font-size: 12px; min-width: 90px; }
+.slave-node.active { transform: scale(1.08); box-shadow: 0 0 14px rgba(34,197,94,0.4); }
+.binlog-pipe { width: 80px; height: 6px; background: #e2e8f0; border-radius: 3px; position: relative; overflow: hidden; }
+.binlog-pipe .binlog-flow { position: absolute; top: 0; left: -30px; width: 30px; height: 6px; background: linear-gradient(90deg, transparent, #f97316, #ef4444, transparent); border-radius: 3px; animation: binlogFlow 2s linear infinite; }
+@keyframes binlogFlow { 0% { left: -30px; } 100% { left: 80px; } }
+.sync-label { font-size: 10px; color: #f97316; text-align: center; font-weight: 600; }
+
+.mode-tag { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 2px 10px; border-radius: 10px; font-size: 11px; color: #92400e; font-weight: 600; margin: 2px; }
+
+/* examples list */
+.example-list { margin-top: 12px; }
+.example-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; font-size: 13px; color: #475569; }
+.example-item strong { color: #1e40af; }
+.example-item .tag { display: inline-block; background: #f1f5f9; border-radius: 4px; font-size: 11px; padding: 1px 6px; color: #64748b; margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 数据库优化 › 反规范化与分布式优化</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">数据库优化</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <h1>数据库优化技术（反规范化与分布式优化）</h1>
+  <p class="one-liner">数据库优化就像整理书架——把常看的书放手边(冗余列)、把计算好的结果贴书上(派生列)、把大书架拆成小书架(分表)。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'examples')">📖 实例</div>
+</div>
+
+<!-- ============ Animation Tab ============ -->
+<div id="anim" class="tab-content active">
+
+  <!-- Denormalization Section -->
+  <div class="anim-area db-anim">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="section-title">🗂️ 集中式优化：反规范化设计 <span class="badge">避免JOIN · 减少计算</span></div>
+
+    <div class="flow-row" id="denorm-row">
+      <div class="box blue" id="d1">原始表<div class="sub">规范化</div></div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box orange" id="d2">冗余列<div class="sub">避免JOIN</div></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.2s"></div></div>
+      <div class="box orange" id="d3">派生列<div class="sub">减少计算</div></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.4s"></div></div>
+      <div class="box green" id="d4">查询加速<div class="sub">性能↑</div></div>
+    </div>
+
+    <div class="arrow-down">↓</div>
+    <div class="split-label">表分割策略</div>
+    <div class="flow-row">
+      <div class="box blue" id="d5">大表<div class="sub">数据量大</div></div>
+      <div class="pipe"><div class="flow"></div></div>
+      <div class="box purple" id="d6">水平分割<div class="sub">按行拆分</div></div>
+      <div style="width:16px"></div>
+      <div class="box blue" id="d7">大表<div class="sub">列数多</div></div>
+      <div class="pipe"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="box purple" id="d8">垂直分割<div class="sub">按列拆分</div></div>
+    </div>
+  </div>
+
+  <!-- Distributed Section -->
+  <div class="anim-area db-anim">
+    <div class="section-title">🌐 分布式优化：复制 · 分离 · 拆分 <span class="badge badge-dist">多库协同</span></div>
+
+    <div class="replRow flow-row" id="repl-row">
+      <div class="master-node" id="master">主库 Master<div class="sub" style="font-weight:400;font-size:11px;color:#3b82f6">写操作</div></div>
+      <div class="binlog-pipe"><div class="binlog-flow"></div></div>
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+        <div class="sync-label">binlog → relaylog</div>
+        <div style="display:flex;gap:12px;">
+          <div class="slave-node" id="slave1">从库1<div style="font-size:10px;font-weight:400;color:#64748b">读操作</div></div>
+          <div class="slave-node" id="slave2">从库2<div style="font-size:10px;font-weight:400;color:#64748b">读操作</div></div>
+          <div class="slave-node" id="slave3">从库3<div style="font-size:10px;font-weight:400;color:#64748b">备份</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down">↓</div>
+    <div class="split-label">数据切分策略</div>
+    <div class="flow-row">
+      <div class="box blue" id="dist1">分表<div class="sub">大表→小表</div></div>
+      <div class="pipe"><div class="flow flow-green"></div></div>
+      <div class="box green" id="dist2">水平切分<div class="sub">按行/hash/范围</div></div>
+      <div style="width:16px"></div>
+      <div class="box blue" id="dist3">垂直切分<div class="sub">按业务列</div></div>
+    </div>
+    <div class="flow-row" style="margin-top:8px;">
+      <div class="box red" id="dist4">分库<div class="sub">业务隔离</div></div>
+      <div class="pipe"><div class="flow flow-orange"></div></div>
+      <div class="box orange" id="dist5">用户库<div class="sub">独立实例</div></div>
+      <div style="width:12px"></div>
+      <div class="box orange" id="dist6">订单库<div class="sub">独立实例</div></div>
+      <div style="width:12px"></div>
+      <div class="box orange" id="dist7">商品库<div class="sub">独立实例</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Code Tab ============ -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">── 反规范化设计 ──────────────────────────</span>
+
+<span class="kw">策略1:</span> <span class="fn">增加冗余列</span>（避免 JOIN）
+  <span class="st">订单表</span> <span class="op">+=</span> 客户姓名列
+  <span class="cm">// SELECT 不再需要 JOIN 客户表</span>
+
+<span class="kw">策略2:</span> <span class="fn">增加派生列</span>（减少计算）
+  <span class="st">订单表</span> <span class="op">+=</span> 订单总额列 <span class="cm">(= 单价 × 数量)</span>
+  <span class="cm">// SELECT 不再每次计算</span>
+
+<span class="kw">策略3:</span> <span class="fn">重新组表</span> — 调整表结构关系
+<span class="kw">策略4:</span> <span class="fn">水平分割</span> — 按行拆分（如按用户ID取模）
+<span class="kw">策略5:</span> <span class="fn">垂直分割</span> — 按列拆分（大字段独立成表）
+
+<span class="cm">── 分布式优化 ───────────────────────────</span>
+
+<span class="kw">1. 主从复制:</span>
+   主库写 <span class="op">→</span> binlog <span class="op">→</span> 从库 relaylog <span class="op">→</span> 回放
+   模式: <span class="st">全同步</span> | <span class="st">半同步</span> | <span class="st">异步</span>
+
+<span class="kw">2. 读写分离:</span> <span class="fn">主写从读</span>，提升并发
+<span class="kw">3. 分表:</span> 水平切分(大表拆小) | 垂直切分(列分组)
+<span class="kw">4. 分库:</span> <span class="fn">业务隔离</span>，独立实例</pre>
+</div>
+
+<!-- ============ Examples Tab ============ -->
+<div id="examples" class="tab-content">
+  <div class="example-list">
+    <div class="example-item">
+      <span class="tag">冗余列</span>
+      <strong>订单表加"客户姓名"列</strong> — 避免每次查询订单时都 JOIN 客户表，用空间换时间。
+    </div>
+    <div class="example-item">
+      <span class="tag">派生列</span>
+      <strong>订单表加"订单总额"列</strong> — 由 单价×数量 预计算得出，避免每次查询都做乘法运算。
+    </div>
+    <div class="example-item">
+      <span class="tag">反规范化缺点</span>
+      <strong>修改客户姓名时</strong> — 需要同步更新所有订单表中的冗余"客户姓名"字段，否则数据不一致。
+    </div>
+    <div class="example-item">
+      <span class="tag">主从复制</span>
+      <strong>MySQL 主从流程</strong> — 主库写 binlog → 从库读取到 relaylog → 从库回放执行，实现数据同步。
+    </div>
+    <div class="example-item">
+      <span class="tag">水平分割</span>
+      <strong>用户表按 ID 取模分4张表</strong> — user_0, user_1, user_2, user_3，每张表数据量降为1/4。
+    </div>
+    <div class="example-item">
+      <span class="tag">分库</span>
+      <strong>电商拆分用户库/订单库/商品库</strong> — 不同业务独立数据库实例，互不影响。
+    </div>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>数据库优化分两个层面。
+  <span class="hl">集中式优化</span>采用反规范化设计——增加冗余列(避免连接操作)、增加派生列(减少计算量)、重新组表、水平分割表(按行拆分)、垂直分割表(按列拆分)，优点是提高查询性能，缺点是数据冗余和一致性问题。
+  <span class="hl">分布式优化</span>采用主从复制(读写分离基础)、读写分离(主写从读提升并发)、分表(大表拆小表)、分库(不同业务独立实例)。MySQL主从通过binlog同步，有语句级、行级、混合三种复制模式。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📊 第8小时</span>
+  <span class="tag-item">🗂️ 冗余列避免JOIN</span>
+  <span class="tag-item">🧮 派生列减少计算</span>
+  <span class="tag-item">📐 水平分割(按行)</span>
+  <span class="tag-item">📏 垂直分割(按列)</span>
+  <span class="tag-item">🔄 MySQL binlog同步</span>
+  <span class="tag-item">📝 全同步/半同步/异步</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>查询性能显著提升</li>
+      <li>支持更大并发量</li>
+      <li>降低单库压力</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>数据冗余增加</li>
+      <li>一致性维护复杂</li>
+      <li>存储空间浪费</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">反规范化</span>
+    <span class="keyword">冗余列</span>
+    <span class="keyword">派生列</span>
+    <span class="keyword">水平分割</span>
+    <span class="keyword">垂直分割</span>
+    <span class="keyword">主从复制</span>
+    <span class="keyword">读写分离</span>
+    <span class="keyword">分表分库</span>
+    <span class="keyword">binlog</span>
+    <span class="keyword">全同步</span>
+    <span class="keyword">半同步</span>
+    <span class="keyword">异步</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>分布式数据库(distributed_db)</strong> = 分库分库的底层架构支撑</li>
+    <li><strong>Redis/NoSQL(nosql_redis)</strong> = 数据库优化的另一条路径——NoSQL bypass</li>
+    <li><strong>MySQL复制模式</strong>：语句级(STATEMENT) / 行级(ROW) / 混合(MIXED)</li>
+    <li><strong>反规范化 vs 规范化</strong>：规范化减冗余保一致，反规范化加冗余换性能</li>
+    <li><strong>CAP定理</strong>：分布式优化必须在一致性与可用性之间取舍</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // Denormalization animation
+  const dIds = ['d1','d2','d3','d4','d5','d6','d7','d8'];
+  dIds.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add(i < 4 ? 'highlight-orange' : 'highlight');
+      setTimeout(() => el.classList.remove('highlight-orange', 'highlight'), 600);
+    }, i * 300);
+  });
+
+  // Replication + distributed animation
+  const distIds = ['master','slave1','slave2','slave3','dist1','dist2','dist3','dist4','dist5','dist6','dist7'];
+  distIds.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (id.startsWith('slave')) {
+        el.classList.add('active');
+        setTimeout(() => el.classList.remove('active'), 700);
+      } else if (id === 'master') {
+        el.style.transform = 'scale(1.06)';
+        el.style.boxShadow = '0 0 16px rgba(59,130,246,0.5)';
+        setTimeout(() => { el.style.transform = ''; el.style.boxShadow = ''; }, 700);
+      } else {
+        el.classList.add('highlight-green');
+        setTimeout(() => el.classList.remove('highlight-green'), 600);
+      }
+    }, 2400 + i * 300);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

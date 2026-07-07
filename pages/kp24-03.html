@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>线性规划 · 运筹学</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .code-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Graph animation */
+.graph-canvas { width: 100%; height: 320px; position: relative; }
+.graph-canvas svg { width: 100%; height: 100%; }
+.axis-line { stroke: #94a3b8; stroke-width: 1.5; }
+.axis-label { font-size: 12px; fill: #64748b; }
+.constraint-line { stroke-width: 2; fill: none; stroke-dasharray: 200; stroke-dashoffset: 200; }
+.constraint-line.draw { stroke-dashoffset: 0; transition: stroke-dashoffset 0.8s ease; }
+.feasible-region { fill: rgba(34,197,94,0.12); stroke: #22c55e; stroke-width: 1.5; stroke-dasharray: 4 3; opacity: 0; transition: opacity 0.6s ease; }
+.feasible-region.show { opacity: 1; }
+.iso-line { stroke: #dc2626; stroke-width: 2; stroke-dasharray: 300; stroke-dashoffset: 300; }
+.iso-line.draw { stroke-dashoffset: 0; transition: stroke-dashoffset 1s ease; }
+.optimal-point { r: 6; fill: #dc2626; opacity: 0; transition: opacity 0.4s ease; }
+.optimal-point.show { opacity: 1; }
+.optimal-label { font-size: 12px; fill: #dc2626; font-weight: 600; opacity: 0; transition: opacity 0.4s ease; }
+.optimal-label.show { opacity: 1; }
+.legend-box { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.92); border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; font-size: 11px; color: #475569; line-height: 1.7; }
+.legend-box span { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 4px; border-radius: 2px; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Steps */
+.step-list { margin: 16px 0; }
+.step-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding: 12px 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; opacity: 0.4; transition: all 0.4s ease; }
+.step-item.active { opacity: 1; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: #64748b; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-item.active .step-num { background: #2563eb; color: #fff; }
+.step-text { font-size: 13px; color: #475569; }
+.step-text strong { color: #1e40af; }
+
+/* Example cards */
+.example-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.example-card h5 { font-size: 14px; color: #1e293b; margin-bottom: 8px; }
+.example-card .formula { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; font-family: 'Consolas', monospace; font-size: 13px; color: #334155; margin: 8px 0; }
+.example-card .answer { color: #15803d; font-weight: 600; font-size: 13px; }
+
+/* Solution types */
+.sol-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.sol-type { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; transition: all 0.3s; }
+.sol-type:hover { border-color: #3b82f6; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.sol-type .icon { font-size: 24px; margin-bottom: 6px; }
+.sol-type .name { font-size: 13px; font-weight: 600; color: #1e293b; }
+.sol-type .desc { font-size: 11px; color: #64748b; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 运筹学 › 线性规划（KP24-03）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">运筹学</span>
+  <span class="exam-tag">⭐ 约2分（选择题）</span>
+  <span class="code-tag">KP24-03</span>
+  <h1>线性规划（Linear Programming）</h1>
+  <p class="one-liner">在约束条件下求目标函数极值，用图解法或联立方程组法求解</p>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 图解法动画</div>
+  <div class="tab" onclick="switchTab(this,'steps')">📝 解题步骤</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'examples')">📖 例题</div>
+</div>
+
+<!-- Tab: Animation -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" id="playBtn" onclick="playAnimation()">▶ 播放图解法</button>
+    <div class="graph-canvas">
+      <svg viewBox="0 0 500 320" id="graphSvg">
+        <!-- Grid -->
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="500" height="320" fill="url(#grid)"/>
+
+        <!-- Axes -->
+        <line x1="50" y1="280" x2="470" y2="280" class="axis-line"/>
+        <line x1="50" y1="280" x2="50" y2="20" class="axis-line"/>
+        <text x="475" y="284" class="axis-label">x</text>
+        <text x="46" y="16" class="axis-label">y</text>
+
+        <!-- Axis ticks -->
+        <text x="128" y="296" class="axis-label">1</text>
+        <text x="208" y="296" class="axis-label">2</text>
+        <text x="288" y="296" class="axis-label">3</text>
+        <text x="368" y="296" class="axis-label">4</text>
+        <text x="30" y="244" class="axis-label">1</text>
+        <text x="30" y="204" class="axis-label">2</text>
+        <text x="30" y="164" class="axis-label">3</text>
+        <text x="30" y="124" class="axis-label">4</text>
+
+        <!-- Constraint lines -->
+        <line id="c1" x1="50" y1="80" x2="330" y2="280" class="constraint-line" stroke="#3b82f6"/>
+        <line id="c2" x1="210" y1="20" x2="210" y2="280" class="constraint-line" stroke="#8b5cf6"/>
+        <line id="c3" x1="50" y1="160" x2="470" y2="160" class="constraint-line" stroke="#f59e0b"/>
+
+        <!-- Feasible region (polygon) -->
+        <polygon id="feasible" points="210,160 210,220 290,280 50,280 50,160" class="feasible-region"/>
+
+        <!-- Iso-profit line -->
+        <line id="iso" x1="50" y1="240" x2="370" y2="80" class="iso-line"/>
+
+        <!-- Optimal point -->
+        <circle id="optPt" cx="210" cy="160" class="optimal-point"/>
+        <text id="optLabel" x="220" y="152" class="optimal-label">(1, 4) 利润=14</text>
+      </svg>
+      <div class="legend-box" id="legendBox" style="display:none;">
+        <div><span style="background:#3b82f6"></span> 2x+3y≤14</div>
+        <div><span style="background:#8b5cf6"></span> x≤2</div>
+        <div><span style="background:#f59e0b"></span> y≤3</div>
+        <div><span style="background:#22c55e"></span> 可行域</div>
+        <div><span style="background:#dc2626"></span> 等值线 N=2x+3y</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sol-types">
+    <div class="sol-type">
+      <div class="icon">🎯</div>
+      <div class="name">唯一最优解</div>
+      <div class="desc">可行域某个顶点</div>
+    </div>
+    <div class="sol-type">
+      <div class="icon">✨</div>
+      <div class="name">无穷多最优解</div>
+      <div class="desc">等值线与边界重合</div>
+    </div>
+    <div class="sol-type">
+      <div class="icon">🚀</div>
+      <div class="name">无界解</div>
+      <div class="desc">可行域无界延伸</div>
+    </div>
+    <div class="sol-type">
+      <div class="icon">🚫</div>
+      <div class="name">无可行解</div>
+      <div class="desc">约束互相矛盾</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Steps -->
+<div id="steps" class="tab-content">
+  <div class="explain"><strong>图解法</strong>——将约束画在坐标系，找可行域，平移等值线求最优解。</div>
+  <div class="step-list" id="stepList">
+    <div class="step-item" data-step="1">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>画约束直线</strong>：将每个不等式取等号，在坐标系中画直线</div>
+    </div>
+    <div class="step-item" data-step="2">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>定可行域</strong>：根据不等号方向，取各直线正确侧的交集区域</div>
+    </div>
+    <div class="step-item" data-step="3">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>画等值线</strong>：令目标函数 N = 某常数，画直线</div>
+    </div>
+    <div class="step-item" data-step="4">
+      <div class="step-num">4</div>
+      <div class="step-text"><strong>平移等值线</strong>：沿增大方向平移，最后一个接触可行域的点即最优解</div>
+    </div>
+    <div class="step-item" data-step="5">
+      <div class="step-num">5</div>
+      <div class="step-text"><strong>求最优值</strong>：将最优点坐标代入目标函数，得极值</div>
+    </div>
+  </div>
+
+  <div class="explain" style="margin-top:20px;"><strong>联立方程组法</strong>——取等号联立，求交点，验证可行性，比较目标函数值。</div>
+  <div class="step-list">
+    <div class="step-item" data-step="1">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>取等号</strong>：将所有约束不等式改为等式</div>
+    </div>
+    <div class="step-item" data-step="2">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>联立求解</strong>：两两联立方程，求交点坐标</div>
+    </div>
+    <div class="step-item" data-step="3">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>验证可行</strong>：代入原不等式，检查是否全部满足</div>
+    </div>
+    <div class="step-item" data-step="4">
+      <div class="step-num">4</div>
+      <div class="step-text"><strong>比较目标值</strong>：所有可行解代入目标函数，取最大/最小</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Code -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 线性规划 —— 图解法思路</span>
+
+<span class="cm">// 约束条件</span>
+constraints = [
+    <span class="st">2x + 3y ≤ 14</span>,    <span class="cm">// 原料约束</span>
+    <span class="st">x ≤ 2</span>,            <span class="cm">// 甲产量上限</span>
+    <span class="st">y ≤ 3</span>,            <span class="cm">// 乙产量上限 (应为 y≤4)</span>
+    <span class="st">x ≥ 0, y ≥ 0</span>      <span class="cm">// 非负约束</span>
+]
+
+<span class="cm">// 目标函数</span>
+<span class="kw">maximize</span> N = <span class="st">2x + 3y</span>
+
+<span class="cm">// Step 1: 画约束直线 → 找可行域顶点</span>
+<span class="kw">vertices</span> = <span class="fn">findIntersections</span>(constraints)
+<span class="cm">// → (0,0), (2,0), (2,4), (1,4), (0,14/3)</span>
+
+<span class="cm">// Step 2: 验证每个顶点是否满足所有约束</span>
+<span class="kw">feasible</span> = <span class="fn">filter</span>(vertices, v => <span class="fn">allSatisfied</span>(v, constraints))
+
+<span class="cm">// Step 3: 代入目标函数，找最大值</span>
+<span class="kw">optimal</span> = <span class="fn">max</span>(feasible, v => <span class="fn">eval</span>(<span class="st">2x+3y</span>, v))
+<span class="cm">// → (1, 4), N = 14 ✓</span></pre>
+</div>
+
+<!-- Tab: Examples -->
+<div id="examples" class="tab-content">
+  <div class="example-card">
+    <h5>📌 例1：生产优化问题</h5>
+    <div class="formula">
+      生产甲(x)、乙(y)产品<br>
+      约束：2x+3y≤14, x≤2, y≤4 (原题应为 8x≤16, 3y≤12)<br>
+      利润：N = 2x + 3y<br>
+      求最大利润
+    </div>
+    <p style="font-size:13px;color:#475569;margin:8px 0;">
+      <strong>图解法：</strong>画可行域 → 平移等值线 → 最优点 <span style="color:#dc2626;font-weight:600;">(1, 4)</span><br>
+      <strong>联立法：</strong>联立 x=1, y=4 交点 → 验证可行 → N = 2(1)+3(4) = <span style="color:#dc2626;font-weight:600;">14万元</span>
+    </p>
+    <div class="answer">✅ 最优解 x=1, y=4，最大利润 14 万元</div>
+  </div>
+
+  <div class="example-card">
+    <h5>📌 例2：练习题</h5>
+    <div class="formula">
+      约束：2x+3y≤30, x+2y≥10, x≥y, x≥5, y≥0<br>
+      目标函数：min N = 2x + 3y
+    </div>
+    <p style="font-size:13px;color:#475569;margin:8px 0;">
+      可行域顶点中寻找使 N 最小的点 →<br>
+      在 <span style="color:#dc2626;font-weight:600;">x=5, y=2.5</span> 处，N = 2(5)+3(2.5) = <span style="color:#dc2626;font-weight:600;">17.5</span>
+    </p>
+    <div class="answer">✅ 极小值在 (5, 2.5) 处 = 17.5</div>
+  </div>
+</div>
+
+<!-- Explain -->
+<div class="explain">
+  <strong>核心：</strong>线性规划 = <span class="hl">线性约束</span> + <span class="hl">线性目标函数</span> + 求<span class="hl">极值</span>。
+  图解法适合<span class="hl">2个变量</span>（直观不丢解），联立法适合<span class="hl">≥3个变量</span>。
+  最优解一定在可行域的<span class="hl">顶点</span>或<span class="hl">边界</span>上取到。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📐 图解法（2变量）</span>
+  <span class="tag-item">🔗 联立方程组法（≥3变量）</span>
+  <span class="tag-item">📈 等值线平移</span>
+  <span class="tag-item">🏭 生产优化</span>
+  <span class="tag-item">⚡ 约束多时 O(n) 优势</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>图解法直观，不丢失正解</li>
+      <li>约束多时计算量仅为 O(n)</li>
+      <li>最优解必在顶点/边界取得</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点 / 易错点</h4>
+    <ul>
+      <li>联立方程组法可能丢失正解（如最优解在坐标轴交点）</li>
+      <li>未知数 ≥ 3 时图解法难度增大</li>
+      <li>需注意非负约束 x≥0, y≥0</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">线性规划</span>
+    <span class="keyword">图解法</span>
+    <span class="keyword">联立方程组</span>
+    <span class="keyword">可行域</span>
+    <span class="keyword">等值线</span>
+    <span class="keyword">约束条件</span>
+    <span class="keyword">目标函数</span>
+    <span class="keyword">极值</span>
+    <span class="keyword">唯一最优解</span>
+    <span class="keyword">无穷多最优解</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>kp24-02（矩阵与线性变换）</strong> = 线性规划的矩阵表示基础</li>
+    <li><strong>kp24-04（单纯形法）</strong> = 线性规划的系统化求解算法</li>
+    <li><strong>数学建模</strong> = 将实际问题转化为线性规划模型</li>
+    <li><strong>优化理论</strong> = 线性规划是非线性规划、整数规划的基础</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animRunning = false;
+
+function resetAnimation() {
+  document.querySelectorAll('.constraint-line').forEach(el => el.classList.remove('draw'));
+  document.getElementById('feasible').classList.remove('show');
+  document.getElementById('iso').classList.remove('draw');
+  document.getElementById('optPt').classList.remove('show');
+  document.getElementById('optLabel').classList.remove('show');
+  document.getElementById('legendBox').style.display = 'none';
+  document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active'));
+}
+
+function playAnimation() {
+  if (animRunning) return;
+  animRunning = true;
+  document.getElementById('playBtn').textContent = '⏳ 播放中...';
+  resetAnimation();
+
+  const steps = document.querySelectorAll('#steps .step-item');
+  const c1 = document.getElementById('c1');
+  const c2 = document.getElementById('c2');
+  const c3 = document.getElementById('c3');
+  const feasible = document.getElementById('feasible');
+  const iso = document.getElementById('iso');
+  const optPt = document.getElementById('optPt');
+  const optLabel = document.getElementById('optLabel');
+  const legend = document.getElementById('legendBox');
+
+  // Step 1: draw constraint lines one by one
+  setTimeout(() => {
+    if (steps[0]) steps[0].classList.add('active');
+    c1.classList.add('draw');
+    legend.style.display = 'block';
+  }, 300);
+
+  setTimeout(() => {
+    c2.classList.add('draw');
+  }, 800);
+
+  setTimeout(() => {
+    c3.classList.add('draw');
+  }, 1300);
+
+  // Step 2: show feasible region
+  setTimeout(() => {
+    if (steps[1]) steps[1].classList.add('active');
+    feasible.classList.add('show');
+  }, 2000);
+
+  // Step 3: draw iso line
+  setTimeout(() => {
+    if (steps[2]) steps[2].classList.add('active');
+    iso.classList.add('draw');
+  }, 2800);
+
+  // Step 4: optimal point appears
+  setTimeout(() => {
+    if (steps[3]) steps[3].classList.add('active');
+    optPt.classList.add('show');
+    optLabel.classList.add('show');
+  }, 3600);
+
+  // Step 5: result
+  setTimeout(() => {
+    if (steps[4]) steps[4].classList.add('active');
+    document.getElementById('playBtn').textContent = '▶ 重新播放';
+    animRunning = false;
+  }, 4200);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

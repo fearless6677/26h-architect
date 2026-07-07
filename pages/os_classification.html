@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>操作系统分类与特征 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Animation area */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+.anim-subtitle { text-align: center; color: #64748b; font-size: 12px; margin-bottom: 16px; }
+
+/* OS grid */
+.os-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 700px; margin: 0 auto; }
+.os-card { border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 12px; text-align: center; transition: all 0.4s cubic-bezier(.4,0,.2,1); cursor: default; opacity: 0; transform: translateY(16px) scale(0.95); }
+.os-card.show { opacity: 1; transform: translateY(0) scale(1); }
+.os-card.highlight { transform: scale(1.05); box-shadow: 0 4px 20px rgba(37,99,235,0.25); z-index: 2; }
+.os-card h5 { font-size: 14px; margin-bottom: 4px; }
+.os-card p { font-size: 11px; color: #64748b; line-height: 1.5; }
+.os-card.batch { background: #fef3c7; border-color: #f59e0b; }
+.os-card.batch h5 { color: #92400e; }
+.os-card.timeshare { background: #dbeafe; border-color: #3b82f6; }
+.os-card.timeshare h5 { color: #1e40af; }
+.os-card.realtime { background: #fce7f3; border-color: #ec4899; }
+.os-card.realtime h5 { color: #9d174d; }
+.os-card.network { background: #d1fae5; border-color: #10b981; }
+.os-card.network h5 { color: #065f46; }
+.os-card.distributed { background: #e0e7ff; border-color: #6366f1; }
+.os-card.distributed h5 { color: #3730a3; }
+.os-card.embedded { background: #f3e8ff; border-color: #a855f7; }
+.os-card.embedded h5 { color: #6b21a8; }
+
+/* Feature pills (for timeshare) */
+.feature-pills { display: flex; justify-content: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.feature-pill { background: rgba(255,255,255,0.85); border: 1px solid #3b82f6; border-radius: 10px; font-size: 10px; color: #1e40af; padding: 1px 8px; font-weight: 600; opacity: 0; transform: scale(0.7); transition: all 0.3s; }
+.feature-pill.show { opacity: 1; transform: scale(1); }
+
+/* Four characteristics row */
+.four-features { display: flex; justify-content: center; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.feat-box { background: #fff; border: 2px solid #cbd5e1; border-radius: 10px; padding: 10px 16px; text-align: center; font-size: 13px; font-weight: 700; color: #334155; min-width: 90px; transition: all 0.4s; opacity: 0; transform: scale(0.6); }
+.feat-box.show { opacity: 1; transform: scale(1); }
+.feat-box span { display: block; font-size: 11px; color: #64748b; font-weight: 400; margin-top: 2px; }
+
+/* Code area */
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; }
+.code-area .fn { color: #c084fc; }
+.code-area .st { color: #86efac; }
+.code-area .cm { color: #64748b; }
+.code-area .ar { color: #fbbf24; }
+
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; }
+.explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; }
+.cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 操作系统 › 操作系统分类与特征</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">操作系统</span>
+  <span class="exam-tag">🔥 必考</span>
+  <span class="hour-tag">🕐 第1小时</span>
+  <h1>操作系统分类与特征</h1>
+  <p class="one-liner">操作系统分为批处理、分时、实时、网络、分布式、嵌入式6类，其中分时OS有4大特征（多路性/独立性/交互性/及时性）。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 速记代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <p class="anim-subtitle">6类操作系统一览 —— 点击播放查看各自特征</p>
+
+    <div class="os-grid">
+      <div class="os-card batch" id="c1">
+        <h5>📦 批处理OS</h5>
+        <p>作业批量提交<br>无交互（单道/多道）</p>
+      </div>
+      <div class="os-card timeshare" id="c2">
+        <h5>⏱️ 分时OS</h5>
+        <p>CPU时间片轮转</p>
+        <div class="feature-pills">
+          <span class="feature-pill" id="fp1">多路性</span>
+          <span class="feature-pill" id="fp2">独立性</span>
+          <span class="feature-pill" id="fp3">交互性</span>
+          <span class="feature-pill" id="fp4">及时性</span>
+        </div>
+      </div>
+      <div class="os-card realtime" id="c3">
+        <h5>⚡ 实时OS</h5>
+        <p>快速响应<br>高可靠性<br>（VxWorks 等）</p>
+      </div>
+      <div class="os-card network" id="c4">
+        <h5>🌐 网络OS</h5>
+        <p>共享网络资源<br>硬件独立性 / 多用户</p>
+      </div>
+      <div class="os-card distributed" id="c5">
+        <h5>🔗 分布式OS</h5>
+        <p>网络OS的高级形式<br>透明性 / 可靠性 / 高性能</p>
+      </div>
+      <div class="os-card embedded" id="c6">
+        <h5>📱 嵌入式OS</h5>
+        <p>微型化 / 可定制<br>易移植（HAL + BSP）</p>
+      </div>
+    </div>
+
+    <div class="four-features">
+      <div class="feat-box" id="f1">并发性<span>多任务同时推进</span></div>
+      <div class="feat-box" id="f2">共享性<span>资源可被多进程使用</span></div>
+      <div class="feat-box" id="f3">虚拟性<span>逻辑资源 vs 物理资源</span></div>
+      <div class="feat-box" id="f4">不确定性<span>执行结果不可预知</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 操作系统分类速记</span>
+<span class="fn">批处理OS</span>  <span class="ar">→</span> 作业批量提交，无交互（单道/多道）
+<span class="fn">分时OS</span>    <span class="ar">→</span> CPU时间片轮转，<span class="st">多路性/独立性/交互性/及时性</span>
+<span class="fn">实时OS</span>    <span class="ar">→</span> 快速响应，高可靠性，不强制交互（<span class="kw">VxWorks</span>等）
+<span class="fn">网络OS</span>    <span class="ar">→</span> 共享网络资源，硬件独立性，多用户
+<span class="fn">分布式OS</span>  <span class="ar">→</span> 网络OS的高级形式，<span class="kw">透明性</span>/可靠性/高性能
+<span class="fn">嵌入式OS</span>  <span class="ar">→</span> 微型化/可定制/易移植（<span class="kw">HAL</span>+<span class="kw">BSP</span>）
+
+<span class="cm">// OS 四大特征 = 并发性 + 共享性 + 虚拟性 + 不确定性</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>操作系统按类型分为<span class="hl">6类</span>：①批处理OS（作业批量执行，无交互）；②分时OS（时间片轮转，具<span class="hl">多路性/独立性/交互性/及时性</span>4大特点）；③实时OS（快速响应，高可靠性，如VxWorks、μC/OS-II）；④网络OS（共享网络资源）；⑤分布式OS（网络OS的高级形式，有<span class="hl">透明性</span>）；⑥嵌入式OS（微型化、可定制，采用<span class="hl">HAL</span>和<span class="hl">BSP</span>提高可移植性）。OS具有<span class="hl">并发性、共享性、虚拟性、不确定性</span>4大特征。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🖥️ UNIX/Linux 多用户终端（分时OS）</span>
+  <span class="tag-item">🚀 VxWorks 火星车（实时OS）</span>
+  <span class="tag-item">📱 Windows CE / eCos（嵌入式OS）</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>分时OS：多用户交互体验好</li>
+      <li>实时OS：响应及时、可靠性极高</li>
+      <li>嵌入式OS：微型化、可裁剪，适合资源受限设备</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 局限</h4>
+    <ul>
+      <li>批处理OS：无交互能力，调试困难</li>
+      <li>实时OS：成本高，开发复杂度大</li>
+      <li>嵌入式OS：硬件依赖强，跨平台移植有挑战</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">批处理</span>
+    <span class="keyword">分时</span>
+    <span class="keyword">实时</span>
+    <span class="keyword">多路性</span>
+    <span class="keyword">独立性</span>
+    <span class="keyword">交互性</span>
+    <span class="keyword">及时性</span>
+    <span class="keyword">HAL</span>
+    <span class="keyword">BSP</span>
+    <span class="keyword">VxWorks</span>
+    <span class="keyword">嵌入式OS</span>
+    <span class="keyword">并发性</span>
+    <span class="keyword">共享性</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="embedded_os_hal.html"><strong>嵌入式OS与HAL</strong></a> — 嵌入式OS通过HAL（硬件抽象层）和BSP（板级支持包）实现可移植性</li>
+    <li><span style="color:#94a3b8;font-size:12px">[文件系统]</span> — OS的核心子系统之一，管理持久化存储</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animating = false;
+function playAnimation() {
+  if (animating) return;
+  animating = true;
+  resetAll();
+
+  const cards = ['c1','c2','c3','c4','c5','c6'];
+  // Stagger cards in
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('show');
+    }, i * 150);
+  });
+
+  // Highlight timeshare card and show feature pills
+  const pillStart = cards.length * 150 + 300;
+  setTimeout(() => {
+    document.getElementById('c2').classList.add('highlight');
+    ['fp1','fp2','fp3','fp4'].forEach((pid, i) => {
+      setTimeout(() => document.getElementById(pid).classList.add('show'), i * 200);
+    });
+  }, pillStart);
+
+  // Un-highlight, show four characteristics
+  const featStart = pillStart + 4 * 200 + 400;
+  setTimeout(() => {
+    document.getElementById('c2').classList.remove('highlight');
+    ['f1','f2','f3','f4'].forEach((fid, i) => {
+      setTimeout(() => document.getElementById(fid).classList.add('show'), i * 200);
+    });
+  }, featStart);
+
+  // Briefly highlight each other card
+  const cycleStart = featStart + 4 * 200 + 300;
+  const others = [
+    { id: 'c1', dur: 500 },
+    { id: 'c3', dur: 500 },
+    { id: 'c4', dur: 500 },
+    { id: 'c5', dur: 500 },
+    { id: 'c6', dur: 500 },
+  ];
+  let delay = 0;
+  others.forEach(o => {
+    setTimeout(() => {
+      document.getElementById(o.id).classList.add('highlight');
+      setTimeout(() => document.getElementById(o.id).classList.remove('highlight'), o.dur);
+    }, cycleStart + delay);
+    delay += o.dur + 100;
+  });
+
+  setTimeout(() => { animating = false; }, cycleStart + delay + 200);
+}
+
+function resetAll() {
+  for (let i = 1; i <= 6; i++) {
+    const el = document.getElementById('c' + i);
+    el.classList.remove('show', 'highlight');
+  }
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('fp' + i).classList.remove('show');
+    document.getElementById('f' + i).classList.remove('show');
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

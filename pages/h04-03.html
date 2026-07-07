@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>原型法（快速原型法） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; font-weight: 600; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 原型法专用样式 */
+.tree { padding: 8px 0; }
+.tree-node { position: relative; padding: 10px 16px; margin: 6px 0; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: default; transition: all 0.4s ease; opacity: 0; transform: translateX(-20px); }
+.tree-node.visible { opacity: 1; transform: translateX(0); }
+.tree-node.root { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; text-align: center; font-size: 15px; transform: translateY(-10px); }
+.tree-node.root.visible { transform: translateY(0); }
+.tree-node.level1 { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; margin-left: 32px; }
+.tree-node.level2 { background: #fefce8; border: 2px solid #eab308; color: #854d0e; margin-left: 64px; }
+.tree-node.level3 { background: #fdf4ff; border: 2px solid #a855f7; color: #6b21a8; margin-left: 96px; font-weight: 500; }
+.tree-node .desc { font-weight: 400; font-size: 12px; color: #64748b; display: block; margin-top: 2px; }
+.tree-connector { position: absolute; left: -20px; top: 50%; width: 16px; height: 2px; background: #cbd5e1; }
+.level1 .tree-connector { left: -28px; }
+.level2 .tree-connector { left: -28px; }
+.level3 .tree-connector { left: -28px; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+.example-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.example-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; transition: transform 0.2s, box-shadow 0.2s; }
+.example-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.example-card .type { font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+.example-card .type.horizontal { color: #2563eb; }
+.example-card .type.vertical { color: #059669; }
+.example-card .type.throwaway { color: #d97706; }
+.example-card .type.evolutionary { color: #7c3aed; }
+.example-card .text { font-size: 13px; color: #475569; }
+
+.step-flow { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.step-box { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 90px; }
+.step-box.user { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.step-box.build { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.step-box.review { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.step-box.refine { background: #fdf4ff; border: 2px solid #a855f7; color: #6b21a8; }
+.step-box.active { transform: scale(1.1); box-shadow: 0 0 16px rgba(37,99,235,0.3); }
+.step-arrow { color: #94a3b8; font-size: 18px; }
+
+.section-title { font-size: 16px; font-weight: 700; color: #1e293b; margin: 20px 0 10px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 信息系统开发方法 › 原型法</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">信息系统开发方法</span>
+  <span class="exam-tag">🔥 必考</span>
+  <h1>原型法（快速原型法）</h1>
+  <p class="one-liner">原型法是用系统工具快速搭一个模型给用户看，边看边改，解决需求说不清的问题。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 分类动画</div>
+  <div class="tab" onclick="switchTab(this,'flow')">🔄 流程演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'examples')">📦 实例</div>
+</div>
+
+<!-- Tab: 分类动画 -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playTreeAnim()">▶ 播放</button>
+    <div class="tree">
+      <div class="tree-node root" id="n0">
+        原型法
+        <span class="desc">根据用户初步需求快速建立系统模型进行交流</span>
+      </div>
+
+      <div class="tree-node level1" id="n1">
+        <div class="tree-connector"></div>
+        按功能分
+        <span class="desc">关注原型"做什么" — 界面 or 算法？</span>
+      </div>
+      <div class="tree-node level2" id="n2">
+        <div class="tree-connector"></div>
+        水平原型（行为原型）→ 界面/行为
+        <span class="desc">细化需求，不实现功能 — 做UI展示</span>
+      </div>
+      <div class="tree-node level2" id="n3">
+        <div class="tree-connector"></div>
+        垂直原型（结构化原型）→ 复杂算法
+        <span class="desc">实现部分功能 — 做底层验证</span>
+      </div>
+
+      <div class="tree-node level1" id="n4">
+        <div class="tree-connector"></div>
+        按结果分
+        <span class="desc">关注原型"用完怎么办" — 扔 or 留？</span>
+      </div>
+      <div class="tree-node level2" id="n5">
+        <div class="tree-connector"></div>
+        抛弃式原型（探索式）
+        <span class="desc">解决需求不确定 / 二义性 / 不完整性 / 含糊性</span>
+      </div>
+      <div class="tree-node level2" id="n6">
+        <div class="tree-connector"></div>
+        演化式原型 → 逐步演化为最终系统
+        <span class="desc">适合Web项目和易于升级优化的场景</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="explain">
+    <strong>核心记忆：</strong>
+    水平原型 = <span class="hl">看面子</span>（界面展示，后台没数据）；
+    垂直原型 = <span class="hl">看里子</span>（算法可行，界面不重要）。
+    抛弃式 = <span class="hl">用完就扔</span>，搞清需求就行；
+    演化式 = <span class="hl">越改越好</span>，最终变成成品。
+  </div>
+</div>
+
+<!-- Tab: 流程演示 -->
+<div id="flow" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playFlowAnim()">▶ 播放</button>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px;">原型法的核心流程：快速搭建 → 用户试用 → 反馈修改 → 循环迭代</p>
+    <div class="step-flow">
+      <div class="step-box user" id="f1">👤 用户<br>提需求</div>
+      <span class="step-arrow">→</span>
+      <div class="step-box build" id="f2">🔨 快速<br>建原型</div>
+      <span class="step-arrow">→</span>
+      <div class="step-box review" id="f3">👀 用户<br>试用评价</div>
+      <span class="step-arrow">→</span>
+      <div class="step-box refine" id="f4">🔧 调整<br>修改原型</div>
+      <span class="step-arrow" style="font-size:14px;">🔁</span>
+    </div>
+    <div style="text-align:center;margin-top:12px;">
+      <div class="step-box" id="f5" style="background:#fef2f2;border:2px solid #ef4444;color:#991b1b;opacity:0.3;transition:all 0.4s;">✅ 最终系统</div>
+    </div>
+  </div>
+
+  <div class="explain">
+    <strong>关键点：</strong>原型法的核心是<span class="hl">快速</span>和<span class="hl">迭代</span>。
+    不追求一次完美，而是通过反复交流<span class="hl">逐步逼近</span>用户真正想要的东西。
+    特别适合需求<span class="hl">说不清、道不明</span>的项目。
+  </div>
+</div>
+
+<!-- Tab: 伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 原型法 —— 快速搭建模型，边看边改</span>
+
+<span class="cm">// ============ 水平原型（行为原型）============</span>
+<span class="kw">function</span> <span class="fn">水平原型</span>(需求) {
+    <span class="kw">let</span> 原型 = <span class="fn">快速搭建UI</span>(需求)     <span class="cm">// 只做界面，所有按钮都能点</span>
+    原型.<span class="fn">连接后台</span>(<span class="st">null</span>)             <span class="cm">// 但没有真实数据！</span>
+    <span class="kw">return</span> 原型                        <span class="cm">// 给客户看效果、细化需求</span>
+}
+
+<span class="cm">// ============ 垂直原型（结构化原型）============</span>
+<span class="kw">function</span> <span class="fn">垂直原型</span>(核心算法) {
+    <span class="kw">let</span> 原型 = <span class="fn">实现核心功能</span>(核心算法)  <span class="cm">// 只做关键算法，验证可行性</span>
+    原型.<span class="fn">做界面</span>(<span class="st">极简</span>)                <span class="cm">// 界面丑没关系，功能跑通就行</span>
+    <span class="kw">return</span> 原型
+}
+
+<span class="cm">// ============ 抛弃式原型（探索式）============</span>
+<span class="kw">function</span> <span class="fn">抛弃式原型</span>(模糊需求) {
+    <span class="kw">let</span> 原型 = <span class="fn">快速建模</span>(模糊需求)      <span class="cm">// 解决需求不确定/二义性/不完整性</span>
+    用户.<span class="fn">试用并明确需求</span>(原型)          <span class="cm">// 客户看完就清楚了</span>
+    <span class="kw">delete</span> 原型                          <span class="cm">// 用完即弃！不是最终代码</span>
+    <span class="kw">return</span> 用户.<span class="fn">明确后的需求</span>
+}
+
+<span class="cm">// ============ 演化式原型 ============</span>
+<span class="kw">function</span> <span class="fn">演化式原型</span>(需求) {
+    <span class="kw">let</span> 系统 = <span class="fn">MVP版本</span>(需求)          <span class="cm">// 先做核心功能上线</span>
+    <span class="kw">while</span> (用户.<span class="fn">有新需求</span>()) {
+        系统 = 系统.<span class="fn">迭代优化</span>()        <span class="cm">// 逐步演化为最终系统</span>
+    }
+    <span class="kw">return</span> 系统                          <span class="cm">// 适合Web项目、易于升级优化</span>
+}</pre>
+</div>
+
+<!-- Tab: 实例 -->
+<div id="examples" class="tab-content">
+  <div class="section-title">📦 生活化实例</div>
+  <div class="example-grid">
+    <div class="example-card">
+      <div class="type horizontal">水平原型</div>
+      <div class="text">给客户做一个所有页面都能点但后台没数据的 Demo</div>
+    </div>
+    <div class="example-card">
+      <div class="type vertical">垂直原型</div>
+      <div class="text">实现核心算法模块验证可行性，其他不做</div>
+    </div>
+    <div class="example-card">
+      <div class="type throwaway">抛弃式</div>
+      <div class="text">做完 Demo 客户看完需求清楚了就扔掉</div>
+    </div>
+    <div class="example-card">
+      <div class="type evolutionary">演化式</div>
+      <div class="text">先做核心功能上线，后续不断迭代完善</div>
+    </div>
+  </div>
+
+  <div class="explain">
+    <strong>记忆技巧：</strong>
+    水平原型像<span class="hl">样板间</span>——看着漂亮但没水没电；
+    垂直原型像<span class="hl">发动机测试</span>——丑但能跑；
+    抛弃式像<span class="hl">草稿纸</span>——算完就扔；
+    演化式像<span class="hl">养孩子</span>——慢慢长大成人。
+  </div>
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📐 界面原型（Figma / Axure）</span>
+  <span class="tag-item">🔬 算法验证原型</span>
+  <span class="tag-item">🌐 Web敏捷迭代</span>
+  <span class="tag-item">💬 需求沟通工具</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>有效解决需求不确定性</li>
+      <li>用户参与度高，减少返工</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>用户可能误解原型为成品</li>
+      <li>原型质量可能较差</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">水平原型 / 行为原型</span>
+    <span class="keyword">垂直原型 / 结构化原型</span>
+    <span class="keyword">抛弃式 / 探索式</span>
+    <span class="keyword">演化式</span>
+    <span class="keyword">需求不确定性 / 二义性 / 不完整性 / 含糊性</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="h04-05.html" style="color:#0369a1;text-decoration:none;font-weight:600;">敏捷开发</a> — 原型法是敏捷方法的思想基础之一，都强调迭代和反馈</li>
+    <li><a href="h04-03b.html" style="color:#0369a1;text-decoration:none;font-weight:600;">原型法（补充）</a> — 原型法的补充知识点，深入对比各开发方法</li>
+    <li><strong>vs 瀑布模型</strong>：瀑布是"想清楚再做"，原型法是"做着做着就想清楚了"</li>
+    <li><strong>MVP（最小可行产品）</strong>：演化式原型的商业实践版本</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* 分类树动画 */
+function playTreeAnim() {
+  const nodes = document.querySelectorAll('.tree-node');
+  nodes.forEach(n => n.classList.remove('visible'));
+  nodes.forEach((node, i) => {
+    setTimeout(() => {
+      node.classList.add('visible');
+    }, i * 250);
+  });
+}
+
+/* 流程动画 */
+function playFlowAnim() {
+  const steps = ['f1','f2','f3','f4'];
+  steps.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active');
+    el.style.opacity = '0.4';
+  });
+  const finalEl = document.getElementById('f5');
+  finalEl.style.opacity = '0.3';
+  finalEl.style.transform = 'scale(1)';
+
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.style.opacity = '1';
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 400);
+    }, i * 600);
+  });
+
+  setTimeout(() => {
+    finalEl.style.opacity = '1';
+    finalEl.style.transform = 'scale(1.08)';
+  }, steps.length * 600 + 200);
+}
+
+/* 页面加载自动播放树动画 */
+window.addEventListener('load', () => setTimeout(playTreeAnim, 400));
+</script>
+</body>
+</html>

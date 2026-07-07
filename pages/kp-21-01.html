@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信息安全威胁分类与常见攻击 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fffbeb; color: #b45309; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Animation styles */
+.attack-map { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.source-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.source-box { background: #fef2f2; border: 2px solid #fca5a5; color: #b91c1c; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; transition: all 0.3s; cursor: default; }
+.source-box.alert { transform: scale(1.1); box-shadow: 0 0 12px rgba(220,38,38,0.4); border-color: #dc2626; }
+.arrow-down { width: 2px; height: 20px; background: #cbd5e1; position: relative; }
+.arrow-down::after { content: '▼'; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #94a3b8; }
+.classify-row { display: flex; gap: 40px; align-items: flex-start; justify-content: center; margin-top: 8px; }
+.classify-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.classify-header { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; }
+.classify-header.passive { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.classify-header.active { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.threat-tag { padding: 6px 14px; border-radius: 16px; font-size: 12px; opacity: 0; transform: translateY(-8px); transition: all 0.35s; }
+.threat-tag.show { opacity: 1; transform: translateY(0); }
+.threat-tag.passive { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+.threat-tag.active { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+.desc-line { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 信息安全 › 信息安全威胁分类与常见攻击</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">安全威胁与攻击类型</span>
+  <span class="exam-tag">⭐ 中频考点</span>
+  <h1>信息安全威胁分类与常见攻击</h1>
+  <p class="one-liner">安全威胁分为被动攻击（只窃取不修改）和主动攻击（修改/伪造信息），共19种常见威胁类型</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 攻击分类动画</div>
+  <div class="tab" onclick="switchTab(this,'threats')">🛡️ 19种威胁</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放攻击流程</button>
+    <div class="attack-map">
+      <div class="source-row" id="sourceRow">
+        <div class="source-box" data-idx="0">物理环境</div>
+        <div class="source-box" data-idx="1">通信链路</div>
+        <div class="source-box" data-idx="2">网络系统</div>
+        <div class="source-box" data-idx="3">操作系统</div>
+        <div class="source-box" data-idx="4">应用系统</div>
+        <div class="source-box" data-idx="5">管理系统</div>
+      </div>
+      <div class="arrow-down"></div>
+      <div class="classify-row">
+        <div class="classify-col">
+          <div class="classify-header passive">被动攻击</div>
+          <p class="desc-line">只窃取，不修改</p>
+          <div class="threat-tag passive" id="pt1">窃听</div>
+          <div class="threat-tag passive" id="pt2">信息泄露</div>
+          <div class="threat-tag passive" id="pt3">业务流分析</div>
+        </div>
+        <div class="classify-col">
+          <div class="classify-header active">主动攻击</div>
+          <p class="desc-line">修改或伪造信息</p>
+          <div class="threat-tag active" id="at1">非法登录</div>
+          <div class="threat-tag active" id="at2">假冒身份</div>
+          <div class="threat-tag active" id="at3">拒绝服务</div>
+          <div class="threat-tag active" id="at4">数据篡改</div>
+          <div class="threat-tag active" id="at5">重放攻击</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="threats" class="tab-content">
+  <div class="anim-area">
+    <p class="explain" style="margin-bottom:12px"><strong>19种常见安全威胁</strong>——点击分类查看：</p>
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <h4 style="color:#1d4ed8;margin-bottom:8px;font-size:14px">🔵 被动攻击相关（3种）</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="threat-tag passive show" style="cursor:default">窃听 — 截取通信内容</div>
+          <div class="threat-tag passive show" style="cursor:default">信息泄露 — 敏感数据外泄</div>
+          <div class="threat-tag passive show" style="cursor:default">业务流分析 — 分析通信模式</div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <h4 style="color:#b91c1c;margin-bottom:8px;font-size:14px">🔴 主动攻击相关（16种）</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="threat-tag active show" style="cursor:default">完整性破坏</div>
+          <div class="threat-tag active show" style="cursor:default">拒绝服务（DoS）</div>
+          <div class="threat-tag active show" style="cursor:default">非法访问</div>
+          <div class="threat-tag active show" style="cursor:default">假冒</div>
+          <div class="threat-tag active show" style="cursor:default">旁路控制</div>
+          <div class="threat-tag active show" style="cursor:default">授权侵犯</div>
+          <div class="threat-tag active show" style="cursor:default">特洛伊木马</div>
+          <div class="threat-tag active show" style="cursor:default">陷阱门（后门）</div>
+          <div class="threat-tag active show" style="cursor:default">抵赖</div>
+          <div class="threat-tag active show" style="cursor:default">重放</div>
+          <div class="threat-tag active show" style="cursor:default">病毒</div>
+          <div class="threat-tag active show" style="cursor:default">人员渎职</div>
+          <div class="threat-tag active show" style="cursor:default">媒体废弃</div>
+          <div class="threat-tag active show" style="cursor:default">物理侵入</div>
+          <div class="threat-tag active show" style="cursor:default">窃取</div>
+          <div class="threat-tag active show" style="cursor:default">业务欺骗</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 信息安全威胁分类 —— 被动 vs 主动攻击</span>
+
+<span class="kw">class</span> <span class="fn">SecurityThreat</span> {
+    <span class="cm">// 被动攻击：只窃取，不修改信息</span>
+    <span class="fn">passiveAttack</span>(target) {
+        <span class="kw">return</span> {
+            窃听: <span class="st">"监听通信链路，截取数据"</span>,
+            信息泄露: <span class="st">"敏感信息被未授权获取"</span>,
+            业务流分析: <span class="st">"分析通信模式推断内容"</span>
+        }[target]
+        <span class="cm">// ⚠️ 特点：检测难度大，信息未被修改</span>
+    }
+
+    <span class="cm">// 主动攻击：修改或伪造信息</span>
+    <span class="fn">activeAttack</span>(target) {
+        <span class="kw">return</span> {
+            非法登录: <span class="st">"未授权访问系统资源"</span>,
+            假冒身份: <span class="st">"冒充合法用户获取权限"</span>,
+            拒绝服务: <span class="st">"使系统无法正常服务"</span>,
+            数据篡改: <span class="st">"修改传输或存储的数据"</span>,
+            重放攻击: <span class="st">"截获合法数据后重新发送"</span>,
+            特洛伊木马: <span class="st">"伪装无害程序执行恶意操作"</span>,
+            陷阱门: <span class="st">"预留后门绕过安全策略"</span>
+        }[target]
+        <span class="cm">// ⚠️ 特点：可检测但损害已造成</span>
+    }
+}
+
+<span class="cm">// 威胁来源6大层面：物理环境→通信链路→网络→操作系统→应用→管理</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>安全威胁来源包括<span class="hl">物理环境、通信链路、网络系统、操作系统、应用系统、管理系统</span>六大层面。
+  攻击分为<span class="hl">被动型</span>（监听、截取，不修改信息只窃取）和<span class="hl">主动型</span>（非法登录、假冒、拒绝服务、篡改、重放等，会修改或伪造信息）。
+  共19种常见威胁类型构成安全检查清单。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🐴 特洛伊木马：伪装无害程序</span>
+  <span class="tag-item">🚪 陷阱门：系统预留"机关"</span>
+  <span class="tag-item">🔁 重放攻击：截获后非法重发</span>
+  <span class="tag-item">🎭 假冒身份：冒充合法用户</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优势</h4>
+    <ul>
+      <li>覆盖全面的安全威胁分类体系</li>
+      <li>区分主被动攻击有助于制定针对性防御策略</li>
+      <li>19种威胁类型为安全设计提供检查清单</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 挑战</h4>
+    <ul>
+      <li>被动攻击不修改信息，检测难度大</li>
+      <li>主动攻击虽可检测但已造成损害</li>
+      <li>威胁类型繁多，难以全面防护</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">被动攻击</span>
+    <span class="keyword">主动攻击</span>
+    <span class="keyword">特洛伊木马</span>
+    <span class="keyword">陷阱门</span>
+    <span class="keyword">重放攻击</span>
+    <span class="keyword">业务流分析</span>
+    <span class="keyword">旁路控制</span>
+    <span class="keyword">授权侵犯</span>
+  </div>
+  <p style="font-size:12px;color:#92400e;margin-top:8px">中频考点，历年选择题常考被动/主动攻击区分及陷阱门/木马概念辨析</p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>安全防御策略（kp-21-02）</strong> = 针对被动/主动攻击的对应防御方案</li>
+    <li><strong>加密与认证（kp-21-04）</strong> = 防止窃听、篡改、重放的技术手段</li>
+    <li><strong>陷阱门 vs 特洛伊木马</strong>：陷阱门是系统内部预留的后门，木马是伪装的外部恶意程序</li>
+    <li><strong>被动 vs 主动</strong>：被动只看不改（难检测），主动又改又造（可检测但已受损）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  if (animTimer) return;
+  const sources = document.querySelectorAll('.source-box');
+  const passives = [document.getElementById('pt1'), document.getElementById('pt2'), document.getElementById('pt3')];
+  const actives = [document.getElementById('at1'), document.getElementById('at2'), document.getElementById('at3'), document.getElementById('at4'), document.getElementById('at5')];
+
+  // Reset
+  sources.forEach(s => s.classList.remove('alert'));
+  [...passives, ...actives].forEach(t => t.classList.remove('show'));
+
+  let step = 0;
+  animTimer = setInterval(() => {
+    if (step < sources.length) {
+      sources[step].classList.add('alert');
+    } else if (step < sources.length + passives.length) {
+      const idx = step - sources.length;
+      passives[idx].classList.add('show');
+    } else if (step < sources.length + passives.length + actives.length) {
+      const idx = step - sources.length - passives.length;
+      actives[idx].classList.add('show');
+    } else {
+      clearInterval(animTimer);
+      animTimer = null;
+      // Reset after a pause
+      setTimeout(() => {
+        sources.forEach(s => s.classList.remove('alert'));
+        [...passives, ...actives].forEach(t => t.classList.remove('show'));
+      }, 2000);
+      return;
+    }
+    step++;
+  }, 350);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

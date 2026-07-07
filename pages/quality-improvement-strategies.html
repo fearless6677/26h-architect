@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四大质量属性提升策略 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 质量属性提升策略 › 四大质量属性提升策略</span></nav>
+<div class="ct">
+<div><span class="tag c">质量属性提升策略</span><span class="tag e">高频</span>
+<h1>四大质量属性提升策略</h1><p class="ol">可用性、性能、可修改性、安全性四大质量属性各有三大提升策略</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>提升可用性从错误检测(心跳、Ping/Echo、异常)、错误恢复(表决、主动冗余、被动冗余、检查点/回滚)、错误避免(服务下线、事务、进程监控器)三方面考虑。提升性能从资源需求、资源管理、资源仲裁三方面考虑。提升可修改性从局部化修改(高内聚低耦合)、防止连锁反应(信息隐藏、使用中介)、推迟绑定时间(运行时注册、多态、配置文件)三方面考虑。提升安全性从抵抗攻击、检测攻击、从攻击中恢复三方面考虑。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">质量属性提升策略:
+  可用性:
+    错误检测: [心跳, Ping/Echo, 异常]
+    错误恢复: [表决, 主动冗余, 被动冗余, 重新同步, 内测, 检查点/回滚]
+    错误避免: [服务下线, 事务, 进程监控器]
+  性能:
+    资源需求: [减少资源占用, 减少处理事件数量, 控制资源使用]
+    资源管理: [并发机制, 增加资源]
+    资源仲裁: [先来先服务, 固定优先级, 动态优先级, 静态调度]
+  可修改性:
+    局部化修改: [高内聚低耦合, 预测变更, 使模块通用]
+    防止连锁反应: [信息隐藏, 维持现有接口, 限制通信路径, 使用中介]
+    推迟绑定时间: [运行时注册, 多态, 配置文件]
+  安全性:
+    抵抗攻击: [身份验证, 授权, 机密性与完整性, 限制暴露, 限制访问]
+    检测攻击: [入侵检测系统]
+    从攻击中恢复: [恢复状态, 识别攻击者]</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>可用性-心跳检测：定期发送心跳包检测系统组件是否存活</li><li>性能-并发机制：通过多线程/多进程提高系统吞吐量</li><li>可修改性-高内聚低耦合：模块内部功能紧密相关，模块之间依赖关系尽量少</li><li>安全性-入侵检测系统(IDS)：监控网络或系统活动，检测并响应未授权访问</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>提供了系统化的质量属性提升框架</li><li>策略覆盖全面，从检测到恢复到预防</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">错误检测</span><span class="k">错误恢复</span><span class="k">错误避免</span><span class="k">心跳</span><span class="k">主动冗余</span><span class="k">被动冗余</span><span class="k">检查点/回滚</span><span class="k">资源仲裁</span><span class="k">高内聚低耦合</span><span class="k">信息隐藏</span><span class="k">推迟绑定时间</span><span class="k">运行时注册</span><span class="k">多态</span><span class="k">身份验证</span><span class="k">入侵检测</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="quality-attributes-classification.html">quality-attributes-classification</a></li><li><a href="atam-evaluation.html">atam-evaluation</a></li></ul></div>
+</div></body></html>

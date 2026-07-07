@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微服务设计约束 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 260px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Four-layer constraint diagram */
+.layer-stack { display: flex; flex-direction: column; gap: 10px; max-width: 700px; margin: 0 auto; }
+.layer-card { display: flex; align-items: stretch; border-radius: 10px; overflow: hidden; transition: all 0.4s ease; }
+.layer-card.active { transform: scale(1.03); box-shadow: 0 4px 20px rgba(37,99,235,0.25); z-index: 2; }
+.layer-label { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 90px; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.layer-body { flex: 1; padding: 14px 18px; font-size: 13px; color: #334155; background: #fff; border: 1px solid #e2e8f0; border-left: none; border-radius: 0 10px 10px 0; display: flex; flex-direction: column; gap: 4px; }
+.layer-body .sub { font-weight: 600; color: #1e40af; }
+.l1 .layer-label { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.l2 .layer-label { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+.l3 .layer-label { background: linear-gradient(135deg, #10b981, #059669); }
+.l4 .layer-label { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+/* Service interaction animation */
+.svc-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 8px; flex-wrap: wrap; }
+.svc { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: all 0.3s; min-width: 90px; text-align: center; }
+.svc.svc-a { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.svc.svc-b { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.svc.svc-reg { background: #fefce8; border: 2px solid #eab308; color: #a16207; }
+.svc.svc-db { background: #fdf2f8; border: 2px solid #ec4899; color: #be185d; }
+.svc.pulse { transform: scale(1.12); box-shadow: 0 0 14px rgba(37,99,235,0.45); }
+.arrow-line { font-size: 18px; color: #94a3b8; transition: color 0.3s; }
+.arrow-line.flash { color: #2563eb; }
+
+/* Pipeline steps */
+.deploy-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.deploy-step { padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.3s; }
+.deploy-step.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.deploy-step.orange { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.deploy-step.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.deploy-step.active { transform: scale(1.1); box-shadow: 0 0 12px rgba(34,197,94,0.5); }
+.pipe-h { width: 28px; height: 3px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe-h .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.2s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 28px; } }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.section-label { font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 6px; font-weight: 600; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 云原生架构相关技术 › 微服务设计约束</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">云原生架构相关技术</span>
+  <span class="exam-tag">⭐ 2~4分（单选）+ 案例题</span>
+  <h1>微服务设计约束</h1>
+  <p class="one-liner">微服务四层设计约束：个体约束（业务独立）、横向关系（可发现性+可交互性）、纵向约束（数据存储隔离DSS）、分布式约束（CI/CD+蓝绿/金丝雀发布）。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 四层动画</div>
+  <div class="tab" onclick="switchTab(this,'interact')">🔄 横向关系</div>
+  <div class="tab" onclick="switchTab(this,'deploy')">🚀 发布策略</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- ============ TAB 1: 四层约束 ============ -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playLayers()">▶ 逐层播放</button>
+    <div class="layer-stack">
+      <div class="layer-card l1" id="L1">
+        <div class="layer-label">个体<br>约束</div>
+        <div class="layer-body">
+          <span class="sub">业务领域划分独立</span>
+          每个微服务在业务上相互独立，互不耦合
+        </div>
+      </div>
+      <div class="layer-card l2" id="L2">
+        <div class="layer-label">横向<br>关系</div>
+        <div class="layer-body">
+          <span class="sub">可发现性 + 可交互性</span>
+          服务A发布/扩缩容时，依赖服务B能自动感知；服务间通过API交互
+        </div>
+      </div>
+      <div class="layer-card l3" id="L3">
+        <div class="layer-label">纵向<br>约束</div>
+        <div class="layer-body">
+          <span class="sub">数据存储隔离（DSS原则）</span>
+          数据访问必须通过对应微服务的API，不能跨库直接读取
+        </div>
+      </div>
+      <div class="layer-card l4" id="L4">
+        <div class="layer-label">分布式<br>约束</div>
+        <div class="layer-body">
+          <span class="sub">全自动化CI/CD + 蓝绿/金丝雀发布</span>
+          支持自动化流水线，实现零停机、灰度发布
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAB 2: 横向关系 ============ -->
+<div id="interact" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playDiscover()">▶ 播放</button>
+
+    <div class="section-label">🔍 可发现性</div>
+    <div class="svc-row">
+      <div class="svc svc-a" id="sa1">服务A</div>
+      <span class="arrow-line" id="ar1">⟶</span>
+      <div class="svc svc-reg" id="sreg">注册中心</div>
+      <span class="arrow-line" id="ar2">⟵</span>
+      <div class="svc svc-b" id="sb1">服务B</div>
+    </div>
+
+    <div class="section-label" style="margin-top:20px">🔒 纵向约束 — DSS 数据存储隔离</div>
+    <div class="svc-row">
+      <div class="svc svc-a" id="sa2">订单服务</div>
+      <span class="arrow-line" id="ar3">⟶</span>
+      <div class="svc svc-db" id="db1">订单数据库</div>
+    </div>
+    <div class="svc-row">
+      <div class="svc svc-b" id="sb2">库存服务</div>
+      <span class="arrow-line" id="ar4">⟶</span>
+      <div class="svc svc-db" id="db2">库存数据库</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAB 3: 发布策略 ============ -->
+<div id="deploy" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playDeploy('blue')">▶ 蓝绿发布</button>
+    <button class="play-btn" style="right:110px" onclick="playDeploy('canary')">▶ 金丝雀</button>
+
+    <div class="section-label">🔵🟢 蓝绿发布</div>
+    <div class="deploy-row" id="blueRow">
+      <div class="deploy-step blue" id="b1">旧版本(绿)</div>
+      <div class="pipe-h"><div class="flow"></div></div>
+      <div class="deploy-step orange" id="b2">部署新版(蓝)</div>
+      <div class="pipe-h"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="deploy-step green" id="b3">切换流量</div>
+      <div class="pipe-h"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="deploy-step blue" id="b4">下线旧版</div>
+    </div>
+
+    <div class="section-label" style="margin-top:24px">🐤 金丝雀发布</div>
+    <div class="deploy-row" id="canaryRow">
+      <div class="deploy-step blue" id="c1">1% 用户</div>
+      <div class="pipe-h"><div class="flow"></div></div>
+      <div class="deploy-step orange" id="c2">5% 用户</div>
+      <div class="pipe-h"><div class="flow" style="animation-delay:.3s"></div></div>
+      <div class="deploy-step orange" id="c3">20% 用户</div>
+      <div class="pipe-h"><div class="flow" style="animation-delay:.6s"></div></div>
+      <div class="deploy-step green" id="c4">100% 全量</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAB 4: 伪代码 ============ -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 微服务四层设计约束</span>
+
+<span class="cm">// ① 个体约束 —— 每个服务业务独立</span>
+<span class="kw">service</span> <span class="fn">OrderService</span> {   <span class="cm">// 只管"订单"领域</span>
+    api.createOrder()
+    api.queryOrder()
+}
+<span class="kw">service</span> <span class="fn">InventoryService</span> { <span class="cm">// 只管"库存"领域</span>
+    api.deductStock()
+    api.queryStock()
+}
+
+<span class="cm">// ② 横向约束 —— 可发现性</span>
+<span class="fn">registry</span>.register(<span class="st">"OrderService"</span>, <span class="st">"10.0.0.1:8080"</span>)
+<span class="fn">registry</span>.discover(<span class="st">"InventoryService"</span>)  <span class="cm">// 自动感知，无需重新发布</span>
+
+<span class="cm">// ③ 纵向约束 —— DSS 数据存储隔离</span>
+<span class="cm">// ✅ 正确：通过API访问</span>
+<span class="fn">InventoryService</span>.api.deductStock(order.sku)
+<span class="cm">// ❌ 错误：订单服务直接访问库存数据库！</span>
+<span class="cm">// OrderService.query("SELECT * FROM inventory_db...")  ← 违反DSS</span>
+
+<span class="cm">// ④ 分布式约束 —— 全自动化CI/CD</span>
+<span class="kw">pipeline</span> {
+    build → test → <span class="fn">canary</span>(<span class="st">"1%"</span>) → <span class="fn">canary</span>(<span class="st">"20%"</span>) → <span class="fn">fullRelease</span>()
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>微服务将单体应用拆为<span class="hl">松耦合</span>的多个子应用。
+  四层约束从<span class="hl">个体→横向→纵向→全局</span>层层递进：
+  每个服务<span class="hl">业务独立</span>；服务间<span class="hl">可发现+可交互</span>；
+  数据<span class="hl">隔离（DSS）</span>；全局<span class="hl">CI/CD+灰度发布</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔍 可发现性：服务注册中心自动感知</span>
+  <span class="tag-item">🔒 DSS：数据存储隔离</span>
+  <span class="tag-item">🔵🟢 蓝绿发布：新旧版本一键切换</span>
+  <span class="tag-item">🐤 金丝雀发布：灰度逐步放量</span>
+  <span class="tag-item">⚙️ CI/CD：全自动化流水线</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>松耦合提高迭代效率</li>
+      <li>独立部署和测试</li>
+      <li>技术栈灵活</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>分布式复杂性增加</li>
+      <li>需要全自动化CI/CD支撑</li>
+      <li>运维复杂度高</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词（2~4分 单选 + 案例题）</h4>
+  <div>
+    <span class="keyword">微服务</span>
+    <span class="keyword">可发现性</span>
+    <span class="keyword">可交互性</span>
+    <span class="keyword">DSS</span>
+    <span class="keyword">数据存储隔离</span>
+    <span class="keyword">CI/CD</span>
+    <span class="keyword">蓝绿发布</span>
+    <span class="keyword">金丝雀发布</span>
+  </div>
+  <p style="margin-top:10px;font-size:13px;color:#92400e;">
+    <strong>典型考点：</strong>服务扩容后依赖方如何感知？→ 可发现性（服务注册中心）。
+    订单服务能否直接读库存库？→ 不能，违反DSS原则。
+    先向1%用户发布验证？→ 金丝雀发布。
+  </p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="17-1.html" style="color:#0369a1"><strong>17-1</strong></a> · 云原生架构概述 — 微服务是云原生的核心模式</li>
+    <li><a href="17-2.html" style="color:#0369a1"><strong>17-2</strong></a> · 容器与K8s — 微服务的运行基础设施</li>
+    <li><a href="17-4.html" style="color:#0369a1"><strong>17-4</strong></a> · 服务网格 — 微服务横向关系的进一步抽象</li>
+    <li><a href="17-5.html" style="color:#0369a1"><strong>17-5</strong></a> · DevOps与CI/CD — 微服务分布式约束的落地实践</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* Tab 1: 四层逐层高亮 */
+function playLayers() {
+  const ids = ['L1','L2','L3','L4'];
+  ids.forEach(id => document.getElementById(id).classList.remove('active'));
+  ids.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      setTimeout(() => document.getElementById(id).classList.remove('active'), 1200);
+    }, i * 800);
+  });
+}
+
+/* Tab 2: 横向可发现性 + DSS */
+function playDiscover() {
+  const flash = (id, cls, dur) => {
+    const el = document.getElementById(id);
+    el.classList.add(cls);
+    setTimeout(() => el.classList.remove(cls), dur || 600);
+  };
+  // 服务A注册
+  flash('sa1', 'pulse');
+  setTimeout(() => flash('ar1', 'flash'), 300);
+  setTimeout(() => flash('sreg', 'pulse'), 600);
+  // 服务B发现
+  setTimeout(() => flash('ar2', 'flash'), 900);
+  setTimeout(() => flash('sb1', 'pulse'), 1200);
+
+  // DSS: 订单服务 → 订单数据库 ✅
+  setTimeout(() => { flash('sa2','pulse'); flash('ar3','flash'); }, 1600);
+  setTimeout(() => flash('db1','pulse'), 1900);
+  // 库存服务 → 库存数据库 ✅
+  setTimeout(() => { flash('sb2','pulse'); flash('ar4','flash'); }, 2300);
+  setTimeout(() => flash('db2','pulse'), 2600);
+}
+
+/* Tab 3: 发布策略 */
+function playDeploy(mode) {
+  const flash = (id, dur) => {
+    const el = document.getElementById(id);
+    el.classList.add('active');
+    setTimeout(() => el.classList.remove('active'), dur || 700);
+  };
+  if (mode === 'blue') {
+    ['b1','b2','b3','b4'].forEach((id, i) => setTimeout(() => flash(id), i * 700));
+  } else {
+    ['c1','c2','c3','c4'].forEach((id, i) => setTimeout(() => flash(id), i * 700));
+  }
+}
+
+window.addEventListener('load', () => setTimeout(playLayers, 500));
+</script>
+</body>
+</html>

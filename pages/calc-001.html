@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>流水线吞吐率与加速比计算 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}.nav .bc{color:#64748b;font-size:13px;margin-left:12px}.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}li{font-size:13px;color:#475569;margin:4px 0}.kw{display:flex;gap:8px;flex-wrap:wrap}.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 计算题 › 流水线吞吐率与加速比计算</span></nav>
+<div class="ct">
+<div><span class="tag c">计算题</span><span class="tag e">medium</span>
+<h1>流水线吞吐率与加速比计算</h1><p class="ol">流水线执行时间公式 = 各段时间之和 + 最长时间×(n-1)；加速比 = 非流水线时间/流水线时间。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>理论流水线执行时间 = (Δt1+Δt2+...+Δtk) + max(Δt1,Δt2,...,Δtk) × (n-1)。最大吞吐率 = lim(n→∞) n/总时间 = 1/Δt_max。实际流水线将每段时间统一为流水线周期（取各段最大值）。加速比 = 不使用流水线时间/使用流水线时间。若采用m级操作p级流水，需将操作合理合并使各级时间尽量均衡。</p></div>
+
+<div class="s"><h3>📌 实际例子</h3><ul><li>例题：指令经历取指(2Δt)、取操作数(3Δt)、运算(1Δt)、写回(2Δt)五阶段。理论时间 = 9Δt + 3Δt×(n-1)。10条指令：理论=9+3×9=36Δt，非流水=9×10=90Δt，加速比=90/36=5:2</li><li>例题：取指(2ms)+分析(4ms)+执行(1ms)，执行100条。理论=(2+4+1)+(100-1)×4=403ms；实际=(4+4+4)+(100-1)×4=408ms</li><li>3级操作2级流水：取指(2ms)、分析(4ms)+执行(1ms)合并为{2,5}，理论=(2+5)+(100-1)×5=502ms</li></ul></div>
+
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">流水线</span><span class="k">吞吐率</span><span class="k">加速比</span><span class="k">流水线周期</span><span class="k">理论时间</span><span class="k">实际时间</span></div></div>
+</div></body></html>

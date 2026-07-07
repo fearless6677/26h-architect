@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式系统发展历程五阶段 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef9c3; color: #a16207; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; overflow: hidden; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Timeline animation */
+.timeline { display: flex; align-items: flex-start; justify-content: space-between; position: relative; padding: 20px 0; }
+.timeline::before { content: ''; position: absolute; top: 50px; left: 5%; right: 5%; height: 4px; background: #cbd5e1; border-radius: 2px; z-index: 0; }
+.timeline .progress-bar { position: absolute; top: 50px; left: 5%; height: 4px; background: linear-gradient(90deg, #3b82f6, #8b5cf6, #22c55e, #f59e0b, #ef4444); border-radius: 2px; z-index: 1; width: 0%; transition: width 1.5s ease; }
+.stage { display: flex; flex-direction: column; align-items: center; width: 18%; z-index: 2; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
+.stage.visible { opacity: 1; transform: translateY(0); }
+.stage .dot { width: 20px; height: 20px; border-radius: 50%; border: 3px solid #cbd5e1; background: #fff; margin-bottom: 8px; transition: all 0.4s; }
+.stage.active .dot { border-color: #2563eb; background: #2563eb; box-shadow: 0 0 12px rgba(37,99,235,0.5); }
+.stage .stage-label { font-size: 13px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 4px; }
+.stage .stage-era { font-size: 11px; color: #94a3b8; margin-bottom: 6px; }
+.stage .stage-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 11px; color: #475569; line-height: 1.6; text-align: center; width: 100%; min-height: 80px; display: flex; flex-direction: column; justify-content: center; transition: all 0.3s; }
+.stage.active .stage-card { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(37,99,235,0.15); }
+.stage .stage-card b { color: #1e40af; }
+.stage .stage-card .hw { color: #059669; }
+.stage .stage-card .sw { color: #7c3aed; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 10; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* Table style for detail view */
+.detail-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+.detail-table th { background: #f1f5f9; color: #1e40af; padding: 10px 12px; text-align: left; border-bottom: 2px solid #cbd5e1; font-weight: 600; }
+.detail-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #475569; vertical-align: top; }
+.detail-table tr:hover td { background: #f8fafc; }
+.detail-table .stage-name { font-weight: 700; color: #1e293b; white-space: nowrap; }
+.detail-table .hw-tag { color: #059669; font-weight: 600; }
+.detail-table .sw-tag { color: #7c3aed; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 嵌入式系统发展历程五阶段</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">⭐ 中等权重</span>
+  <h1>嵌入式系统发展历程五阶段</h1>
+  <p class="one-liner">嵌入式系统从 SCM → MCU → SoC → Internet嵌入式 → 智能化云嵌入式 五个阶段演进，硬件与软件不断升级</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 演进动画</div>
+  <div class="tab" onclick="switchTab(this,'detail')">📊 五阶段详表</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 对比速记</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放演进</button>
+    <div class="timeline">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="stage" id="s1">
+        <div class="dot"></div>
+        <div class="stage-label">SCM</div>
+        <div class="stage-era">单片微型计算机</div>
+        <div class="stage-card">
+          <b>单片机</b><br>
+          <span class="hw">硬件: 单一芯片</span><br>
+          <span class="sw">软件: 无OS·汇编</span>
+        </div>
+      </div>
+      <div class="stage" id="s2">
+        <div class="dot"></div>
+        <div class="stage-label">MCU</div>
+        <div class="stage-era">微控制器</div>
+        <div class="stage-card">
+          <b>简单OS为核心</b><br>
+          <span class="hw">硬件: 多种微处理器</span><br>
+          <span class="sw">软件: 轻量OS</span>
+        </div>
+      </div>
+      <div class="stage" id="s3">
+        <div class="dot"></div>
+        <div class="stage-label">SoC</div>
+        <div class="stage-era">片上系统</div>
+        <div class="stage-card">
+          <b>嵌入式微处理器+OS</b><br>
+          <span class="hw">硬件: 系统集成芯片</span><br>
+          <span class="sw">软件: 嵌入式OS</span>
+        </div>
+      </div>
+      <div class="stage" id="s4">
+        <div class="dot"></div>
+        <div class="stage-label">Internet</div>
+        <div class="stage-era">网络嵌入式</div>
+        <div class="stage-card">
+          <b>集成网络接口</b><br>
+          <span class="hw">硬件: 联网处理器</span><br>
+          <span class="sw">软件: 网络协议栈</span>
+        </div>
+      </div>
+      <div class="stage" id="s5">
+        <div class="dot"></div>
+        <div class="stage-label">云+IoT</div>
+        <div class="stage-era">智能云嵌入式</div>
+        <div class="stage-card">
+          <b>传感器+智能服务</b><br>
+          <span class="hw">硬件: 微型传感器</span><br>
+          <span class="sw">软件: 云服务AI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="detail" class="tab-content">
+  <table class="detail-table">
+    <thead>
+      <tr><th>阶段</th><th>硬件特征</th><th>软件特征</th><th>典型特点</th><th>代表实例</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="stage-name">① SCM<br><small style="color:#94a3b8">单片微型计算机</small></td>
+        <td><span class="hw-tag">单片机</span>，结构功能单一，存储容量有限</td>
+        <td><span class="sw-tag">无OS</span>，汇编语言编程</td>
+        <td>处理效率低，几乎没有用户接口</td>
+        <td>早期 8051 单片机</td>
+      </tr>
+      <tr>
+        <td class="stage-name">② MCU<br><small style="color:#94a3b8">微控制器</small></td>
+        <td><span class="hw-tag">微处理器/微控制器</span>种类繁多，通用性弱</td>
+        <td><span class="sw-tag">简单OS</span>为核心</td>
+        <td>系统开销小，处理效率高，智能化控制能力突出</td>
+        <td>ARM Cortex-M 系列</td>
+      </tr>
+      <tr>
+        <td class="stage-name">③ SoC<br><small style="color:#94a3b8">片上系统</small></td>
+        <td><span class="hw-tag">嵌入式微处理器</span>，兼容性好，内核小</td>
+        <td><span class="sw-tag">嵌入式OS</span></td>
+        <td>处理效率高，系统集成度高</td>
+        <td>高通骁龙芯片</td>
+      </tr>
+      <tr>
+        <td class="stage-name">④ Internet<br><small style="color:#94a3b8">网络嵌入式</small></td>
+        <td><span class="hw-tag">微处理器+网络接口</span></td>
+        <td><span class="sw-tag">网络协议栈</span></td>
+        <td>应用于网络环境，设备互联互通</td>
+        <td>智能家居联网设备</td>
+      </tr>
+      <tr>
+        <td class="stage-name">⑤ 云+IoT<br><small style="color:#94a3b8">智能云嵌入式</small></td>
+        <td><span class="hw-tag">微型传感器</span>，低能耗·高速度·高集成</td>
+        <td><span class="sw-tag">智能服务+云技术</span></td>
+        <td>高可信，适应环境广，云端协同</td>
+        <td>AWS IoT 智能设备</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 嵌入式系统五阶段演进 —— 硬件↑ 软件↑ 复杂度↑</span>
+
+<span class="kw">Stage 1</span> · <span class="fn">SCM</span>（单片微型计算机）
+  硬件: <span class="st">单片机</span>          软件: <span class="st">无OS + 汇编</span>
+  特点: 结构简单 · 效率低 · 无用户接口
+
+<span class="kw">Stage 2</span> · <span class="fn">MCU</span>（微控制器）
+  硬件: <span class="st">多种微处理器</span>    软件: <span class="st">简单OS</span>
+  特点: 开销小 · 效率高 · 智能控制
+
+<span class="kw">Stage 3</span> · <span class="fn">SoC</span>（片上系统）
+  硬件: <span class="st">嵌入式微处理器</span>  软件: <span class="st">嵌入式OS</span>
+  特点: 兼容性好 · 内核小 · 高集成
+
+<span class="kw">Stage 4</span> · <span class="fn">Internet</span>（网络嵌入式）
+  硬件: <span class="st">处理器+网络接口</span> 软件: <span class="st">网络协议栈</span>
+  特点: 设备联网 · 网络应用
+
+<span class="kw">Stage 5</span> · <span class="fn">Cloud+IoT</span>（智能云嵌入式）
+  硬件: <span class="st">微型传感器</span>     软件: <span class="st">云技术+AI</span>
+  特点: 低能耗 · 高可信 · 环境适应广
+
+<span class="cm">// 记忆口诀: S-M-S-I-C → "Single·Micro·System·Internet·Cloud"</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>嵌入式系统从<span class="hl">单片微型计算机（SCM）</span>起步，经过<span class="hl">微控制器（MCU）</span>、<span class="hl">片上系统（SoC）</span>，发展到<span class="hl">Internet嵌入式</span>，最终进入<span class="hl">智能化云嵌入式</span>。每个阶段硬件更强、软件更复杂、应用更广。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔌 SCM: 8051单片机</span>
+  <span class="tag-item">⚙️ MCU: ARM Cortex-M</span>
+  <span class="tag-item">📱 SoC: 高通骁龙</span>
+  <span class="tag-item">🏠 Internet: 智能家居</span>
+  <span class="tag-item">☁️ 云+IoT: AWS IoT</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优势</h4>
+    <ul>
+      <li>清晰描述了从简单到复杂的演进脉络</li>
+      <li>表格形式记忆效率高</li>
+      <li>各阶段 硬件/软件/特点 三列对应</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 注意</h4>
+    <ul>
+      <li>阶段划分较为笼统，实际产品可能跨越多个阶段</li>
+      <li>考试以记忆为主，需区分各阶段硬件和软件特征</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">SCM</span>
+    <span class="keyword">MCU</span>
+    <span class="keyword">SoC</span>
+    <span class="keyword">单片微型计算机</span>
+    <span class="keyword">微控制器</span>
+    <span class="keyword">片上系统</span>
+    <span class="keyword">Internet嵌入式</span>
+    <span class="keyword">云技术</span>
+    <span class="keyword">发展历程</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="KP1902.html" style="color:#2563eb;text-decoration:none"><strong>KP1902</strong></a> — 嵌入式系统后续知识点</li>
+    <li><a href="KP1903.html" style="color:#2563eb;text-decoration:none"><strong>KP1903</strong></a> — 嵌入式系统后续知识点</li>
+    <li><a href="KP1904.html" style="color:#2563eb;text-decoration:none"><strong>KP1904</strong></a> — 嵌入式系统后续知识点</li>
+    <li><a href="KP1905.html" style="color:#2563eb;text-decoration:none"><strong>KP1905</strong></a> — 嵌入式系统后续知识点</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const bar = document.getElementById('progressBar');
+  const stages = [1,2,3,4,5];
+  bar.style.width = '0%';
+  stages.forEach(i => document.getElementById('s'+i).classList.remove('visible','active'));
+
+  stages.forEach((s, i) => {
+    setTimeout(() => {
+      const el = document.getElementById('s'+s);
+      el.classList.add('visible');
+      setTimeout(() => el.classList.add('active'), 200);
+      bar.style.width = ((i+1) * 20) + '%';
+    }, i * 500);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 400));
+</script>
+</body>
+</html>

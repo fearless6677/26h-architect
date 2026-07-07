@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动态软件架构(DSA)与动态重配置 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 架构演化分类 › 动态软件架构(DSA)与动态重配置</span></nav>
+<div class="ct">
+<div><span class="tag c">架构演化分类</span><span class="tag e">高频</span>
+<h1>动态软件架构(DSA)与动态重配置</h1><p class="ol">动态软件架构通过运行时改变体系结构信息来触发系统动态调整；动态重配置有主从/中央控制/C-S/分布式四种模式</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>DSA基本原理：运行时刻体系结构相关信息的改变可用来触发、驱动系统自身的动态调整。DSA描述语言：基于行为视角的π-ADL、基于反射视角的Pilar、基于协调视角的LIME。DSA演化工具：反射机制、基于组件操作、基于π演算、外部体系结构演化管理器。PKUAS是典型应用实例(容器系统/公共服务/工具/微内核)。动态重配置四种模式：主从模式、中央控制模式、客户端/服务器模式、分布式控制模式。难点：约束定义困难、性能约束难以静态衡量、难以管理所有方面、需同时保证系统完整性和重配置策略的正确安全性。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">DSA描述语言:
+  π-ADL  → 行为视角
+  Pilar  → 反射视角
+  LIME   → 协调视角
+
+DSA演化工具:
+  反射机制 | 组件操作 | π演算 | 外部管理器
+
+动态重配置模式:
+  主从模式 | 中央控制模式 | C/S模式 | 分布式控制模式
+
+PKUAS = 容器系统 + 公共服务 + 工具 + 微内核</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>运行时通过反射机制动态加载新组件 → 反射机制</li><li>PKUAS微内核架构热替换服务 → DSA应用实例</li><li>在线升级服务时采用主从模式协调切换 → 主从模式重配置</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>运行时灵活适应变化</li><li>支持结构/行为/架构级别动态性</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>约束定义困难</li><li>性能约束难以静态衡量</li><li>需同时保证完整性和安全性</li><li>难以管理所有方面</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">DSA</span><span class="k">π-ADL</span><span class="k">Pilar</span><span class="k">LIME</span><span class="k">反射机制</span><span class="k">PKUAS</span><span class="k">动态重配置</span><span class="k">主从模式</span><span class="k">中央控制</span><span class="k">C/S</span><span class="k">分布式控制</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="h12_evolution_classification.html">h12_evolution_classification</a></li><li><a href="h12_website_evolution.html">h12_website_evolution</a></li></ul></div>
+</div></body></html>

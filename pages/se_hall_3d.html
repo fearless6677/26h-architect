@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>霍尔三维结构 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+
+/* ── 导航 ── */
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+
+/* ── 标签页 ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── 通用组件 ── */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .br { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* ── 3D 立方体动画 ── */
+.cube-scene { perspective: 800px; display: flex; justify-content: center; margin: 20px 0 40px; }
+.cube-wrapper { width: 200px; height: 200px; position: relative; }
+.cube { width: 200px; height: 200px; position: relative; transform-style: preserve-3d; transform: rotateX(-20deg) rotateY(-30deg); transition: transform 0.6s ease; }
+.cube.spinning { animation: cubeSpin 8s linear infinite; }
+@keyframes cubeSpin { from { transform: rotateX(-20deg) rotateY(-30deg); } to { transform: rotateX(-20deg) rotateY(330deg); } }
+.cube-face { position: absolute; width: 200px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; border: 2px solid rgba(255,255,255,0.5); border-radius: 8px; opacity: 0.88; }
+.cube-face .face-sub { font-size: 11px; font-weight: 400; opacity: 0.8; margin-top: 4px; text-align: center; padding: 0 12px; }
+.face-time   { background: #3b82f6; color: #fff; transform: rotateY(0deg)   translateZ(100px); }
+.face-logic  { background: #22c55e; color: #fff; transform: rotateY(90deg)  translateZ(100px); }
+.face-know   { background: #f59e0b; color: #fff; transform: rotateX(90deg) translateZ(100px); }
+.face-back   { background: #8b5cf6; color: #fff; transform: rotateY(180deg) translateZ(100px); }
+.face-bottom { background: #ef4444; color: #fff; transform: rotateX(-90deg) translateZ(100px); }
+.face-left   { background: #06b6d4; color: #fff; transform: rotateY(-90deg) translateZ(100px); }
+
+/* ── 维度条形 ── */
+.dim-section { margin-bottom: 20px; }
+.dim-label { font-size: 14px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.dim-label .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.dim-label .dot.blue  { background: #3b82f6; }
+.dim-label .dot.green { background: #22c55e; }
+.dim-label .dot.amber { background: #f59e0b; }
+.dim-bar { display: flex; gap: 4px; flex-wrap: wrap; }
+.dim-step { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #fff; opacity: 0; transform: translateY(10px); transition: all 0.35s ease; cursor: default; }
+.dim-step.show { opacity: 1; transform: translateY(0); }
+.dim-step:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.dim-step.time  { background: #3b82f6; }
+.dim-step.logic { background: #22c55e; }
+.dim-step.know  { background: #f59e0b; }
+
+/* ── 矩阵网格 ── */
+.matrix-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin: 20px 0; }
+.matrix-cell { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 11px; border-radius: 4px; transition: all 0.3s; color: #64748b; }
+.matrix-cell.header { background: #1e293b; color: #fff; font-weight: 700; font-size: 12px; }
+.matrix-cell.t-header { background: #3b82f6; color: #fff; font-weight: 700; }
+.matrix-cell.active { background: #fef3c7; border-color: #f59e0b; color: #92400e; font-weight: 600; }
+
+/* ── 考试真题 ── */
+.example-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.example-box h4 { color: #15803d; margin-bottom: 8px; font-size: 14px; }
+.example-box li { font-size: 13px; color: #475569; margin: 6px 0; padding-left: 4px; }
+.example-box .blank { color: #dc2626; font-weight: 700; border-bottom: 2px dashed #dc2626; padding: 0 4px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 系统工程方法论 › 霍尔三维结构</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">系统工程方法论</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>霍尔三维结构（Hall's 3D Structure）</h1>
+  <p class="one-liner">用时间、逻辑、知识三个维度把复杂工程的管理方法组织成一个立体框架</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'matrix')">📊 三维矩阵</div>
+</div>
+
+<!-- ── Tab 1: 动画 ── -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="cube-scene">
+      <div class="cube-wrapper">
+        <div class="cube" id="cube">
+          <div class="cube-face face-time">时间维<div class="face-sub">7 个阶段</div></div>
+          <div class="cube-face face-logic">逻辑维<div class="face-sub">7 个步骤</div></div>
+          <div class="cube-face face-know">知识维<div class="face-sub">多学科</div></div>
+          <div class="cube-face face-back">霍尔<br>1969<div class="face-sub">A.D.Hall</div></div>
+          <div class="cube-face face-bottom">系统<br>工程<div class="face-sub">全生命周期</div></div>
+          <div class="cube-face face-left">立体<br>框架<div class="face-sub">三维空间</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dim-section">
+      <div class="dim-label"><span class="dot blue"></span>时间维 — 从规划到更新的 7 个阶段</div>
+      <div class="dim-bar" id="bar-time"></div>
+    </div>
+    <div class="dim-section">
+      <div class="dim-label"><span class="dot green"></span>逻辑维 — 7 个思维步骤</div>
+      <div class="dim-bar" id="bar-logic"></div>
+    </div>
+    <div class="dim-section">
+      <div class="dim-label"><span class="dot amber"></span>知识维 — 多学科知识支撑</div>
+      <div class="dim-bar" id="bar-know"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tab 2: 伪代码 ── -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 霍尔三维结构 —— 系统工程的"魔方"框架</span>
+<span class="cm">// 提出者: A.D.Hall (1969)</span>
+
+<span class="kw">const</span> 霍尔三维结构 <span class="kw">=</span> <span class="br">{</span>
+
+  时间维: <span class="br">[</span>                <span class="cm">// ── "什么时候做"</span>
+    <span class="st">"规划"</span>, <span class="st">"拟订方案"</span>, <span class="st">"研制"</span>, <span class="st">"生产"</span>,
+    <span class="st">"安装"</span>, <span class="st">"运行"</span>, <span class="st">"更新"</span>
+  <span class="br">]</span>,
+
+  逻辑维: <span class="br">[</span>                <span class="cm">// ── "怎么想"</span>
+    <span class="st">"明确问题"</span>, <span class="st">"确定目标"</span>, <span class="st">"系统综合"</span>,
+    <span class="st">"系统分析"</span>, <span class="st">"优化"</span>, <span class="st">"决策"</span>, <span class="st">"实施"</span>
+  <span class="br">]</span>,
+
+  知识维: <span class="br">[</span>                <span class="cm">// ── "用什么知识"</span>
+    <span class="st">"工程"</span>, <span class="st">"医学"</span>, <span class="st">"建筑"</span>, <span class="st">"商业"</span>,
+    <span class="st">"法律"</span>, <span class="st">"管理"</span>, <span class="st">"社会科学"</span>, <span class="st">"艺术"</span>
+  <span class="br">]</span>
+
+<span class="br">}</span>
+
+<span class="cm">// 💡 核心思想：三个维度交叉 = 立体管理</span>
+<span class="cm">// 每个 (时间阶段 × 逻辑步骤 × 知识领域) = 一个具体工作单元</span></pre>
+</div>
+
+<!-- ── Tab 3: 矩阵 ── -->
+<div id="matrix" class="tab-content">
+  <div class="anim-area">
+    <p class="explain" style="margin-bottom:12px"><strong>三维交叉矩阵</strong>：时间维 × 逻辑维 的交叉点 = 需要调用的知识。点击高亮单元格查看。</p>
+    <div class="matrix-grid" id="matrixGrid">
+      <div class="matrix-cell header">时间 ＼ 逻辑</div>
+      <div class="matrix-cell header">明确问题</div>
+      <div class="matrix-cell header">系统综合</div>
+      <div class="matrix-cell header">优化/决策</div>
+      <div class="matrix-cell t-header">规划</div>
+      <div class="matrix-cell" data-info="需求调研：工程+社会科学">需求调研</div>
+      <div class="matrix-cell" data-info="方案初设：工程+建筑">方案初设</div>
+      <div class="matrix-cell" data-info="可行性论证：工程+商业+法律">可行性论证</div>
+      <div class="matrix-cell t-header">研制</div>
+      <div class="matrix-cell" data-info="技术方案分析：工程">技术分析</div>
+      <div class="matrix-cell" data-info="多方案综合：工程+管理">多方案综合</div>
+      <div class="matrix-cell" data-info="研制方案+生产计划：工程+管理">方案+计划</div>
+      <div class="matrix-cell t-header">运行</div>
+      <div class="matrix-cell" data-info="运行问题诊断：工程+管理">问题诊断</div>
+      <div class="matrix-cell" data-info="改进方案综合：工程">改进综合</div>
+      <div class="matrix-cell" data-info="更新决策：工程+商业+法律">更新决策</div>
+    </div>
+    <div id="matrixInfo" style="font-size:13px;color:#475569;min-height:24px;text-align:center;margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- ── 核心解释 ── -->
+<div class="explain">
+  <strong>核心：</strong>霍尔三维结构由 <span class="hl">时间维</span>（7个阶段）、<span class="hl">逻辑维</span>（7个步骤）、<span class="hl">知识维</span>（多学科）
+  组成<span class="hl">三维空间结构</span>。每个交叉点代表一个具体工作单元，需要调用对应知识维的专业知识。
+  三个维度共同构成系统工程的<span class="hl">全生命周期管理框架</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📐 A.D.Hall 1969年提出</span>
+  <span class="tag-item">🕐 时间维 7 阶段</span>
+  <span class="tag-item">🧠 逻辑维 7 步骤</span>
+  <span class="tag-item">📚 知识维 多学科</span>
+  <span class="tag-item">🚀 航天/国防/大型工程项目</span>
+</div>
+
+<!-- ── 考试真题示例 ── -->
+<div class="example-box">
+  <h4>📝 考试真题</h4>
+  <ul>
+    <li>霍尔三维结构以时间维、<span class="blank">逻辑</span>维、知识维组成立体结构</li>
+    <li>在<span class="blank">研制</span>阶段会做出研制方案及生产计划</li>
+    <li>某航天工程项目用霍尔三维结构进行全生命周期管理</li>
+  </ul>
+</div>
+
+<!-- ── 优缺点 ── -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>提供了系统化的方法论框架</li>
+      <li>覆盖工程全生命周期</li>
+      <li>多学科综合集成</li>
+      <li>结构清晰，便于管理和分工</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 局限性</h4>
+    <ul>
+      <li>偏重过程管理，灵活性不足</li>
+      <li>对复杂迭代关系描述不够</li>
+      <li>知识维边界在实际中难以明确划分</li>
+      <li>早期方法论，未涵盖敏捷/迭代思想</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ── 考试关键词 ── -->
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">霍尔三维结构</span>
+    <span class="keyword">时间维</span>
+    <span class="keyword">逻辑维</span>
+    <span class="keyword">知识维</span>
+    <span class="keyword">7个时间阶段</span>
+    <span class="keyword">7个逻辑步骤</span>
+    <span class="keyword">1969年</span>
+  </div>
+</div>
+
+<!-- ── 关联知识 ── -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>生命周期模型（se_lifecycle）</strong> = 霍尔三维结构中"时间维"的理论基础</li>
+    <li><strong>基于模型的系统工程 MBSE（se_mbse）</strong> = 霍尔三维结构的现代数字化演进</li>
+    <li><strong>V模型</strong> = 霍尔三维结构在软件开发中的具体应用形式</li>
+    <li><strong>WBS 工作分解结构</strong> = 霍尔三维结构的任务分解落地工具</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+/* ── 维度数据 ── */
+const dims = {
+  time:  ['规划','拟订方案','研制','生产','安装','运行','更新'],
+  logic: ['明确问题','确定目标','系统综合','系统分析','优化','决策','实施'],
+  know:  ['工程','医学','建筑','商业','法律','管理','社会科学','艺术']
+};
+
+/* ── 填充维度条 ── */
+function fillBars() {
+  ['time','logic','know'].forEach(key => {
+    const bar = document.getElementById('bar-' + key);
+    bar.innerHTML = '';
+    dims[key].forEach((item, i) => {
+      const step = document.createElement('div');
+      step.className = 'dim-step ' + key;
+      step.textContent = item;
+      step.style.transitionDelay = (i * 0.08) + 's';
+      bar.appendChild(step);
+    });
+  });
+}
+
+/* ── 标签页切换 ── */
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* ── 播放动画 ── */
+function playAnimation() {
+  const cube = document.getElementById('cube');
+  cube.classList.add('spinning');
+
+  // 依次显示三个维度条
+  const keys = ['time','logic','know'];
+  keys.forEach((key, ki) => {
+    const steps = document.querySelectorAll('#bar-' + key + ' .dim-step');
+    steps.forEach((s, si) => {
+      s.classList.remove('show');
+      setTimeout(() => {
+        s.classList.add('show');
+        if (si === steps.length - 1 && ki === keys.length - 1) {
+          setTimeout(() => cube.classList.remove('spinning'), 2000);
+        }
+      }, ki * 600 + si * 120);
+    });
+  });
+}
+
+/* ── 矩阵交互 ── */
+document.getElementById('matrixGrid').addEventListener('click', function(e) {
+  const cell = e.target.closest('.matrix-cell[data-info]');
+  document.querySelectorAll('.matrix-cell.active').forEach(c => c.classList.remove('active'));
+  if (cell) {
+    cell.classList.add('active');
+    document.getElementById('matrixInfo').textContent = '📌 ' + cell.getAttribute('data-info');
+  } else {
+    document.getElementById('matrixInfo').textContent = '';
+  }
+});
+
+/* ── 初始化 ── */
+fillBars();
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

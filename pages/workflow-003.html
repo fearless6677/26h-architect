@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工作流模式（Workflow Patterns） · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 系统分析与设计/业务过程管理 › 工作流模式（Workflow Patterns）</span></nav>
+<div class="ct">
+<div><span class="tag c">系统分析与设计/业务过程管理</span><span class="tag e">中-高</span>
+<h1>工作流模式（Workflow Patterns）</h1><p class="ol">工作流模式是对业务过程中常见控制流结构的抽象，包含顺序、并行、选择、循环等基本模式。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>由van der Aalst等人总结的20种控制流模式，核心包括：(1)Sequence——活动A完成后执行B；(2)Parallel Split——同时触发多个分支；(3)Synchronization——等待所有分支完成后合并；(4)Exclusive Choice（XOR）——根据条件选择一条分支；(5)Simple Merge——多分支汇合为一条；(6)Multi-choice——同时选择多条分支；(7)Synchronizing Merge——等待被选中的分支全部完成；(8)Arbitrary Cycles——循环执行直到满足退出条件；(9)Implicit Termination——无显式结束事件。这些模式对应BPMN中的网关类型（排他XOR、并行AND、包容OR）。</p></div>
+
+<div class="s"><h3>📌 实际例子</h3><ul><li>排他网关：贷款审批中根据金额走不同审批链（&gt;50万走行长审批）</li><li>并行网关：入职流程同时开通邮箱、分配工位、配置权限</li><li>循环模式：代码审查→修改→重新审查，直到通过</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>提供标准化的流程设计语言</li><li>便于流程仿真、验证与优化</li><li>BPMN网关直接映射这些模式</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>模式组合后复杂度指数增长</li><li>死锁风险（并行分支未正确同步）</li><li>部分高级模式（如取消、异常）引擎支持有限</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">工作流模式</span><span class="k">控制流</span><span class="k">并行分裂</span><span class="k">同步汇合</span><span class="k">排他选择(XOR)</span><span class="k">包容选择(OR)</span><span class="k">BPMN网关</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="workflow-001.html">工作流(Workflow)概念与设计</a></li><li><a href="workflow-002.html">工作流参考模型（WfMC）</a></li><li><a href="KP-16-05.html">物联网三层层次架构设计</a></li></ul></div>
+</div></body></html>

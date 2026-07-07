@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统调查（初步调查与详细调查） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #e0e7ff; color: #4f46e5; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fffbeb; color: #b45309; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #4f46e5; background: #f1f5f9; }
+.tab.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; background: #eef2ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .hl { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #4f46e5; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.exam-example { margin-top: 12px; padding: 10px 14px; background: #fefce8; border: 1px dashed #fbbf24; border-radius: 6px; font-size: 13px; color: #713f12; }
+.exam-example .blank { color: #dc2626; font-weight: 700; border-bottom: 2px solid #dc2626; }
+
+/* ── 动画专用 ── */
+.phase-container { display: flex; gap: 24px; margin: 16px 0; flex-wrap: wrap; justify-content: center; }
+.phase { flex: 1; min-width: 260px; border-radius: 12px; padding: 20px; position: relative; transition: all 0.4s ease; }
+.phase-left { background: linear-gradient(135deg, #ede9fe, #ddd6fe); border: 2px solid #a78bfa; }
+.phase-right { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 2px solid #60a5fa; }
+.phase.active-phase { transform: scale(1.03); box-shadow: 0 0 24px rgba(79,70,229,0.25); }
+.phase h3 { font-size: 16px; margin-bottom: 4px; }
+.phase-left h3 { color: #5b21b6; }
+.phase-right h3 { color: #1d4ed8; }
+.phase .subtitle { font-size: 12px; color: #6b7280; margin-bottom: 12px; display: block; }
+.phase ul { list-style: none; padding: 0; }
+.phase li { font-size: 13px; padding: 6px 10px; margin: 4px 0; border-radius: 6px; background: rgba(255,255,255,0.6); transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+.phase li .icon { font-size: 14px; flex-shrink: 0; }
+.phase li.highlight { background: rgba(255,255,255,0.95); transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.arrow-bridge { display: flex; align-items: center; justify-content: center; font-size: 32px; color: #6366f1; min-width: 48px; align-self: center; opacity: 0.6; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #4f46e5; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #4338ca; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 系统调查 › 初步调查与详细调查</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">系统调查</span>
+  <span class="exam-tag">⭐ 中频</span>
+  <span class="hour-tag">🕐 第14小时 14.2节</span>
+  <h1>系统调查（初步调查与详细调查）</h1>
+  <p class="one-liner">系统调查分初步调查（规划阶段，了解企业概况）和详细调查（分析阶段，深入了解处理流程）两阶段</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 代码结构</div>
+</div>
+
+<!-- ═══════ 动画演示 ═══════ -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="phase-container">
+      <!-- 初步调查 -->
+      <div class="phase phase-left" id="phaseL">
+        <h3>📋 初步调查</h3>
+        <span class="subtitle">阶段：规划阶段 ｜ 由浅入深第一步</span>
+        <ul id="listL">
+          <li><span class="icon">①</span> 初步需求分析</li>
+          <li><span class="icon">②</span> 企业基本状况</li>
+          <li><span class="icon">③</span> 管理方式</li>
+          <li><span class="icon">④</span> 基础数据状况</li>
+          <li><span class="icon">⑤</span> 现有系统状况</li>
+        </ul>
+      </div>
+
+      <!-- 箭头桥 -->
+      <div class="arrow-bridge" id="bridge">➡️</div>
+
+      <!-- 详细调查 -->
+      <div class="phase phase-right" id="phaseR">
+        <h3>🔍 详细调查</h3>
+        <span class="subtitle">阶段：分析阶段 ｜ 深入了解处理流程</span>
+        <ul id="listR">
+          <li><span class="icon">①</span> 运行环境/状况</li>
+          <li><span class="icon">②</span> 组织结构/业务流程</li>
+          <li><span class="icon">③</span> 系统功能</li>
+          <li><span class="icon">④</span> 数据资源与数据流程</li>
+          <li><span class="icon">⑤</span> 资源情况/约束条件/薄弱环节</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 代码结构 ═══════ -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 系统调查两阶段</span>
+<span class="cm">// ┌─────────────┬────────────────────────────────────┐</span>
+<span class="cm">// │  初步调查    │  详细调查                          │</span>
+<span class="cm">// ├─────────────┼────────────────────────────────────┤</span>
+<span class="cm">// │ <span class="hl">规划阶段</span>     │  <span class="hl">分析阶段</span>                          │</span>
+<span class="cm">// │ 初步需求分析  │  运行环境/状况                     │</span>
+<span class="cm">// │ 企业基本状况  │  组织结构/业务流程                  │</span>
+<span class="cm">// │ 管理方式     │  系统功能/数据资源与数据流程          │</span>
+<span class="cm">// │ 基础数据状况  │  资源情况/约束条件/薄弱环节          │</span>
+<span class="cm">// │ 现有系统状况  │                                    │</span>
+<span class="cm">// └─────────────┴────────────────────────────────────┘</span>
+
+<span class="cm">// ─── 口诀：初规详分 ───</span>
+<span class="cm">// 初步调查 → 规划阶段 → 看"面"（概况、大体印象）</span>
+<span class="cm">// 详细调查 → 分析阶段 → 看"线"（流程、数据走向）</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>系统调查分为<span class="hl">初步调查</span>和<span class="hl">详细调查</span>两个阶段。初步调查在<span class="hl">规划阶段</span>进行，了解企业的组织结构和系统功能等，包括初步需求分析、企业基本状况、管理方式、基础数据管理状况和现有系统状况。详细调查在<span class="hl">分析阶段</span>深入了解系统的处理流程，包括现有系统的运行环境和状况、组织结构、业务流程、系统功能、数据资源与数据流程、资源情况、约束条件和薄弱环节等。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📊 初步调查 ≈ 企业体检</span>
+  <span class="tag-item">🔍 详细调查 ≈ 专家会诊</span>
+  <span class="tag-item">🏗️ 规划阶段 → 分析阶段</span>
+  <span class="tag-item">📝 由浅入深、由面到线</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>两阶段递进式调查确保由浅入深全面了解系统</li>
+      <li>为后续需求分析和系统设计奠定基础</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>详细调查工作量大、耗时长</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">初步调查</span>
+    <span class="keyword">详细调查</span>
+    <span class="keyword">运行环境</span>
+    <span class="keyword">业务流程</span>
+    <span class="keyword">数据流程</span>
+    <span class="keyword">约束条件</span>
+  </div>
+  <div class="exam-example">
+    🎯 <strong>真题：</strong>调查现有系统的运行环境和状况、组织结构、业务流程、系统功能等属于（<span class="blank">详细调查</span>）
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>需求分析</strong> = 详细调查之后进入需求分析，将调查结果转化为结构化的需求文档</li>
+    <li><strong>系统分析</strong> = 在调查结果基础上建立逻辑模型（数据流图、数据字典）</li>
+    <li><strong>系统规划步骤</strong> = 初步调查是系统规划的组成部分，为可行性研究提供依据</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  if (animTimer) { clearTimeout(animTimer); }
+  const phaseL = document.getElementById('phaseL');
+  const phaseR = document.getElementById('phaseR');
+  const listL = document.getElementById('listL').children;
+  const listR = document.getElementById('listR').children;
+  const bridge = document.getElementById('bridge');
+
+  // 重置
+  phaseL.classList.remove('active-phase');
+  phaseR.classList.remove('active-phase');
+  bridge.style.opacity = '0.3';
+  for (let li of listL) li.classList.remove('highlight');
+  for (let li of listR) li.classList.remove('highlight');
+
+  let step = 0;
+  function next() {
+    // 步骤 0-4：逐个高亮初步调查项
+    if (step < 5) {
+      phaseL.classList.add('active-phase');
+      listL[step].classList.add('highlight');
+      step++;
+      animTimer = setTimeout(next, 450);
+    }
+    // 步骤 5：桥接箭头亮起
+    else if (step === 5) {
+      phaseL.classList.remove('active-phase');
+      bridge.style.opacity = '1';
+      bridge.style.transition = 'opacity 0.4s';
+      step++;
+      animTimer = setTimeout(next, 600);
+    }
+    // 步骤 6-10：逐个高亮详细调查项
+    else if (step < 11) {
+      const idx = step - 6;
+      phaseR.classList.add('active-phase');
+      listR[idx].classList.add('highlight');
+      step++;
+      animTimer = setTimeout(next, 450);
+    }
+    // 完成
+    else {
+      animTimer = setTimeout(() => {
+        phaseR.classList.remove('active-phase');
+        bridge.style.opacity = '0.6';
+      }, 800);
+    }
+  }
+  next();
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

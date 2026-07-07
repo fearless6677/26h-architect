@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件测试 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Animation specific styles */
+.test-stage-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 10px 0; flex-wrap: wrap; }
+.stage-box { display: inline-flex; flex-direction: column; align-items: center; padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.4s ease; min-width: 100px; cursor: default; position: relative; }
+.stage-box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.stage-box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.stage-box.purple { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.stage-box.amber { background: #fffbeb; border: 2px solid #f59e0b; color: #b45309; }
+.stage-box.processing { transform: scale(1.12); box-shadow: 0 0 20px rgba(37,99,235,0.45); z-index: 2; }
+.stage-box.done { opacity: 0.55; transform: scale(0.95); }
+.stage-sub { font-size: 11px; font-weight: 400; color: #94a3b8; margin-top: 4px; }
+.arrow-down { display: flex; justify-content: center; align-items: center; height: 28px; }
+.arrow-down svg { width: 20px; height: 28px; }
+.arrow-down .arrow-body { stroke: #cbd5e1; stroke-width: 3; fill: none; stroke-linecap: round; }
+.arrow-down .arrow-head { fill: #cbd5e1; }
+.arrow-down.active .arrow-body { stroke: #3b82f6; }
+.arrow-down.active .arrow-head { fill: #3b82f6; }
+
+.class-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+.class-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; transition: all 0.3s; cursor: default; }
+.class-card:hover { border-color: #3b82f6; box-shadow: 0 2px 8px rgba(37,99,235,0.12); transform: translateY(-2px); }
+.class-card .label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.class-card .desc { font-size: 11px; color: #94a3b8; }
+.class-card.c-blue { border-left: 3px solid #3b82f6; }
+.class-card.c-green { border-left: 3px solid #22c55e; }
+.class-card.c-purple { border-left: 3px solid #a855f7; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+.section-title { font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 12px; }
+
+.finish-banner { text-align: center; font-size: 13px; color: #15803d; font-weight: 600; opacity: 0; transition: opacity 0.5s; margin-top: 8px; }
+.finish-banner.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 软件质量 › 软件测试</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">软件测试</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>软件测试（Software Testing）</h1>
+  <p class="one-liner">测试就是用各种方法找软件的漏洞，从单个模块测到整个系统，层层把关。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 测试阶段</div>
+  <div class="tab" onclick="switchTab(this,'classify')">📊 分类体系</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- Tab 1: 测试阶段动画 -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放测试流程</button>
+    <p class="section-title" style="text-align:center;">测试阶段：从小到大，层层把关</p>
+
+    <div class="test-stage-row">
+      <div class="stage-box blue" id="s1">
+        单元测试
+        <span class="stage-sub">程序员做 · 白盒为主</span>
+      </div>
+    </div>
+    <div class="arrow-down" id="a1">
+      <svg viewBox="0 0 20 28"><line class="arrow-body" x1="10" y1="2" x2="10" y2="22"/><polygon class="arrow-head" points="5,18 10,26 15,18"/></svg>
+    </div>
+
+    <div class="test-stage-row">
+      <div class="stage-box green" id="s2">
+        集成测试
+        <span class="stage-sub">模块组装 · 白盒+黑盒</span>
+      </div>
+    </div>
+    <div class="arrow-down" id="a2">
+      <svg viewBox="0 0 20 28"><line class="arrow-body" x1="10" y1="2" x2="10" y2="22"/><polygon class="arrow-head" points="5,18 10,26 15,18"/></svg>
+    </div>
+
+    <div class="test-stage-row">
+      <div class="stage-box purple" id="s3">
+        系统测试
+        <span class="stage-sub">功能 / 性能 / 安全 / 健壮性</span>
+      </div>
+    </div>
+    <div class="arrow-down" id="a3">
+      <svg viewBox="0 0 20 28"><line class="arrow-body" x1="10" y1="2" x2="10" y2="22"/><polygon class="arrow-head" points="5,18 10,26 15,18"/></svg>
+    </div>
+
+    <div class="test-stage-row">
+      <div class="stage-box amber" id="s4">
+        验收测试
+        <span class="stage-sub">用户确认满足需求</span>
+      </div>
+    </div>
+
+    <div class="finish-banner" id="finishBanner">
+      ✅ 系统测试结束标志：需求覆盖率达标 + 缺陷全部归零
+    </div>
+  </div>
+</div>
+
+<!-- Tab 2: 分类体系 -->
+<div id="classify" class="tab-content">
+  <div class="anim-area">
+    <p class="section-title">测试分类体系（三个维度）</p>
+
+    <p style="font-size:13px;color:#64748b;margin-bottom:8px;">📌 按执行状态</p>
+    <div class="class-grid">
+      <div class="class-card c-blue">
+        <div class="label">静态测试 (ST)</div>
+        <div class="desc">不运行代码，审查/走查/静态分析</div>
+      </div>
+      <div class="class-card c-blue">
+        <div class="label">动态测试 (DT)</div>
+        <div class="desc">运行代码，输入数据验证输出</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:#64748b;margin:12px 0 8px;">📌 按内部结构</p>
+    <div class="class-grid">
+      <div class="class-card c-green">
+        <div class="label">黑盒测试</div>
+        <div class="desc">不看代码，只看输入输出</div>
+      </div>
+      <div class="class-card c-green">
+        <div class="label">白盒测试</div>
+        <div class="desc">看代码逻辑，测路径/分支</div>
+      </div>
+      <div class="class-card c-green">
+        <div class="label">灰盒测试</div>
+        <div class="desc">介于两者之间</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:#64748b;margin:12px 0 8px;">📌 按执行方式</p>
+    <div class="class-grid">
+      <div class="class-card c-purple">
+        <div class="label">人工测试 (MT)</div>
+        <div class="desc">人手动操作执行</div>
+      </div>
+      <div class="class-card c-purple">
+        <div class="label">自动化测试 (AT)</div>
+        <div class="desc">脚本/工具自动执行</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab 3: 伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 测试分类体系</span>
+<span class="cm">// 按执行状态: 静态测试(ST) / 动态测试(DT)</span>
+<span class="cm">// 按内部结构: 黑盒测试 / 白盒测试 / 灰盒测试</span>
+<span class="cm">// 按执行方式: 人工测试(MT) / 自动化测试(AT)</span>
+
+<span class="cm">// 测试阶段(从小到大)</span>
+<span class="kw">function</span> <span class="fn">testLifecycle</span>(module) {
+    <span class="fn">单元测试</span>(module)      <span class="cm">// 程序员自己做，白盒为主</span>
+        ↓
+    <span class="fn">集成测试</span>(modules)     <span class="cm">// 模块组装验证，白盒+黑盒</span>
+        ↓
+    <span class="fn">系统测试</span>(system)      <span class="cm">// 验证符合SRS，功能/性能/安全/健壮性</span>
+        ↓
+    <span class="fn">验收测试</span>(user)        <span class="cm">// 确认满足用户需求</span>
+}
+
+<span class="cm">// 系统测试结束标志</span>
+<span class="kw">if</span> (需求覆盖率达标 <span class="kw">&&</span> 缺陷全部归零) {
+    <span class="st">"测试结束 ✓"</span>
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>软件测试是在<span class="hl">规定时间和成本</span>内尽量多发现漏洞的活动。
+  四个阶段从小到大：<span class="hl">单元测试</span>（模块级，程序员做，白盒）→
+  <span class="hl">集成测试</span>（组装验证）→
+  <span class="hl">系统测试</span>（验证符合SRS，包括功能/性能/健壮性/安全性）→
+  <span class="hl">验收测试</span>（确认满足用户需求）。
+  系统测试结束标志：<span class="hl">需求覆盖率达标</span>且<span class="hl">缺陷全部归零</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔍 单元测试：程序员用代码审查、静态分析测试自己写的模块</span>
+  <span class="tag-item">🔗 集成测试：将多个模块组装后验证接口是否正确</span>
+  <span class="tag-item">🖥️ 系统测试：检查完整系统是否符合需求规格说明书</span>
+  <span class="tag-item">✅ 验收测试：用户确认系统是否满足业务需求</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>多层次测试体系确保质量</li>
+      <li>黑盒白盒结合覆盖面广</li>
+      <li>自动化测试提高效率</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点/局限</h4>
+    <ul>
+      <li>测试不能保证发现所有漏洞</li>
+      <li>测试成本和时间有限</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">黑盒测试</span>
+    <span class="keyword">白盒测试</span>
+    <span class="keyword">单元测试</span>
+    <span class="keyword">集成测试</span>
+    <span class="keyword">系统测试</span>
+    <span class="keyword">验收测试</span>
+    <span class="keyword">静态测试</span>
+    <span class="keyword">动态测试</span>
+    <span class="keyword">需求覆盖率</span>
+    <span class="keyword">缺陷归零</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>系统分析与设计</strong> = 测试的依据来源于需求规格说明书（SRS）</li>
+    <li><strong>软件质量管理</strong> = 测试是质量保证（QA）的核心手段</li>
+    <li><strong>软件过程模型</strong> = V模型中每个开发阶段对应一个测试阶段</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  // Reset
+  clearTimeout(animTimer);
+  ['s1','s2','s3','s4'].forEach(id => {
+    document.getElementById(id).classList.remove('processing','done');
+  });
+  ['a1','a2','a3'].forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+  document.getElementById('finishBanner').classList.remove('show');
+
+  const stages = [
+    { box: 's1', arrow: null },
+    { box: 's2', arrow: 'a1' },
+    { box: 's3', arrow: 'a2' },
+    { box: 's4', arrow: 'a3' }
+  ];
+
+  stages.forEach((step, i) => {
+    // Activate arrow before
+    if (step.arrow) {
+      animTimer = setTimeout(() => {
+        document.getElementById(step.arrow).classList.add('active');
+      }, i * 1200);
+    }
+    // Processing
+    animTimer = setTimeout(() => {
+      document.getElementById(step.box).classList.add('processing');
+    }, i * 1200 + 300);
+    // Done
+    animTimer = setTimeout(() => {
+      document.getElementById(step.box).classList.remove('processing');
+      document.getElementById(step.box).classList.add('done');
+    }, i * 1200 + 900);
+  });
+
+  // Show finish banner
+  animTimer = setTimeout(() => {
+    document.getElementById('finishBanner').classList.add('show');
+  }, stages.length * 1200 + 200);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

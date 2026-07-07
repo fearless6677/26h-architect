@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoSQL数据库与Redis缓存 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; font-weight: 600; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; user-select: none; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* --- Animation: NoSQL 4 categories --- */
+.section-title { font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 10px; letter-spacing: 1px; }
+.nosql-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+.nosql-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 10px; text-align: center; transition: all 0.4s ease; cursor: default; }
+.nosql-card .icon { font-size: 28px; margin-bottom: 6px; }
+.nosql-card .name { font-size: 13px; font-weight: 700; color: #1e293b; }
+.nosql-card .example { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+.nosql-card.col { border-color: #3b82f6; }
+.nosql-card.kv  { border-color: #ef4444; }
+.nosql-card.doc { border-color: #22c55e; }
+.nosql-card.graph { border-color: #a855f7; }
+.nosql-card.lit { transform: scale(1.06); box-shadow: 0 4px 20px rgba(0,0,0,0.10); }
+
+/* --- Redis data types --- */
+.redis-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.redis-type { background: linear-gradient(135deg, #fef2f2, #fff); border: 1.5px solid #fca5a5; border-radius: 8px; padding: 10px 8px; text-align: center; font-size: 12px; transition: all 0.3s; }
+.redis-type .rtype { font-weight: 700; color: #dc2626; font-size: 13px; }
+.redis-type .ruse { color: #64748b; margin-top: 2px; }
+.redis-type.active { transform: scale(1.07); box-shadow: 0 2px 12px rgba(239,68,68,0.25); border-color: #ef4444; }
+
+/* --- Cache 3 problems --- */
+.cache-problems { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+.cache-problem { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center; transition: all 0.4s; position: relative; overflow: hidden; }
+.cache-problem .cp-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.cache-problem .cp-desc { font-size: 11px; color: #64748b; margin-bottom: 6px; }
+.cache-problem .cp-solution { font-size: 12px; font-weight: 600; color: #fff; background: #2563eb; border-radius: 6px; padding: 4px 10px; display: inline-block; transition: all 0.3s; }
+.cache-problem.p1 { border-color: #f97316; }
+.cache-problem.p2 { border-color: #eab308; }
+.cache-problem.p3 { border-color: #ef4444; }
+.cache-problem.blast { animation: blast 0.6s ease; }
+@keyframes blast { 0% { transform: scale(1); } 30% { transform: scale(1.08); box-shadow: 0 0 16px rgba(239,68,68,0.4); } 100% { transform: scale(1); } }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* --- Persistence comparison --- */
+.persist-row { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.persist-card { flex: 1; min-width: 180px; background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center; transition: all 0.3s; }
+.persist-card .persist-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.persist-card.rdb { border-color: #3b82f6; }
+.persist-card.rdb .persist-name { color: #2563eb; }
+.persist-card.aof { border-color: #8b5cf6; }
+.persist-card.aof .persist-name { color: #7c3aed; }
+.persist-card .persist-detail { font-size: 11px; color: #64748b; line-height: 1.7; text-align: left; }
+.persist-card .persist-detail .good { color: #15803d; }
+.persist-card .persist-detail .bad { color: #b91c1c; }
+.persist-card.lit { transform: scale(1.04); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+@media (max-width: 640px) {
+  .nosql-grid { grid-template-columns: repeat(2, 1fr); }
+  .redis-types { grid-template-columns: repeat(2, 1fr); }
+  .cache-problems { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› NoSQL与Redis › NoSQL数据库与Redis缓存</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">NoSQL与Redis</span>
+  <span class="exam-tag">🔥 必考</span>
+  <h1>NoSQL数据库与Redis缓存</h1>
+  <p class="one-liner">NoSQL是不用传统表格结构的数据库家族；Redis是其中最快的"记忆大师"，把热门数据存在内存里，秒级响应。</p>
+</div>
+
+<!-- ===== TABS ===== -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'core')">🧠 核心概念</div>
+</div>
+
+<!-- ===== TAB: 动画演示 ===== -->
+<div id="anim" class="tab-content active">
+
+  <!-- Section 1: NoSQL四大类 -->
+  <div class="anim-area">
+    <button class="play-btn" onclick="playNosqlAnim()">▶ 播放</button>
+    <div class="section-title">▎NoSQL 四大类</div>
+    <div class="nosql-grid">
+      <div class="nosql-card col" id="nc1">
+        <div class="icon">📊</div>
+        <div class="name">列式存储</div>
+        <div class="example">Cassandra</div>
+      </div>
+      <div class="nosql-card kv" id="nc2">
+        <div class="icon">🔑</div>
+        <div class="name">键值对</div>
+        <div class="example">Redis</div>
+      </div>
+      <div class="nosql-card doc" id="nc3">
+        <div class="icon">📄</div>
+        <div class="name">文档型</div>
+        <div class="example">MongoDB</div>
+      </div>
+      <div class="nosql-card graph" id="nc4">
+        <div class="icon">🕸️</div>
+        <div class="name">图数据库</div>
+        <div class="example">Neo4j</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Redis数据类型 -->
+  <div class="anim-area">
+    <button class="play-btn" onclick="playRedisAnim()">▶ 播放</button>
+    <div class="section-title">▎Redis 六大数据类型</div>
+    <div class="redis-types">
+      <div class="redis-type" id="rt1"><div class="rtype">string</div><div class="ruse">计数器</div></div>
+      <div class="redis-type" id="rt2"><div class="rtype">hash</div><div class="ruse">用户信息</div></div>
+      <div class="redis-type" id="rt3"><div class="rtype">set</div><div class="ruse">去重</div></div>
+      <div class="redis-type" id="rt4"><div class="rtype">list</div><div class="ruse">评论列表</div></div>
+      <div class="redis-type" id="rt5"><div class="rtype">zset</div><div class="ruse">排行榜</div></div>
+      <div class="redis-type" id="rt6"><div class="rtype">pub/sub</div><div class="ruse">消息</div></div>
+    </div>
+  </div>
+
+  <!-- Section 3: 缓存三兄弟 -->
+  <div class="anim-area">
+    <button class="play-btn" onclick="playCacheAnim()">▶ 播放</button>
+    <div class="section-title">▎缓存三大问题 &amp; 解决方案</div>
+    <div class="cache-problems">
+      <div class="cache-problem p1" id="cp1">
+        <div class="cp-title">🔍 缓存穿透</div>
+        <div class="cp-desc">查询不存在的key</div>
+        <div class="cp-solution">布隆过滤器</div>
+      </div>
+      <div class="cache-problem p2" id="cp2">
+        <div class="cp-title">🏔️ 缓存雪崩</div>
+        <div class="cp-desc">大量key同时过期</div>
+        <div class="cp-solution">随机过期时间</div>
+      </div>
+      <div class="cache-problem p3" id="cp3">
+        <div class="cp-title">⚡ 缓存击穿</div>
+        <div class="cp-desc">热点key突然过期</div>
+        <div class="cp-solution">分布式锁</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: 持久化对比 -->
+  <div class="anim-area">
+    <button class="play-btn" onclick="playPersistAnim()">▶ 播放</button>
+    <div class="section-title">▎Redis 持久化：RDB vs AOF</div>
+    <div class="persist-row">
+      <div class="persist-card rdb" id="pc-rdb">
+        <div class="persist-name">📸 RDB 快照</div>
+        <div class="persist-detail">
+          <span class="good">✔ 恢复速度快</span><br>
+          <span class="good">✔ 文件紧凑，适合备份</span><br>
+          <span class="bad">✘ 数据安全性低</span><br>
+          <span class="bad">✘ 可能丢失最后一次快照后的数据</span>
+        </div>
+      </div>
+      <div class="persist-card aof" id="pc-aof">
+        <div class="persist-name">📝 AOF 日志</div>
+        <div class="persist-detail">
+          <span class="good">✔ 数据安全性高</span><br>
+          <span class="good">✔ 最多丢失1秒数据</span><br>
+          <span class="bad">✘ 恢复速度慢</span><br>
+          <span class="bad">✘ 文件体积较大</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== TAB: 伪代码 ===== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm"># ===== NoSQL四大类 =====</span>
+<span class="cm"># 列式  |  键值对  |  文档  |  图</span>
+<span class="cm"># Cassandra | Redis | MongoDB | Neo4j</span>
+
+<span class="cm"># ===== Redis 常用操作 =====</span>
+
+<span class="cm"># 1. string → 文章浏览量计数器</span>
+<span class="fn">INCR</span>  <span class="st">"article:1001:views"</span>    <span class="cm">// +1</span>
+<span class="fn">GET</span>   <span class="st">"article:1001:views"</span>    <span class="cm">// → "523"</span>
+
+<span class="cm"># 2. zset → 热门帖子排行榜 Top10</span>
+<span class="fn">ZADD</span>  <span class="st">"hot:posts"</span>  <span class="num">98</span>  <span class="st">"post:1"</span>
+<span class="fn">ZADD</span>  <span class="st">"hot:posts"</span>  <span class="num">75</span>  <span class="st">"post:2"</span>
+<span class="fn">ZREVRANGE</span> <span class="st">"hot:posts"</span> <span class="num">0</span> <span class="num">9</span> <span class="kw">WITHSCORES</span>
+
+<span class="cm"># 3. set → 用户标签去重</span>
+<span class="fn">SADD</span>  <span class="st">"user:tags"</span>  <span class="st">"Java"</span> <span class="st">"Redis"</span> <span class="st">"Java"</span>
+<span class="fn">SMEMBERS</span> <span class="st">"user:tags"</span>            <span class="cm">// → {"Java","Redis"}</span>
+
+<span class="cm"># 4. hash → 用户信息</span>
+<span class="fn">HSET</span>  <span class="st">"user:1001"</span> <span class="st">"name"</span> <span class="st">"张三"</span> <span class="st">"age"</span> <span class="st">"28"</span>
+<span class="fn">HGETALL</span> <span class="st">"user:1001"</span>
+
+<span class="cm"># ===== 缓存三大问题 =====</span>
+
+<span class="cm"># 穿透 → 查不存在的key → 打穿到数据库</span>
+<span class="kw">solution</span>: <span class="fn">BloomFilter</span>.<span class="fn">mightContain</span>(key)
+            → false 则直接拒绝，不查DB
+
+<span class="cm"># 雪崩 → 大量key同时过期 → 数据库被打爆</span>
+<span class="kw">solution</span>: expire = base + <span class="fn">random</span>(<span class="num">1</span>, <span class="num">60</span>)  <span class="cm">// 加随机值</span>
+
+<span class="cm"># 击穿 → 热点key过期 → 大量请求涌入</span>
+<span class="kw">solution</span>: lock = <span class="fn">Redisson</span>.<span class="fn">tryLock</span>(<span class="st">"hot:key"</span>)
+            → 拿到锁才查DB并回填缓存
+
+<span class="cm"># ===== 持久化 =====</span>
+<span class="cm"># RDB: 定时快照 → 恢复快，可能丢数据</span>
+<span class="cm"># AOF: 追加日志 → 恢复慢，数据安全</span></pre>
+</div>
+
+<!-- ===== TAB: 核心概念 ===== -->
+<div id="core" class="tab-content">
+  <div class="explain">
+    <p><strong>NoSQL</strong>泛指<span class="hl">非关系型数据库</span>，不保证ACID特性，但具有易扩展、高性能、灵活数据模型等优势。分为<span class="hl">列式存储</span>（Cassandra）、<span class="hl">键值对</span>（Redis）、<span class="hl">文档型</span>（MongoDB）、<span class="hl">图数据库</span>（Neo4j）四大类。</p>
+    <br>
+    <p><strong>Redis</strong>是最常用的键值对缓存数据库，支持<span class="hl">string / hash / set / list / zset / pub-sub</span>等多种数据类型，数据存在<span class="hl">内存</span>中，读写速度极快。</p>
+    <br>
+    <p><strong>缓存三大问题：</strong></p>
+    <ul style="margin:8px 0 0 20px; font-size:14px; color:#475569;">
+      <li><span class="hl">缓存穿透</span> — 恶意用户用不存在的ID疯狂查询 → 布隆过滤器拦截</li>
+      <li><span class="hl">缓存雪崩</span> — 大促时所有商品缓存同时过期，DB被打爆 → 过期时间加随机值</li>
+      <li><span class="hl">缓存击穿</span> — 热点key突然过期，大量请求涌入 → 分布式锁保护</li>
+    </ul>
+    <br>
+    <p><strong>Redis持久化两种方式：</strong></p>
+    <ul style="margin:8px 0 0 20px; font-size:14px; color:#475569;">
+      <li><span class="hl">RDB快照</span> — 恢复快、数据安全性低，适合备份场景</li>
+      <li><span class="hl">AOF日志</span> — 恢复慢、数据安全性高，适合对数据安全要求高的场景</li>
+    </ul>
+  </div>
+
+  <div class="tag-list">
+    <span class="tag-item">📊 Redis string → 文章浏览量计数器</span>
+    <span class="tag-item">🏆 Redis zset → 首页热门帖子排行榜 Top10</span>
+    <span class="tag-item">🏷️ Redis set → 用户标签去重</span>
+    <span class="tag-item">🔍 缓存穿透 → 恶意用户用不存在的ID疯狂查询</span>
+    <span class="tag-item">🏔️ 缓存雪崩 → 大促时所有商品缓存同时过期</span>
+    <span class="tag-item">💾 RDB适合备份 | AOF适合数据安全要求高的场景</span>
+  </div>
+</div>
+
+<!-- ===== 固定区域：优缺点 / 考试关键词 / 关联 ===== -->
+<div class="explain">
+  <strong>核心：</strong>NoSQL = <span class="hl">不用表格结构</span>的数据库家族。Redis 是其中最快的"记忆大师"，
+  把<span class="hl">热门数据存在内存</span>里，秒级响应。缓存三大问题必须会背：穿透→布隆、雪崩→随机过期、击穿→分布式锁。
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>高性能（内存读写）</li>
+      <li>易水平扩展</li>
+      <li>数据模型灵活</li>
+      <li>支持丰富数据类型</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>不保证ACID</li>
+      <li>数据可能丢失（内存存储）</li>
+      <li>不适合复杂查询</li>
+      <li>缓存一致性问题</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词（必考）</h4>
+  <div>
+    <span class="keyword">NoSQL分类</span>
+    <span class="keyword">Redis数据类型</span>
+    <span class="keyword">缓存穿透</span>
+    <span class="keyword">缓存雪崩</span>
+    <span class="keyword">缓存击穿</span>
+    <span class="keyword">RDB</span>
+    <span class="keyword">AOF</span>
+    <span class="keyword">过期策略</span>
+    <span class="keyword">布隆过滤器</span>
+    <span class="keyword">分布式锁</span>
+    <span class="keyword">持久化</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>分布式数据库</strong> = NoSQL的水平扩展是分布式架构的核心能力</li>
+    <li><strong>事务与ACID / 并发控制</strong> = NoSQL牺牲ACID换取性能，需要理解取舍</li>
+    <li><strong>缓存一致性</strong> = 数据库与缓存双写一致是架构设计高频考点</li>
+    <li><strong>消息队列</strong> = Redis pub/sub 可作轻量级消息队列使用</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* --- NoSQL四大类动画 --- */
+function playNosqlAnim() {
+  const cards = ['nc1','nc2','nc3','nc4'];
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('lit');
+      setTimeout(() => el.classList.remove('lit'), 500);
+    }, i * 300);
+  });
+}
+
+/* --- Redis数据类型动画 --- */
+function playRedisAnim() {
+  const types = ['rt1','rt2','rt3','rt4','rt5','rt6'];
+  types.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('active');
+      setTimeout(() => el.classList.remove('active'), 450);
+    }, i * 250);
+  });
+}
+
+/* --- 缓存三兄弟动画 --- */
+function playCacheAnim() {
+  const problems = ['cp1','cp2','cp3'];
+  problems.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('blast');
+      setTimeout(() => el.classList.remove('blast'), 600);
+    }, i * 400);
+  });
+}
+
+/* --- 持久化对比动画 --- */
+function playPersistAnim() {
+  const rdb = document.getElementById('pc-rdb');
+  const aof = document.getElementById('pc-aof');
+  setTimeout(() => { rdb.classList.add('lit'); setTimeout(() => rdb.classList.remove('lit'), 600); }, 0);
+  setTimeout(() => { aof.classList.add('lit'); setTimeout(() => aof.classList.remove('lit'), 600); }, 400);
+}
+
+/* --- 页面加载后自动播放一轮 --- */
+window.addEventListener('load', () => {
+  setTimeout(playNosqlAnim, 400);
+  setTimeout(playRedisAnim, 1600);
+  setTimeout(playCacheAnim, 3200);
+  setTimeout(playPersistAnim, 4600);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>以太网帧长与WLAN标准 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* 帧结构动画 */
+.frame-row { display: flex; align-items: stretch; justify-content: center; margin: 16px 0; gap: 0; }
+.frame-seg { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; font-size: 11px; font-weight: 600; text-align: center; border: 2px solid; transition: all 0.4s; min-height: 64px; }
+.frame-seg .seg-bytes { font-size: 10px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+.seg-blue  { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+.seg-green { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+.seg-amber { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+.seg-red   { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+.seg-purple { background: #faf5ff; border-color: #a855f7; color: #6b21a8; }
+.frame-seg.highlight { transform: scaleY(1.15); box-shadow: 0 0 14px rgba(37,99,235,0.35); z-index: 2; }
+.frame-label { text-align: center; font-size: 12px; color: #64748b; margin-top: 8px; }
+
+/* WLAN对比卡片 */
+.wlan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+.wlan-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 10px; text-align: center; transition: all 0.3s; }
+.wlan-card .std-name { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.wlan-card .std-speed { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
+.wlan-card .std-note { font-size: 11px; color: #94a3b8; }
+.wlan-card.active { border-color: #2563eb; box-shadow: 0 0 12px rgba(37,99,235,0.25); transform: translateY(-3px); }
+.wlan-card.c-blue  { border-color: #93c5fd; } .wlan-card.c-blue  .std-speed { color: #2563eb; }
+.wlan-card.c-green { border-color: #86efac; } .wlan-card.c-green .std-speed { color: #16a34a; }
+.wlan-card.c-amber { border-color: #fcd34d; } .wlan-card.c-amber .std-speed { color: #d97706; }
+.wlan-card.c-red   { border-color: #fca5a5; } .wlan-card.c-red   .std-speed { color: #dc2626; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+.discard-anim { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 13px; color: #dc2626; font-weight: 700; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.discard-anim.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 网络技术 › 以太网帧长与WLAN标准</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">网络技术</span>
+  <span class="exam-tag">🔥 必考</span>
+  <h1>以太网帧长与WLAN标准</h1>
+  <p class="one-liner">以太网最小帧长64字节（为避免冲突，依据检测冲突最长时间），最大1518字节</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 帧结构动画</div>
+  <div class="tab" onclick="switchTab(this,'wlan')">📡 WLAN标准</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- ===== 动画演示 ===== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="discard-anim" id="discardMsg">❌ &lt;64B → 冲突碎片，丢弃！</div>
+
+    <div class="frame-row" id="frameRow">
+      <div class="frame-seg seg-blue"  style="flex:6"  id="s1">目的MAC<span class="seg-bytes">6B</span></div>
+      <div class="frame-seg seg-blue"  style="flex:6"  id="s2">源MAC<span class="seg-bytes">6B</span></div>
+      <div class="frame-seg seg-amber" style="flex:2"  id="s3">类型<span class="seg-bytes">2B</span></div>
+      <div class="frame-seg seg-green" style="flex:23" id="s4">数据载荷<span class="seg-bytes">46~1500B</span></div>
+      <div class="frame-seg seg-red"   style="flex:4"  id="s5">FCS<span class="seg-bytes">4B</span></div>
+    </div>
+    <div class="frame-label">
+      <span id="frameSizeLabel">总计：64 ~ 1518 字节</span>
+    </div>
+    <div style="display:flex;justify-content:center;gap:12px;margin-top:10px;">
+      <span style="font-size:11px;color:#94a3b8;">|← 14B 头部 →|</span>
+      <span style="font-size:11px;color:#94a3b8;">|← 46~1500B 数据 →|</span>
+      <span style="font-size:11px;color:#94a3b8;">|← 4B 尾部 →|</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WLAN标准 ===== -->
+<div id="wlan" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playWlan()">▶ 演进</button>
+    <div class="wlan-grid" id="wlanGrid">
+      <div class="wlan-card c-blue"  id="w1"><div class="std-name">802.11a/b/g</div><div class="std-speed">早期</div><div class="std-note">第一代WLAN</div></div>
+      <div class="wlan-card c-green" id="w2"><div class="std-name">802.11n</div><div class="std-speed">200 Mb/s</div><div class="std-note">MIMO · 2.4/5GHz</div></div>
+      <div class="wlan-card c-red"   id="w3"><div class="std-name">802.11ac</div><div class="std-speed">1 Gb/s</div><div class="std-note">5GHz · MU-MIMO</div></div>
+      <div class="wlan-card c-amber" id="w4"><div class="std-name">802.11ax</div><div class="std-speed">9.6 Gb/s</div><div class="std-note">Wi-Fi 6 · OFDMA</div></div>
+    </div>
+    <div class="frame-label">IEEE 802.11 — WLAN 无线局域网标准族</div>
+  </div>
+</div>
+
+<!-- ===== 伪代码 ===== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 以太网帧格式约束 (IEEE 802.3)</span>
+<span class="kw">ETHERNET_MIN_FRAME</span> = <span class="st">64 字节</span>
+<span class="kw">ETHERNET_MAX_FRAME</span> = <span class="st">1518 字节</span>
+
+<span class="cm">// 最小帧长目的：避免冲突</span>
+<span class="cm">// 最小帧长依据：网络中检测冲突的最长时间</span>
+
+<span class="kw">function</span> <span class="fn">validateFrame</span>(frame) {
+    <span class="kw">if</span> (frame.length &lt; <span class="st">64</span>)
+        <span class="kw">return</span> <span class="fn">discard</span>(<span class="st">"冲突碎片"</span>)  <span class="cm">// 丢弃！</span>
+    <span class="kw">if</span> (frame.length &gt; <span class="st">1518</span>)
+        <span class="kw">return</span> <span class="fn">discard</span>(<span class="st">"超长帧"</span>)
+    <span class="kw">return</span> <span class="fn">accept</span>(frame)
+}
+
+<span class="cm">// WLAN标准 (IEEE 802.11)</span>
+<span class="kw">802.11a/b/g</span> → <span class="cm">早期标准</span>
+<span class="kw">802.11n</span>    → <span class="st">200 Mb/s</span>
+<span class="kw">802.11ac</span>   → <span class="st">1 Gb/s</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>以太网(IEEE 802.3)规定帧长范围 <span class="hl">64 ~ 1518 字节</span>。
+  设置最小帧长是为了<span class="hl">避免冲突</span>，依据是网络中<span class="hl">检测冲突的最长时间</span>。
+  WLAN 采用 IEEE 802.11 标准族，802.11n 可达 <span class="hl">200 Mb/s</span>，802.11ac 可达 <span class="hl">1 Gb/s</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔌 以太网 IEEE 802.3</span>
+  <span class="tag-item">📡 WLAN IEEE 802.11</span>
+  <span class="tag-item">📐 最小帧长 64B</span>
+  <span class="tag-item">📏 最大帧长 1518B</span>
+  <span class="tag-item">⚡ CSMA/CD 冲突检测</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>最小帧长机制有效避免冲突检测问题</li>
+      <li>帧长标准化保证 interoperability</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 限制</h4>
+    <ul>
+      <li>最小帧长限制了短距离网络效率</li>
+      <li>1518B 最大帧可能导致大数据传输分片</li>
+      <li>WLAN 不使用 CSMA/CD，机制不同于以太网</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词（必考）</h4>
+  <div>
+    <span class="keyword">以太网</span>
+    <span class="keyword">最小帧长</span>
+    <span class="keyword">64字节</span>
+    <span class="keyword">1518字节</span>
+    <span class="keyword">检测冲突最长时间</span>
+    <span class="keyword">IEEE 802.3</span>
+    <span class="keyword">IEEE 802.11</span>
+    <span class="keyword">WLAN</span>
+  </div>
+  <p style="font-size:12px;color:#92400e;margin-top:10px;">
+    💡 <strong>记忆口诀：</strong>64 是为了"溜（6）顺（4）"地检测冲突；1518 是"我要一发"最大帧。
+  </p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>LAN拓扑</strong> → 以太网帧在局域网拓扑中传输</li>
+    <li><strong>WLAN标准</strong> → 802.11 系列是 WLAN 的核心协议族</li>
+    <li><strong>CSMA/CD</strong> → 以太网冲突检测机制，最小帧长的根本原因</li>
+    <li><strong>vs 令牌环</strong>：以太网用 CSMA/CD 竞争访问，令牌环用令牌传递无冲突</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const segs = ['s1','s2','s3','s4','s5'];
+  const labels = ['目的MAC (6B)','源MAC (6B)','类型/长度 (2B)','数据载荷 (46~1500B)','FCS校验 (4B)'];
+  const sizeHints = [
+    '帧头 14B = 6+6+2',
+    '帧头 14B = 6+6+2',
+    '标识上层协议 (IP/ARP…)',
+    '最小 46B → 总长 ≥ 64B',
+    'CRC-32 校验'
+  ];
+  segs.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      document.getElementById('frameSizeLabel').textContent = sizeHints[i];
+      setTimeout(() => el.classList.remove('highlight'), 600);
+    }, i * 500);
+  });
+
+  // 模拟短帧丢弃
+  setTimeout(() => {
+    const msg = document.getElementById('discardMsg');
+    msg.classList.add('show');
+    document.getElementById('frameSizeLabel').textContent = '⚠ 收到 42B 帧 → 小于 64B → 视为冲突碎片！';
+    setTimeout(() => {
+      msg.classList.remove('show');
+      document.getElementById('frameSizeLabel').textContent = '总计：64 ~ 1518 字节';
+    }, 1500);
+  }, segs.length * 500 + 300);
+}
+
+function playWlan() {
+  const cards = ['w1','w2','w3','w4'];
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      setTimeout(() => document.getElementById(id).classList.remove('active'), 800);
+    }, i * 600);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

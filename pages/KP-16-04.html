@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据访问层设计与事务ACID原则 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .code-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 180px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ── 5种模式卡片 ── */
+.modes-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0; }
+.mode-card { background: #fff; border: 2px solid #cbd5e1; border-radius: 10px; padding: 14px 8px; text-align: center; font-size: 12px; font-weight: 600; transition: all 0.4s ease; position: relative; }
+.mode-card .icon { font-size: 22px; margin-bottom: 6px; display: block; }
+.mode-card .name { color: #1e293b; }
+.mode-card .desc { color: #94a3b8; font-weight: 400; font-size: 11px; margin-top: 4px; }
+.mode-card.highlight { transform: scale(1.08); border-color: #3b82f6; box-shadow: 0 0 16px rgba(37,99,235,0.3); z-index: 2; }
+
+/* ── ACID 卡片 ── */
+.acid-row { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
+.acid-card { flex: 1; min-width: 140px; background: #fff; border: 2px solid #cbd5e1; border-radius: 10px; padding: 14px; text-align: center; transition: all 0.4s ease; }
+.acid-card .letter { font-size: 28px; font-weight: 800; margin-bottom: 4px; display: block; }
+.acid-card .zh { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.acid-card .detail { font-size: 11px; color: #64748b; font-weight: 400; }
+.acid-card.c-a { border-color: #f472b6; } .acid-card.c-a .letter { color: #db2777; }
+.acid-card.c-c { border-color: #3b82f6; } .acid-card.c-c .letter { color: #2563eb; }
+.acid-card.c-i { border-color: #22c55e; } .acid-card.c-i .letter { color: #16a34a; }
+.acid-card.c-d { border-color: #f59e0b; } .acid-card.c-d .letter { color: #d97706; }
+.acid-card.highlight { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.3); z-index: 2; }
+
+/* ── 事务流动画 ── */
+.txn-flow { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.txn-step { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: all 0.4s; min-width: 80px; text-align: center; }
+.txn-step.begin { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.txn-step.step { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.txn-step.commit { background: #f0fdf4; border: 2px solid #16a34a; color: #15803d; }
+.txn-step.rollback { background: #fef2f2; border: 2px solid #ef4444; color: #dc2626; }
+.txn-step.processing { transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.4); }
+.txn-arrow { width: 28px; height: 3px; background: #cbd5e1; border-radius: 2px; position: relative; overflow: hidden; }
+.txn-arrow .dot { position: absolute; top: 0; left: -16px; width: 16px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: txnDot 1.2s linear infinite; }
+@keyframes txnDot { 0% { left: -16px; } 100% { left: 28px; } }
+
+.sub-label { font-size: 12px; color: #94a3b8; text-align: center; margin: 6px 0 2px; font-weight: 600; letter-spacing: 1px; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 数据访问层设计 › SA-16-04</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">数据访问层设计</span>
+  <span class="exam-tag">单选2~3分 案例5分</span>
+  <span class="code-tag">KP-16-04</span>
+  <h1>数据访问层设计与事务ACID原则</h1>
+  <p class="one-liner">数据访问层五种模式（在线访问/DAO/DTO/离线/ORM）与事务ACID原则</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <p class="sub-label">── 数据访问层 5 种模式 ──</p>
+    <div class="modes-grid">
+      <div class="mode-card" id="m1"><span class="icon">🌐</span><span class="name">在线访问</span><span class="desc">实时交互</span></div>
+      <div class="mode-card" id="m2"><span class="icon">🔌</span><span class="name">DAO</span><span class="desc">分离访问与业务</span></div>
+      <div class="mode-card" id="m3"><span class="icon">📦</span><span class="name">DTO</span><span class="desc">跨进程传输</span></div>
+      <div class="mode-card" id="m4"><span class="icon">💾</span><span class="name">离线数据</span><span class="desc">独立于连接</span></div>
+      <div class="mode-card" id="m5"><span class="icon">🔄</span><span class="name">ORM</span><span class="desc">对象↔记录</span></div>
+    </div>
+
+    <p class="sub-label">── ACID 事务原则 ──</p>
+    <div class="acid-row">
+      <div class="acid-card c-a" id="a1"><span class="letter">A</span><span class="zh">原子性</span><span class="detail">全部成功或全部失败</span></div>
+      <div class="acid-card c-c" id="a2"><span class="letter">C</span><span class="zh">一致性</span><span class="detail">失败则恢复执行前状态</span></div>
+      <div class="acid-card c-i" id="a3"><span class="letter">I</span><span class="zh">隔离性</span><span class="detail">提交前对其他事务不可见</span></div>
+      <div class="acid-card c-d" id="a4"><span class="letter">D</span><span class="zh">持久性</span><span class="detail">已提交数据状态正确</span></div>
+    </div>
+
+    <p class="sub-label">── 事务流程动画 ──</p>
+    <div class="txn-flow">
+      <div class="txn-step begin" id="t1">BEGIN</div>
+      <div class="txn-arrow"><div class="dot"></div></div>
+      <div class="txn-step step" id="t2">扣款 -100</div>
+      <div class="txn-arrow"><div class="dot" style="animation-delay:.2s"></div></div>
+      <div class="txn-step step" id="t3">入账 +100</div>
+      <div class="txn-arrow"><div class="dot" style="animation-delay:.4s"></div></div>
+      <div class="txn-step commit" id="t4">COMMIT</div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ── DAO模式：分离数据访问与业务逻辑 ──</span>
+<span class="kw">interface</span> <span class="fn">UserDao</span> {
+    User <span class="fn">findById</span>(<span class="kw">int</span> id);       <span class="cm">// 接口：定义操作</span>
+    <span class="kw">void</span>  <span class="fn">save</span>(User user);
+}
+<span class="kw">class</span> <span class="fn">UserDaoImpl</span> <span class="kw">implements</span> <span class="fn">UserDao</span> {  <span class="cm">// 实现类：封装JDBC</span>
+    <span class="kw">public</span> User <span class="fn">findById</span>(<span class="kw">int</span> id) {
+        Connection conn = <span class="fn">Pool</span>.<span class="fn">getConnection</span>();  <span class="cm">// 连接池复用</span>
+        <span class="cm">// ... PreparedStatement → ResultSet → 返回DTO</span>
+    }
+}
+
+<span class="cm">// ── DAO工厂：根据数据库类型延迟实例化 ──</span>
+<span class="kw">class</span> <span class="fn">DAOFactory</span> {
+    <span class="kw">static</span> UserDao <span class="fn">getUserDao</span>(String dbType) {
+        <span class="kw">if</span> (dbType == <span class="st">"mysql"</span>)  <span class="kw">return new</span> <span class="fn">MysqlUserDao</span>();
+        <span class="kw">if</span> (dbType == <span class="st">"oracle"</span>) <span class="kw">return new</span> <span class="fn">OracleUserDao</span>();
+    }
+}
+
+<span class="cm">// ── ACID事务：银行转账 ──</span>
+<span class="kw">function</span> <span class="fn">transfer</span>(from, to, amount) {
+    conn.<span class="fn">beginTransaction</span>();          <span class="cm">// BEGIN</span>
+    <span class="kw">try</span> {
+        dao.<span class="fn">deduct</span>(from, amount);   <span class="cm">// 扣款（原子操作1）</span>
+        dao.<span class="fn">credit</span>(to, amount);     <span class="cm">// 入账（原子操作2）</span>
+        conn.<span class="fn">commit</span>();              <span class="cm">// 全部成功 → COMMIT（持久性）</span>
+    } <span class="kw">catch</span>(e) {
+        conn.<span class="fn">rollback</span>();            <span class="cm">// 任一失败 → ROLLBACK（原子性+一致性）</span>
+    }
+}
+<span class="cm">// 隔离性：commit前，其他事务看不到中间状态</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>数据访问层有<span class="hl">5种模式</span>——①在线访问（最常用，每次操作与后台实时交互）；②DAO模式（将底层数据访问与高层业务逻辑<span class="hl">分离</span>，含DAO工厂/接口/实现类/DTO）；③DTO模式（跨进程/网络边界传输数据的<span class="hl">容器</span>）；④离线数据模式（以数据为中心，操作<span class="hl">独立于后台连接和事务</span>）；⑤ORM（对象/关系映射，应用数据与数据库记录<span class="hl">互转</span>）。事务处理必须服从<span class="hl">ACID原则</span>：原子性（失败则全部失效）、一致性（失败则恢复执行前状态）、隔离性（提交前对其他事务不可见）、持久性（已提交数据状态正确）。工厂模式用于根据数据库类型<span class="hl">延迟实例化</span>具体类。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔌 DAO：JDBC封装UserDao接口及实现类</span>
+  <span class="tag-item">🔄 ORM：Hibernate将Java对象映射为数据库表记录</span>
+  <span class="tag-item">🏦 ACID实践：银行转账——扣款和入账必须同时成功或回滚</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>DAO分离数据访问与业务逻辑，降低耦合</li>
+      <li>DTO支持跨进程/网络数据传输</li>
+      <li>ORM简化数据库操作，提高开发效率</li>
+      <li>ACID保证事务正确性与数据一致性</li>
+      <li>连接池提高连接复用效率，降低开销</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点/注意事项</h4>
+    <ul>
+      <li>在线访问每次操作都与后台交互，连接开销大</li>
+      <li>ORM工具可能生成低效SQL，影响性能</li>
+      <li>连接池需要合理配置参数（最大连接数/超时等）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词（单选2~3分 / 案例5分）</h4>
+  <div>
+    <span class="keyword">DAO</span>
+    <span class="keyword">DTO</span>
+    <span class="keyword">ORM</span>
+    <span class="keyword">ACID</span>
+    <span class="keyword">原子性</span>
+    <span class="keyword">一致性</span>
+    <span class="keyword">隔离性</span>
+    <span class="keyword">持久性</span>
+    <span class="keyword">离线数据模式</span>
+    <span class="keyword">工厂模式</span>
+    <span class="keyword">连接池</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>KP-16-01</strong> → 分层架构基础——数据访问层是典型的最底层</li>
+    <li><strong>KP-16-03</strong> → 业务逻辑层设计——DAO分离后上层只依赖接口</li>
+    <li><strong>KP-16-05</strong> → 后续知识点——数据库连接池与事务管理细节</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+var animTimer = null;
+function playAnimation() {
+  if (animTimer) clearTimeout(animTimer);
+
+  // Phase 1: 依次高亮5种模式
+  for (var i = 1; i <= 5; i++) {
+    (function(idx) {
+      setTimeout(function() {
+        document.getElementById('m' + idx).classList.add('highlight');
+        setTimeout(function() { document.getElementById('m' + idx).classList.remove('highlight'); }, 500);
+      }, idx * 350);
+    })(i);
+  }
+
+  // Phase 2: 依次高亮ACID
+  var acidDelay = 5 * 350 + 200;
+  for (var j = 1; j <= 4; j++) {
+    (function(idx) {
+      setTimeout(function() {
+        document.getElementById('a' + idx).classList.add('highlight');
+        setTimeout(function() { document.getElementById('a' + idx).classList.remove('highlight'); }, 500);
+      }, acidDelay + idx * 400);
+    })(j);
+  }
+
+  // Phase 3: 事务流程动画
+  var txnDelay = acidDelay + 4 * 400 + 300;
+  for (var k = 1; k <= 4; k++) {
+    (function(idx) {
+      setTimeout(function() {
+        document.getElementById('t' + idx).classList.add('processing');
+        setTimeout(function() { document.getElementById('t' + idx).classList.remove('processing'); }, 450);
+      }, txnDelay + idx * 450);
+    })(k);
+  }
+
+  // Phase 3b: 模拟回滚场景
+  setTimeout(function() {
+    var t4 = document.getElementById('t4');
+    t4.className = 'txn-step rollback';
+    t4.textContent = 'ROLLBACK';
+    setTimeout(function() {
+      t4.className = 'txn-step commit';
+      t4.textContent = 'COMMIT';
+    }, 1200);
+  }, txnDelay + 4 * 450 + 400);
+}
+
+window.addEventListener('load', function() { setTimeout(playAnimation, 500); });
+</script>
+</body>
+</html>

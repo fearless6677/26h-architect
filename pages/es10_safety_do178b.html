@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>安全攸关软件与DO-178B标准（A~E五级） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all .2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.examples-box { background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.examples-box h4 { color: #0369a1; margin-bottom: 10px; }
+.examples-box li { font-size: 13px; color: #475569; margin: 6px 0; }
+
+/* ===== 动画区域样式 ===== */
+/* A-E 等级条 */
+.level-chart { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.level-row { display: flex; align-items: center; gap: 10px; transition: all .4s; border-radius: 8px; padding: 4px 8px; }
+.level-row:hover { background: rgba(0,0,0,.03); }
+.level-label { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: #fff; flex-shrink: 0; }
+.level-label.A { background: #dc2626; }
+.level-label.B { background: #ea580c; }
+.level-label.C { background: #d97706; }
+.level-label.D { background: #2563eb; }
+.level-label.E { background: #6b7280; }
+.level-bar-wrap { flex: 1; position: relative; height: 28px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+.level-bar { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; color: #fff; font-weight: 600; width: 0; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+.level-bar.A { background: linear-gradient(90deg, #dc2626, #ef4444); }
+.level-bar.B { background: linear-gradient(90deg, #ea580c, #f97316); }
+.level-bar.C { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.level-bar.D { background: linear-gradient(90deg, #2563eb, #3b82f6); }
+.level-bar.E { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+.level-desc { font-size: 12px; color: #64748b; min-width: 160px; text-align: right; flex-shrink: 0; }
+
+/* 生命周期流程 */
+.lifecycle { margin-top: 16px; }
+.lifecycle-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 12px; text-align: center; }
+.lifecycle-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 10px 0; flex-wrap: wrap; }
+.lc-box { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all .3s; min-width: 72px; cursor: default; position: relative; }
+.lc-box.plan { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.lc-box.dev { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.lc-box.integ { background: #fefce8; border: 2px solid #eab308; color: #854d0e; }
+.lc-box.active { transform: scale(1.1); box-shadow: 0 0 18px rgba(37,99,235,0.45); z-index: 2; }
+.lc-sub-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 4px 0; flex-wrap: wrap; }
+.lc-sub { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; background: #fff; border: 1px solid #cbd5e1; color: #475569; transition: all .3s; }
+.lc-sub.active { border-color: #2563eb; color: #1d4ed8; background: #eff6ff; transform: scale(1.06); }
+.lc-arrow { color: #94a3b8; font-size: 16px; margin: 0 2px; }
+.lc-bracket { font-size: 12px; color: #64748b; margin: 0 4px; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background .2s; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 安全设计 › DO-178B标准（A~E五级）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">安全设计</span>
+  <span class="exam-tag">⭐ 常考</span>
+  <span class="hour-tag">🕐 第2小时</span>
+  <h1>安全攸关软件与DO-178B标准（A~E五级）</h1>
+  <p class="one-liner">DO-178B将机载软件按安全等级分为A(灾难)~E(无影响)五级</p>
+</div>
+
+<!-- ===== Tabs ===== -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- ===== 动画 ===== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <!-- A-E 等级 -->
+    <div class="level-chart" id="levelChart">
+      <div class="level-row" data-level="A">
+        <div class="level-label A">A</div>
+        <div class="level-bar-wrap"><div class="level-bar A" data-width="100%">灾难级 → 可能导致多人死亡</div></div>
+        <div class="level-desc">验证最严格 ✈️</div>
+      </div>
+      <div class="level-row" data-level="B">
+        <div class="level-label B">B</div>
+        <div class="level-bar-wrap"><div class="level-bar B" data-width="80%">危害级 → 可能导致严重伤亡</div></div>
+        <div class="level-desc"></div>
+      </div>
+      <div class="level-row" data-level="C">
+        <div class="level-label C">C</div>
+        <div class="level-bar-wrap"><div class="level-bar C" data-width="60%">严重级 → 可能导致人员伤亡</div></div>
+        <div class="level-desc"></div>
+      </div>
+      <div class="level-row" data-level="D">
+        <div class="level-label D">D</div>
+        <div class="level-bar-wrap"><div class="level-bar D" data-width="40%">不严重级 → 不会导致伤亡</div></div>
+        <div class="level-desc"></div>
+      </div>
+      <div class="level-row" data-level="E">
+        <div class="level-label E">E</div>
+        <div class="level-bar-wrap"><div class="level-bar E" data-width="20%">无影响级</div></div>
+        <div class="level-desc">无安全影响</div>
+      </div>
+    </div>
+
+    <!-- 生命周期 -->
+    <div class="lifecycle">
+      <div class="lifecycle-title">📐 DO-178B 软件生命周期 — 三大过程</div>
+      <div class="lifecycle-row">
+        <div class="lc-box plan" id="lc1">📋 软件计划</div>
+        <span class="lc-arrow">→</span>
+        <div class="lc-box dev" id="lc2">🔧 软件开发</div>
+        <span class="lc-arrow">→</span>
+        <div class="lc-box integ" id="lc3">🔍 软件综合</div>
+      </div>
+      <!-- 子过程 -->
+      <div class="lc-sub-row" id="subDev" style="margin-top:8px;">
+        <span class="lc-bracket">开发子过程：</span>
+        <span class="lc-sub" id="sd1">需求</span>
+        <span class="lc-arrow">→</span>
+        <span class="lc-sub" id="sd2">设计</span>
+        <span class="lc-arrow">→</span>
+        <span class="lc-sub" id="sd3">编码</span>
+        <span class="lc-arrow">→</span>
+        <span class="lc-sub" id="sd4">集成</span>
+      </div>
+      <div class="lc-sub-row" id="subInteg" style="margin-top:4px;">
+        <span class="lc-bracket">综合子过程：</span>
+        <span class="lc-sub" id="si1">验证</span>
+        <span class="lc-sub" id="si2">配置管理</span>
+        <span class="lc-sub" id="si3">质量保证</span>
+        <span class="lc-sub" id="si4">审定联络</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 伪代码 ===== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// DO-178B 软件安全等级（机载系统适航认证）</span>
+<span class="kw">DO178B</span> = {
+  <span class="num">A</span>: <span class="st">"灾难级 → 可能导致多人死亡"</span>,   <span class="cm">// 例：飞行控制软件</span>
+  <span class="num">B</span>: <span class="st">"危害级   → 可能导致严重伤亡"</span>,   <span class="cm">// 例：发动机控制软件</span>
+  <span class="num">C</span>: <span class="st">"严重级   → 可能导致人员伤亡"</span>,   <span class="cm">// 例：客舱显示系统</span>
+  <span class="num">D</span>: <span class="st">"不严重级 → 不会导致伤亡"</span>,       <span class="cm">// 例：娱乐系统</span>
+  <span class="num">E</span>: <span class="st">"没有影响级 → 无安全影响"</span>       <span class="cm">// 无需认证</span>
+}
+
+<span class="cm">// 生命周期三大过程</span>
+<span class="fn">计划过程</span>  <span class="cm">→</span>  <span class="fn">开发过程</span>(<span class="st">需求</span> → <span class="st">设计</span> → <span class="st">编码</span> → <span class="st">集成</span>)  <span class="cm">→</span>  <span class="fn">综合过程</span>(<span class="st">验证</span> | <span class="st">配置管理</span> | <span class="st">质量保证</span> | <span class="st">审定联络</span>)
+
+<span class="cm">// 核心：等级越高(A→E递减)，验证/测试/审查要求越严格</span>
+<span class="cm">// A级需要100%需求覆盖 + 结构覆盖 + 独立验证</span></pre>
+</div>
+
+<!-- ===== 核心解释 ===== -->
+<div class="explain">
+  <strong>核心：</strong>DO-178B是<span class="hl">机载软件安全性标准</span>。将软件生命周期分为<span class="hl">三大过程</span>：
+  软件计划过程、软件开发过程（细分为<span class="hl">需求→设计→编码→集成</span> 4个子过程）、
+  软件综合过程（细分为<span class="hl">验证/配置管理/质量保证/审定联络</span> 4个子过程）。
+  根据软件在系统中的重要程度分为<span class="hl">A~E五级</span>：
+  A级灾难级、B级危害级、C级严重级、D级不严重级、E级没有影响级。<strong>等级越高（A最严重），开发和验证要求越严格。</strong>
+</div>
+
+<!-- ===== 实例 ===== -->
+<div class="examples-box">
+  <h4>💡 各级实例</h4>
+  <ul>
+    <li><strong>A级 灾难级：</strong>飞行控制软件，失效导致飞机坠毁 🛩️</li>
+    <li><strong>B级 危害级：</strong>发动机控制软件，失效导致严重伤亡 🔥</li>
+    <li><strong>C级 严重级：</strong>客舱显示系统，失效影响飞行安全 🖥️</li>
+    <li><strong>D级 不严重级：</strong>娱乐系统，失效不影响安全 🎬</li>
+  </ul>
+</div>
+
+<!-- ===== 标签 ===== -->
+<div class="tag-list">
+  <span class="tag-item">✈️ 机载软件适航认证</span>
+  <span class="tag-item">🔒 A~E五级分类</span>
+  <span class="tag-item">📋 三大过程（计划/开发/综合）</span>
+  <span class="tag-item">🔍 100%需求覆盖（A级）</span>
+  <span class="tag-item">📜 FAA/EASA适航标准</span>
+</div>
+
+<!-- ===== 优缺点 ===== -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>等级分明，不同级别不同要求，资源分配合理</li>
+      <li>验证严格，确保航空软件安全性</li>
+      <li>生命周期清晰，过程可追溯</li>
+      <li>国际通用，FAA/EASA均认可</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点/挑战</h4>
+    <ul>
+      <li>高等级认证成本极高（A级可达数亿美元）</li>
+      <li>开发周期长，文档工作量巨大</li>
+      <li>标准更新慢（DO-178B→DO-178C历时20年）</li>
+      <li>对工具/方法有严格限制</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 考试关键词 ===== -->
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">DO-178B</span>
+    <span class="keyword">A~E五级</span>
+    <span class="keyword">灾难级</span>
+    <span class="keyword">危害级</span>
+    <span class="keyword">软件计划/开发/综合三过程</span>
+    <span class="keyword">适航要求</span>
+  </div>
+</div>
+
+<!-- ===== 关联知识 ===== -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="es02_classification.html"><strong>软件分类（es02）</strong></a> = 安全攸关软件是分类体系中的一类</li>
+    <li><a href="es05_software_features.html"><strong>软件特性（es05）</strong></a> = 安全攸关软件的特殊质量需求</li>
+    <li><strong>IEC 61508</strong> = 工业领域的安全完整性等级（SIL 1~4），与DO-178B类似</li>
+    <li><strong>ISO 26262</strong> = 汽车功能安全标准（ASIL A~D），借鉴DO-178B思路</li>
+    <li><strong>DO-178C</strong> = DO-178B的升级版（2011），增加了面向对象/模型化开发补充</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animRunning = false;
+
+function playAnimation() {
+  if (animRunning) return;
+  animRunning = true;
+
+  // 1) 等级条依次展开
+  const bars = document.querySelectorAll('.level-bar');
+  bars.forEach((bar, i) => {
+    bar.style.width = '0';
+    setTimeout(() => {
+      bar.style.width = bar.dataset.width;
+    }, i * 200);
+  });
+
+  // 2) 生命周期：计划 → 开发(子过程) → 综合(子过程)
+  const mainBoxes = ['lc1', 'lc2', 'lc3'];
+  const devSubs = ['sd1', 'sd2', 'sd3', 'sd4'];
+  const integSubs = ['si1', 'si2', 'si3', 'si4'];
+
+  const steps = [
+    { id: 'lc1', delay: 1400, type: 'main' },
+    { id: 'lc2', delay: 2200, type: 'main' },
+    ...devSubs.map((id, i) => ({ id, delay: 2600 + i * 350, type: 'sub' })),
+    { id: 'lc3', delay: 4400, type: 'main' },
+    ...integSubs.map((id, i) => ({ id, delay: 4800 + i * 350, type: 'sub' })),
+  ];
+
+  // Clear previous
+  [...mainBoxes, ...devSubs, ...integSubs].forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+
+  steps.forEach(({ id, delay }) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      setTimeout(() => {
+        document.getElementById(id).classList.remove('active');
+      }, 600);
+    }, delay);
+  });
+
+  // Reset after full cycle
+  setTimeout(() => {
+    bars.forEach(bar => bar.style.width = bar.dataset.width);
+    animRunning = false;
+  }, 7000);
+}
+
+// Auto-play on load
+window.addEventListener('load', () => setTimeout(playAnimation, 400));
+</script>
+</body>
+</html>

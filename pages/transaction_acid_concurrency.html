@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事务ACID特性与并发控制 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ACID cards */
+.acid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.acid-card { padding: 16px; border-radius: 8px; text-align: center; transition: all 0.3s; cursor: default; }
+.acid-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.acid-card .letter { font-size: 32px; font-weight: 800; margin-bottom: 4px; }
+.acid-card .label { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.acid-card .desc { font-size: 12px; color: #475569; }
+.acid-card.a { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.acid-card.c { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.acid-card.i { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.acid-card.d { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.acid-card.active-card { transform: scale(1.08); box-shadow: 0 0 20px rgba(37,99,235,0.35); }
+
+/* Lock visualization */
+.lock-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+.lock-box { display: inline-flex; flex-direction: column; align-items: center; padding: 14px 22px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 120px; }
+.lock-box.x-lock { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.lock-box.s-lock { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.lock-box.conflict { animation: shake 0.4s ease-in-out; }
+.lock-box.granted { box-shadow: 0 0 14px rgba(34,197,94,0.5); }
+.lock-icon { font-size: 24px; margin-bottom: 4px; }
+.lock-label { font-size: 11px; color: #64748b; margin-top: 4px; }
+.compat-badge { padding: 4px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; }
+.compat-badge.yes { background: #dcfce7; color: #15803d; }
+.compat-badge.no { background: #fee2e2; color: #b91c1c; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Transaction flow */
+.tx-flow { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 14px 0; flex-wrap: wrap; }
+.tx-step { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 70px; }
+.tx-step.begin { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.tx-step.op { background: #f1f5f9; border: 2px solid #64748b; color: #334155; }
+.tx-step.commit { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.tx-step.rollback { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.tx-step.active-step { transform: scale(1.1); box-shadow: 0 0 14px rgba(37,99,235,0.4); }
+.tx-arrow { font-size: 18px; color: #94a3b8; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.play-btn:hover { background: #1d4ed8; }
+
+.section-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 16px 0 8px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 事务与并发控制 › 事务ACID特性与并发控制</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">事务与并发控制</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>事务ACID特性与并发控制</h1>
+  <p class="one-liner">事务就像快递——要么全部送达(原子性)，要么全部退回；ACID是事务的四大保险：原子、一致、隔离、持久。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'lock')">🔒 封锁机制</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 SQL代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playTxAnimation()">▶ 播放事务</button>
+    <p class="section-title" style="text-align:center;">转账事务：A扣款100 → B入账100</p>
+
+    <div class="tx-flow">
+      <div class="tx-step begin" id="t1">BEGIN</div>
+      <span class="tx-arrow">→</span>
+      <div class="tx-step op" id="t2">UPDATE A<br><small>-100</small></div>
+      <span class="tx-arrow">→</span>
+      <div class="tx-step op" id="t3">UPDATE B<br><small>+100</small></div>
+      <span class="tx-arrow">→</span>
+      <div class="tx-step commit" id="t4">COMMIT</div>
+    </div>
+
+    <div class="acid-grid" id="acidGrid">
+      <div class="acid-card a" id="cardA">
+        <div class="letter">A</div>
+        <div class="label">原子性 Atomicity</div>
+        <div class="desc">全做或全不做<br>转账要么成功，要么回滚</div>
+      </div>
+      <div class="acid-card c" id="cardC">
+        <div class="letter">C</div>
+        <div class="label">一致性 Consistency</div>
+        <div class="desc">正确状态 → 正确状态<br>转账前后总金额不变</div>
+      </div>
+      <div class="acid-card i" id="cardI">
+        <div class="letter">I</div>
+        <div class="label">隔离性 Isolation</div>
+        <div class="desc">事务间互不干扰<br>并发操作互不影响</div>
+      </div>
+      <div class="acid-card d" id="cardD">
+        <div class="letter">D</div>
+        <div class="label">持久性 Durability</div>
+        <div class="desc">提交后永久保存<br>宕机也不丢失</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="lock" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playLockAnimation()">▶ 播放封锁</button>
+    <p class="section-title" style="text-align:center;">X锁(排他锁) vs S锁(共享锁)</p>
+
+    <div class="lock-row" id="lockDemo">
+      <div class="lock-box x-lock" id="lock1">
+        <div class="lock-icon">🔒</div>
+        <div>X锁 (排他锁)</div>
+        <div class="lock-label">独占读写，其他事务不能操作</div>
+      </div>
+      <span class="compat-badge no" id="badge1">✗ 互斥</span>
+      <div class="lock-box x-lock" id="lock2">
+        <div class="lock-icon">🔒</div>
+        <div>X锁 (排他锁)</div>
+        <div class="lock-label">冲突！无法同时获取</div>
+      </div>
+    </div>
+
+    <div class="lock-row" id="lockDemo2">
+      <div class="lock-box s-lock" id="lock3">
+        <div class="lock-icon">🔓</div>
+        <div>S锁 (共享锁)</div>
+        <div class="lock-label">可并发读，不能写</div>
+      </div>
+      <span class="compat-badge yes" id="badge2">✓ 兼容</span>
+      <div class="lock-box s-lock" id="lock4">
+        <div class="lock-icon">🔓</div>
+        <div>S锁 (共享锁)</div>
+        <div class="lock-label">多个事务可同时读取</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">-- 事务ACID：转账操作（原子性保证全做或全不做）</span>
+<span class="kw">BEGIN TRANSACTION</span>
+  <span class="kw">UPDATE</span> accounts <span class="kw">SET</span> balance = balance - <span class="st">100</span> <span class="kw">WHERE</span> id = <span class="st">1</span>;  <span class="cm">-- A扣款</span>
+  <span class="kw">UPDATE</span> accounts <span class="kw">SET</span> balance = balance + <span class="st">100</span> <span class="kw">WHERE</span> id = <span class="st">2</span>;  <span class="cm">-- B入账</span>
+<span class="kw">COMMIT</span>;  <span class="cm">-- 提交（持久化），或 ROLLBACK（回滚，撤销全部操作）</span>
+
+<span class="cm">-- 封锁类型对比：</span>
+<span class="cm">-- X锁(排他锁): 独占读写，其他事务不能操作任何该记录</span>
+<span class="cm">-- S锁(共享锁): 多事务并发读，但谁也不能写</span>
+
+<span class="cm">-- 故障恢复：</span>
+<span class="cm">-- UNDO: 撤销未完成的事务（回滚到BEGIN之前的状态）</span>
+<span class="cm">-- REDO: 重做已提交的事务（确保持久性，防止宕机丢数据）</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>事务是DBMS的基本工作单元，具有<span class="hl">ACID</span>四大特性：
+  <strong>原子性</strong>(全做或全不做)、<strong>一致性</strong>(从一个正确状态到另一个正确状态)、
+  <strong>隔离性</strong>(事务间互不干扰)、<strong>持久性</strong>(提交后永久保存)。
+  <br><br>
+  并发控制通过封锁机制实现：<span class="hl">X封锁(排他锁)</span>允许独占读写；
+  <span class="hl">S封锁(共享锁)</span>允许多个事务并发读但不允许写。
+  当数据库出现故障时，通过<span class="hl">UNDO(撤销)</span>和<span class="hl">REDO(重做)</span>操作恢复数据。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">💸 转账: 扣款+入账 要么都成功要么都回滚</span>
+  <span class="tag-item">🔐 隔离性: A转账时C不能操作同一账户</span>
+  <span class="tag-item">🔒 X锁冲突: 两个事务争抢同一条记录</span>
+  <span class="tag-item">🔓 S锁兼容: 多个事务同时读取同一条记录</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>保证数据正确性（ACID四大保险）</li>
+      <li>支持多用户并发访问（封锁机制协调）</li>
+      <li>故障后可恢复（UNDO/REDO机制）</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>锁竞争影响性能（排队等待）</li>
+      <li>死锁需要额外处理（检测+解除）</li>
+      <li>隔离级别越高，并发度越低</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">ACID</span>
+    <span class="keyword">原子性</span>
+    <span class="keyword">一致性</span>
+    <span class="keyword">隔离性</span>
+    <span class="keyword">持久性</span>
+    <span class="keyword">X封锁</span>
+    <span class="keyword">S封锁</span>
+    <span class="keyword">UNDO</span>
+    <span class="keyword">REDO</span>
+    <span class="keyword">COMMIT</span>
+    <span class="keyword">ROLLBACK</span>
+    <span class="keyword">并发控制</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>数据库备份与恢复(db_backup_recovery)</strong> = 持久性(D)的实现手段：日志+备份</li>
+    <li><strong>Redis一致性(redis_consistency)</strong> = Redis的持久化(RDB/AOF)与事务机制对比</li>
+    <li><strong>封锁协议</strong> = X锁+S锁的兼容性矩阵：X-X冲突、X-S冲突、S-S兼容</li>
+    <li><strong>两阶段锁(2PL)</strong> = 保证可串行化调度的经典并发控制协议</li>
+    <li><strong>死锁处理</strong> = 预防(一次申请全部锁)、检测(等待图)、解除(选牺牲者回滚)</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playTxAnimation() {
+  const steps = ['t1','t2','t3','t4'];
+  const cards = ['cardA','cardC','cardI','cardD'];
+
+  // Reset
+  steps.forEach(id => document.getElementById(id).classList.remove('active-step'));
+  cards.forEach(id => document.getElementById(id).classList.remove('active-card'));
+
+  // Step through transaction
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active-step');
+      setTimeout(() => document.getElementById(id).classList.remove('active-step'), 400);
+    }, i * 500);
+  });
+
+  // Highlight ACID cards
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active-card');
+      setTimeout(() => document.getElementById(id).classList.remove('active-card'), 600);
+    }, 2000 + i * 400);
+  });
+}
+
+function playLockAnimation() {
+  const l1 = document.getElementById('lock1');
+  const l2 = document.getElementById('lock2');
+  const l3 = document.getElementById('lock3');
+  const l4 = document.getElementById('lock4');
+
+  // X lock conflict: shake
+  l1.classList.add('granted');
+  setTimeout(() => {
+    l2.classList.add('conflict');
+  }, 400);
+  setTimeout(() => {
+    l2.classList.remove('conflict');
+  }, 1200);
+
+  // S lock compatible: both glow
+  setTimeout(() => {
+    l3.classList.add('granted');
+    l4.classList.add('granted');
+  }, 1500);
+
+  setTimeout(() => {
+    l1.classList.remove('granted');
+    l3.classList.remove('granted');
+    l4.classList.remove('granted');
+  }, 3000);
+}
+
+window.addEventListener('load', () => setTimeout(playTxAnimation, 500));
+</script>
+</body>
+</html>

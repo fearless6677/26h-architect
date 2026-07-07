@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文件存储空间管理（3种方法） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 220px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Method selector */
+.method-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+.method-btn { flex: 1; padding: 8px 12px; border: 2px solid #e2e8f0; background: #fff; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #64748b; transition: all 0.2s; text-align: center; }
+.method-btn:hover { border-color: #93c5fd; color: #2563eb; }
+.method-btn.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+
+/* Animation panels */
+.anim-panel { display: none; }
+.anim-panel.active { display: block; }
+
+/* 空闲区表 animation */
+.free-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+.free-table th { background: #2563eb; color: #fff; padding: 8px 12px; text-align: center; }
+.free-table td { padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center; transition: all 0.3s; }
+.free-table tr:hover td { background: #eff6ff; }
+.free-table .highlight { background: #fef3c7; font-weight: 600; }
+
+/* 位示图 animation */
+.bitmap-grid { display: flex; flex-wrap: wrap; gap: 4px; margin: 12px 0; justify-content: center; }
+.bitmap-cell { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 14px; font-weight: 700; transition: all 0.3s; cursor: pointer; }
+.bitmap-cell.used { background: #3b82f6; color: #fff; border: 2px solid #2563eb; }
+.bitmap-cell.free { background: #f0fdf4; color: #15803d; border: 2px solid #86efac; }
+.bitmap-cell.toggling { transform: scale(1.2); box-shadow: 0 0 12px rgba(37,99,235,0.5); }
+.bitmap-label { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 4px; }
+
+/* 空闲块链 animation */
+.chain-row { display: flex; align-items: center; justify-content: center; gap: 0; margin: 16px 0; flex-wrap: wrap; }
+.chain-block { width: 56px; height: 56px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; transition: all 0.4s; position: relative; }
+.chain-block.free-block { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.chain-block.used-block { background: #fee2e2; border: 2px solid #f87171; color: #b91c1c; }
+.chain-block.head { background: #dbeafe; border: 2px solid #3b82f6; color: #1d4ed8; }
+.chain-arrow { width: 28px; height: 3px; background: #22c55e; position: relative; }
+.chain-arrow::after { content: ''; position: absolute; right: -2px; top: -4px; border: 5px solid transparent; border-left: 7px solid #22c55e; }
+.chain-block.pulse { animation: blockPulse 0.6s ease; }
+@keyframes blockPulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); box-shadow: 0 0 16px rgba(34,197,94,0.5); } 100% { transform: scale(1); } }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* 存取方法动画 */
+.access-demo { margin-top: 16px; padding: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; }
+.access-bar { display: flex; gap: 2px; margin: 8px 0; }
+.access-block { width: 36px; height: 36px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; transition: all 0.3s; }
+.access-block.seq-active { background: #3b82f6; color: #fff; transform: scale(1.1); }
+.access-block.rand-active { background: #f59e0b; color: #fff; transform: scale(1.15); box-shadow: 0 0 10px rgba(245,158,11,0.5); }
+.access-block.inactive { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; }
+.access-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+
+.core-box { background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.core-box h4 { color: #1e40af; margin-bottom: 8px; font-size: 14px; }
+.core-box p { font-size: 14px; color: #334155; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 文件系统 › 文件存储空间管理（3种方法）</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">文件系统</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>文件存储空间管理（3种方法）</h1>
+  <p class="one-liner">文件存储空间管理有3种方法：空闲区表、位示图（0/1表示空闲/占用）、空闲块链；文件存取有顺序和随机两种方式。</p>
+</div>
+
+<div class="core-box">
+  <h4>💡 核心理解</h4>
+  <p>文件存储空间管理需要跟踪磁盘块的使用情况，常用3种数据结构：①空闲区表（记录连续空闲区域的起止位置）；②位示图（每一位0/1对应一个磁盘块的空闲/占用状态）；③空闲块链（用指针将空闲块链接起来）。文件存取方法有顺序存取和随机存取两种；文件组织方法有连续结构、链接结构和索引结构。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="method-selector">
+      <div class="method-btn active" onclick="switchMethod(this,'method-table')">① 空闲区表</div>
+      <div class="method-btn" onclick="switchMethod(this,'method-bitmap')">② 位示图</div>
+      <div class="method-btn" onclick="switchMethod(this,'method-chain')">③ 空闲块链</div>
+    </div>
+
+    <!-- 空闲区表 -->
+    <div id="method-table" class="anim-panel active">
+      <div style="font-size:13px;color:#475569;margin-bottom:8px;">记录每段连续空闲区域的起始块号和长度</div>
+      <table class="free-table">
+        <thead><tr><th>区号</th><th>起始块号</th><th>长度（块数）</th></tr></thead>
+        <tbody id="freeTableBody">
+          <tr><td>1</td><td>2</td><td>3</td></tr>
+          <tr class="highlight"><td>2</td><td>8</td><td>2</td></tr>
+          <tr><td>3</td><td>15</td><td>5</td></tr>
+          <tr><td>4</td><td>24</td><td>1</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:12px;color:#94a3b8;">磁盘布局：■ 占用 □ 空闲</div>
+      <div id="diskLayout" style="display:flex;gap:2px;margin-top:8px;flex-wrap:wrap;"></div>
+    </div>
+
+    <!-- 位示图 -->
+    <div id="method-bitmap" class="anim-panel">
+      <div style="font-size:13px;color:#475569;margin-bottom:8px;">每一位(0/1)对应一个磁盘块： <span style="color:#15803d;font-weight:600;">■ 0=空闲</span> &nbsp; <span style="color:#2563eb;font-weight:600;">■ 1=已占用</span></div>
+      <div class="bitmap-grid" id="bitmapGrid"></div>
+      <div class="bitmap-label" id="bitmapInfo">点击「播放」查看位示图分配过程</div>
+    </div>
+
+    <!-- 空闲块链 -->
+    <div id="method-chain" class="anim-panel">
+      <div style="font-size:13px;color:#475569;margin-bottom:8px;">空闲块用指针链接：空闲块 → 空闲块 → ... → NULL</div>
+      <div class="chain-row" id="chainRow"></div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:8px;text-align:center;" id="chainInfo">
+        <span style="display:inline-block;width:12px;height:12px;background:#f0fdf4;border:2px solid #22c55e;border-radius:3px;vertical-align:middle;"></span> 空闲块 &nbsp;
+        <span style="display:inline-block;width:12px;height:12px;background:#fee2e2;border:2px solid #f87171;border-radius:3px;vertical-align:middle;"></span> 已占用块 &nbsp;
+        → 指针链接
+      </div>
+    </div>
+
+    <!-- 存取方法演示 -->
+    <div class="access-demo">
+      <div class="access-label">📖 文件存取方式对比</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:12px;color:#1e40af;font-weight:600;">顺序存取 → 逐块依次读写</div>
+          <div class="access-bar" id="seqBar"></div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:12px;color:#b45309;font-weight:600;">随机存取 → 直接定位任意位置</div>
+          <div class="access-bar" id="randBar"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 文件存储空间管理 3 种方法</span>
+
+<span class="cm">// ① 空闲区表 —— 记录连续空闲区域的起始和长度</span>
+<span class="kw">struct</span> FreeArea {
+    <span class="fn">startBlock</span>:  起始块号,
+    <span class="fn">length</span>:      连续块数
+}
+<span class="cm">// 例: [{start:2, len:3}, {start:8, len:2}, ...]</span>
+
+<span class="cm">// ② 位示图 —— 每一位(0/1)对应一个磁盘块的状态</span>
+<span class="cm">//              0=空闲  1=已占用</span>
+<span class="cm">// 例: 第1字 1 1 0 0 0 1 1 1 ...</span>
+<span class="cm">//     块0,1占用，块2,3,4空闲，块5,6,7占用...</span>
+<span class="kw">bitmap</span>[i] = <span class="st">0</span>  →  第i块<span class="fn">空闲</span>
+<span class="kw">bitmap</span>[i] = <span class="st">1</span>  →  第i块<span class="fn">已占用</span>
+
+<span class="cm">// ③ 空闲块链 —— 将空闲块用指针链接起来</span>
+<span class="kw">struct</span> FreeBlock {
+    <span class="fn">blockId</span>:   当前块号,
+    <span class="fn">next</span>:      → 下一个空闲块
+}
+<span class="cm">// 链: Block2 → Block3 → Block4 → NULL</span>
+
+<span class="cm">// ── 文件存取方法 ──</span>
+<span class="fn">顺序存取</span> → 按顺序依次读写 (seek + read 循环)
+<span class="fn">随机存取</span> → 直接定位到任意位置读写 (lseek + read)</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>操作系统需要跟踪磁盘上每个块的<span class="hl">空闲/占用</span>状态。
+  <strong>空闲区表</strong>适合连续分配；<strong>位示图</strong>查找效率高，32位一个字可管理32块；<strong>空闲块链</strong>灵活但遍历慢。
+  文件组织有<span class="hl">连续结构、链接结构、索引结构</span>三种。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">💾 位示图：32位/字，每bit管一块</span>
+  <span class="tag-item">📁 FAT文件系统使用空闲块链</span>
+  <span class="tag-item">📖 索引结构支持高效随机存取</span>
+  <span class="tag-item">🔄 顺序存取 = 磁带模式</span>
+  <span class="tag-item">🎯 随机存取 = 磁盘直接定位</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>位示图：查找空闲块效率高，空间利用率好</li>
+      <li>空闲区表：适合连续分配场景，分配/回收快</li>
+      <li>索引结构：支持高效的随机存取</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>位示图占用额外存储空间</li>
+      <li>顺序存取不适合随机访问场景</li>
+      <li>空闲块链遍历效率低，指针占空间</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">空闲区表</span>
+    <span class="keyword">位示图</span>
+    <span class="keyword">空闲块链</span>
+    <span class="keyword">磁盘分配表</span>
+    <span class="keyword">顺序存取</span>
+    <span class="keyword">随机存取</span>
+    <span class="keyword">连续结构</span>
+    <span class="keyword">链接结构</span>
+    <span class="keyword">索引结构</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="os_classification.html"><strong>操作系统分类</strong></a> — 文件系统是OS核心模块</li>
+    <li><strong>磁盘调度算法</strong> — FCFS/SSTF/SCAN/C-SCAN 影响存取效率</li>
+    <li><strong>inode</strong> — Unix文件系统用inode实现索引结构</li>
+    <li><strong>分区表</strong> — 空闲区表的实际应用</li>
+    <li><strong>vs 内存管理</strong>：位示图思想也用于内存页面管理</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function switchMethod(btn, panelId) {
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.anim-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ── 磁盘布局 (空闲区表) ──
+const TOTAL_BLOCKS = 30;
+const freeRegions = [{start:2,len:3},{start:8,len:2},{start:15,len:5},{start:24,len:1}];
+function buildDiskLayout() {
+  const container = document.getElementById('diskLayout');
+  container.innerHTML = '';
+  const used = new Set();
+  for (let i = 0; i < TOTAL_BLOCKS; i++) used.add(i);
+  freeRegions.forEach(r => { for (let i = r.start; i < r.start + r.len; i++) used.delete(i); });
+  for (let i = 0; i < TOTAL_BLOCKS; i++) {
+    const d = document.createElement('div');
+    d.style.cssText = `width:24px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;`;
+    if (used.has(i)) { d.style.background = '#3b82f6'; d.style.color = '#fff'; d.textContent = i; }
+    else { d.style.background = '#f0fdf4'; d.style.color = '#15803d'; d.style.border = '1px solid #86efac'; d.textContent = i; }
+    container.appendChild(d);
+  }
+}
+
+// ── 位示图 ──
+const BITMAP_SIZE = 24;
+let bitmapState = [];
+function initBitmap() {
+  bitmapState = [1,1,0,0,0,1,1,1,0,0,1,1,0,1,0,0,1,1,0,0,1,0,0,1];
+}
+function renderBitmap() {
+  const grid = document.getElementById('bitmapGrid');
+  grid.innerHTML = '';
+  bitmapState.forEach((v, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'bitmap-cell ' + (v ? 'used' : 'free');
+    cell.textContent = v;
+    cell.title = `块${i}: ${v ? '已占用' : '空闲'}`;
+    cell.id = 'bm-' + i;
+    grid.appendChild(cell);
+  });
+}
+function animateBitmap() {
+  const info = document.getElementById('bitmapInfo');
+  const seq = [
+    {idx: 2, val: 1, msg: '分配块2 → bitmap[2] = 1'},
+    {idx: 3, val: 1, msg: '分配块3 → bitmap[3] = 1'},
+    {idx: 8, val: 1, msg: '分配块8 → bitmap[8] = 1'},
+    {idx: 3, val: 0, msg: '释放块3 → bitmap[3] = 0'},
+    {idx: 20, val: 1, msg: '分配块20 → bitmap[20] = 1'},
+    {idx: 8, val: 0, msg: '释放块8 → bitmap[8] = 0'},
+  ];
+  seq.forEach((s, step) => {
+    setTimeout(() => {
+      bitmapState[s.idx] = s.val;
+      const cell = document.getElementById('bm-' + s.idx);
+      cell.className = 'bitmap-cell toggling';
+      setTimeout(() => {
+        cell.className = 'bitmap-cell ' + (s.val ? 'used' : 'free');
+        cell.textContent = s.val;
+      }, 300);
+      info.textContent = `第${step+1}步: ${s.msg}`;
+    }, step * 700);
+  });
+}
+
+// ── 空闲块链 ──
+const CHAIN_BLOCKS = [
+  {id:0,free:false},{id:1,free:false},{id:2,free:true},{id:3,free:true},
+  {id:4,free:true},{id:5,free:false},{id:6,free:false},{id:7,free:false},
+  {id:8,free:true},{id:9,free:true},{id:10,free:false},{id:11,free:true},
+];
+function renderChain(highlightIdx) {
+  const row = document.getElementById('chainRow');
+  row.innerHTML = '';
+  let first = true;
+  CHAIN_BLOCKS.forEach((b, i) => {
+    if (b.free) {
+      if (!first) {
+        const arrow = document.createElement('div');
+        arrow.className = 'chain-arrow';
+        row.appendChild(arrow);
+      }
+      first = false;
+      const block = document.createElement('div');
+      block.className = 'chain-block free-block' + (i === highlightIdx ? ' pulse' : '');
+      block.innerHTML = `<div>B${b.id}</div><div style="font-size:9px;color:#22c55e;">→</div>`;
+      row.appendChild(block);
+    } else {
+      const block = document.createElement('div');
+      block.className = 'chain-block used-block';
+      block.innerHTML = `<div>B${b.id}</div>`;
+      block.style.opacity = '0.5';
+      row.appendChild(block);
+    }
+  });
+  // NULL terminator
+  const arrow = document.createElement('div');
+  arrow.className = 'chain-arrow';
+  row.appendChild(arrow);
+  const nullBlock = document.createElement('div');
+  nullBlock.className = 'chain-block';
+  nullBlock.style.cssText = 'background:#f1f5f9;border:2px solid #94a3b8;color:#64748b;';
+  nullBlock.textContent = 'NULL';
+  row.appendChild(nullBlock);
+}
+function animateChain() {
+  const freeIndices = [];
+  CHAIN_BLOCKS.forEach((b, i) => { if (b.free) freeIndices.push(i); });
+  freeIndices.forEach((idx, step) => {
+    setTimeout(() => renderChain(idx), step * 500);
+  });
+  setTimeout(() => {
+    document.getElementById('chainInfo').innerHTML =
+      '<span style="display:inline-block;width:12px;height:12px;background:#f0fdf4;border:2px solid #22c55e;border-radius:3px;vertical-align:middle;"></span> 空闲块 &nbsp;' +
+      '<span style="display:inline-block;width:12px;height:12px;background:#fee2e2;border:2px solid #f87171;border-radius:3px;vertical-align:middle;"></span> 已占用块 &nbsp;→ 指针链接 &nbsp;' +
+      '<span style="font-weight:600;color:#1e40af;">✓ 遍历完成</span>';
+  }, freeIndices.length * 500 + 200);
+}
+
+// ── 顺序/随机存取动画 ──
+const ACCESS_BLOCKS = 10;
+function initAccessBars() {
+  ['seqBar','randBar'].forEach(barId => {
+    const bar = document.getElementById(barId);
+    bar.innerHTML = '';
+    for (let i = 0; i < ACCESS_BLOCKS; i++) {
+      const b = document.createElement('div');
+      b.className = 'access-block inactive';
+      b.textContent = i;
+      b.id = barId + '-' + i;
+      bar.appendChild(b);
+    }
+  });
+}
+function animateSequential() {
+  for (let i = 0; i < ACCESS_BLOCKS; i++) {
+    setTimeout(() => {
+      // reset previous
+      if (i > 0) { const prev = document.getElementById('seqBar-' + (i-1)); prev.className = 'access-block inactive'; prev.style.background = '#dbeafe'; prev.style.color = '#2563eb'; }
+      const cur = document.getElementById('seqBar-' + i);
+      cur.className = 'access-block seq-active';
+    }, i * 300);
+  }
+}
+function animateRandom() {
+  const order = [7, 2, 5, 0, 9, 4];
+  order.forEach((idx, step) => {
+    setTimeout(() => {
+      if (step > 0) { const prev = document.getElementById('randBar-' + order[step-1]); prev.className = 'access-block inactive'; prev.style.background = '#fef3c7'; prev.style.color = '#b45309'; }
+      const cur = document.getElementById('randBar-' + idx);
+      cur.className = 'access-block rand-active';
+    }, step * 400);
+  });
+}
+
+// ── 播放总控 ──
+function playAnimation() {
+  const activeMethod = document.querySelector('.method-btn.active');
+  const panelId = activeMethod.textContent.includes('空闲区表') ? 'table' :
+                  activeMethod.textContent.includes('位示图') ? 'bitmap' : 'chain';
+
+  if (panelId === 'bitmap') {
+    initBitmap();
+    renderBitmap();
+    setTimeout(animateBitmap, 300);
+  } else if (panelId === 'chain') {
+    document.getElementById('chainInfo').innerHTML =
+      '<span style="display:inline-block;width:12px;height:12px;background:#f0fdf4;border:2px solid #22c55e;border-radius:3px;vertical-align:middle;"></span> 空闲块 &nbsp;' +
+      '<span style="display:inline-block;width:12px;height:12px;background:#fee2e2;border:2px solid #f87171;border-radius:3px;vertical-align:middle;"></span> 已占用块 &nbsp;→ 指针链接';
+    renderChain(-1);
+    setTimeout(animateChain, 300);
+  } else {
+    buildDiskLayout();
+    // highlight rows one by one
+    const rows = document.querySelectorAll('#freeTableBody tr');
+    rows.forEach((r, i) => {
+      setTimeout(() => {
+        rows.forEach(x => x.classList.remove('highlight'));
+        r.classList.add('highlight');
+      }, i * 500);
+    });
+  }
+
+  // Access methods animation
+  initAccessBars();
+  setTimeout(animateSequential, 200);
+  setTimeout(() => { initAccessBars(); setTimeout(animateRandom, 200); }, ACCESS_BLOCKS * 300 + 800);
+}
+
+// ── 初始化 ──
+window.addEventListener('load', () => {
+  buildDiskLayout();
+  initBitmap();
+  renderBitmap();
+  renderChain(-1);
+  initAccessBars();
+  setTimeout(playAnimation, 600);
+});
+</script>
+</body>
+</html>

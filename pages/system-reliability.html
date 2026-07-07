@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统可靠性分析与计算 · 系统架构设计师</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}.nav .bc{color:#64748b;font-size:13px;margin-left:12px}.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}li{font-size:13px;color:#475569;margin:4px 0}.kw{display:flex;gap:8px;flex-wrap:wrap}.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}</style>
+</head><body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 真题高频考点 › 系统可靠性分析与计算</span></nav>
+<div class="ct">
+<div><span class="tag c">真题高频考点</span><span class="tag e">高频考点</span>
+<h1>系统可靠性分析与计算</h1><p class="ol">几乎每年考查1-2题，涉及可靠性指标MTTF/MTBF及容错策略。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>可靠性核心概念：(1)MTTF（平均失效等待时间）——系统首次失效前的平均时间；(2)MTBF（平均失效间隔时间）——两次故障之间的平均时间。在失效率为常数且修复时间很短的情况下，MTTF和MTBF几乎相等。(3)可靠性子特性：容错性、成熟性、易恢复性（不含稳定性）。(4)软件错误链：软件错误(Error)→软件缺陷(Defect)→软件故障(Fault)→软件失效(Failure)。架构可靠性策略：主动冗余（双机热备）、心跳检测、Ping/Echo、选举机制、N版本程序设计、恢复块方法。</p></div>
+
+<div class="s"><h3>📌 真题举例</h3><ul><li>【2025】MTTF与MTBF时间几乎相等，可靠性包括容错性和健壮性；【2024】可靠性子特性不包括稳定性；【2023】可靠性计算MTTF与MTBF；【2022】MTTF和MTBF在失效率为常数和修复时间很短时几乎相等；【2019】系统断电后切换备用系统属于可用性；【2016】机器人断电恢复属于可用性-主动冗余策略。</li></ul></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">MTTF</span><span class="k">MTBF</span><span class="k">可靠性</span><span class="k">容错性</span><span class="k">健壮性</span><span class="k">主动冗余</span><span class="k">心跳</span><span class="k">错误-缺陷-故障-失效</span></div></div>
+</div></body></html>

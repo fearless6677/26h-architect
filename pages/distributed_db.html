@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分布式数据库与分布透明性 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* ─── 主从拓扑动画 ─── */
+.topology { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 12px 0; }
+.node-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.node { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.4s ease; min-width: 72px; }
+.node.master { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.node.slave { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.node.global { background: #fef3c7; border: 2px solid #f59e0b; color: #92400e; }
+.node .label { font-size: 11px; color: #64748b; margin-top: 2px; }
+.node.synced { transform: scale(1.1); box-shadow: 0 0 18px rgba(37,99,235,0.45); }
+.node.highlight { transform: scale(1.1); box-shadow: 0 0 18px rgba(34,197,94,0.45); }
+.link-line { width: 40px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.link-line .pulse { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pulseFlow 1.2s linear infinite; }
+@keyframes pulseFlow { 0% { left: -20px; } 100% { left: 40px; } }
+.layer-label { background: #e2e8f0; color: #475569; font-size: 11px; padding: 2px 10px; border-radius: 10px; font-weight: 600; }
+.anim-label { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 8px; }
+
+/* ─── 透明性层级 ─── */
+.transparency-stack { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.trans-layer { padding: 14px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: all 0.4s ease; text-align: center; cursor: default; }
+.trans-layer.l1 { background: #dbeafe; border: 2px solid #3b82f6; color: #1d4ed8; }
+.trans-layer.l2 { background: #e0f2fe; border: 2px solid #0ea5e9; color: #0369a1; }
+.trans-layer.l3 { background: #ecfdf5; border: 2px solid #10b981; color: #065f46; }
+.trans-layer.active-layer { transform: scale(1.04); box-shadow: 0 0 16px rgba(37,99,235,0.35); }
+.trans-layer .desc { font-weight: 400; font-size: 12px; margin-top: 4px; opacity: 0.85; }
+
+/* ─── 分片演示 ─── */
+.shard-demo { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+.shard-table { padding: 10px 16px; border-radius: 8px; background: #fff; border: 2px solid #cbd5e1; text-align: center; transition: all 0.4s; min-width: 100px; }
+.shard-table .title { font-size: 12px; font-weight: 600; color: #1e293b; }
+.shard-table .rows { font-size: 11px; color: #64748b; margin-top: 4px; }
+.shard-table.active-shard { border-color: #3b82f6; box-shadow: 0 0 12px rgba(37,99,235,0.25); }
+
+/* ─── 示例卡片 ─── */
+.example-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.example-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; transition: transform 0.2s; }
+.example-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.example-card h5 { font-size: 13px; color: #1e293b; margin-bottom: 6px; }
+.example-card p { font-size: 12px; color: #64748b; }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 数据库 › 分布式数据库与分布透明性</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">分布式数据库</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>分布式数据库与分布透明性</h1>
+  <p class="one-liner">分布式数据库就是把数据分散存放在多台服务器上，像一个团队分工合作，既快又不会因一个人请假而停工。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'topology')">🌐 主从拓扑</div>
+  <div class="tab" onclick="switchTab(this,'transparency')">🔍 透明性层级</div>
+  <div class="tab" onclick="switchTab(this,'sharding')">📊 分片演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<!-- Tab 1: 主从拓扑动画 -->
+<div id="topology" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playTopology()">▶ 播放</button>
+    <div class="topology">
+      <div class="node-row">
+        <div class="node global" id="g1">🌍 全局视图<div class="label">用户看到的</div></div>
+      </div>
+      <div class="layer-label">↓ 分布透明性 ↓</div>
+      <div class="node-row">
+        <div class="node master" id="m1">📝 主库<div class="label">写操作</div></div>
+        <div class="link-line"><div class="pulse"></div></div>
+        <div class="node slave" id="s1">📖 从库1<div class="label">读操作</div></div>
+      </div>
+      <div class="node-row">
+        <div class="node slave" id="s2">📖 从库2<div class="label">读操作</div></div>
+        <div class="link-line"><div class="pulse" style="animation-delay:.3s"></div></div>
+        <div class="node slave" id="s3">📖 从库3<div class="label">读操作</div></div>
+      </div>
+    </div>
+    <div class="anim-label">主从复制 · 读写分离 · binlog同步（全同步/半同步/异步）</div>
+  </div>
+</div>
+
+<!-- Tab 2: 透明性层级动画 -->
+<div id="transparency" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playTransparency()">▶ 播放</button>
+    <div class="transparency-stack">
+      <div class="trans-layer l1" id="tl1">
+        🏆 分片透明（最高层）
+        <div class="desc">用户完全不知道数据怎么分片，只操作全局表</div>
+      </div>
+      <div class="trans-layer l2" id="tl2">
+        📍 位置透明（中间层）
+        <div class="desc">知道分片了，但不用知道数据存在哪个节点</div>
+      </div>
+      <div class="trans-layer l3" id="tl3">
+        🔧 局部数据模型透明（最低层）
+        <div class="desc">知道位置了，但不用知道底层用了什么数据模型</div>
+      </div>
+    </div>
+    <div class="anim-label">透明性由高到低：分片透明 → 位置透明 → 局部数据模型透明</div>
+  </div>
+</div>
+
+<!-- Tab 3: 分片演示动画 -->
+<div id="sharding" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playSharding()">▶ 播放</button>
+    <div style="text-align:center;font-size:13px;color:#475569;font-weight:600;margin-bottom:12px;">水平分表：订单表按ID范围切分</div>
+    <div class="shard-demo" id="shardDemo">
+      <div class="shard-table" id="sh1">
+        <div class="title">📋 订单表1</div>
+        <div class="rows">ID: 1 ~ 999,999</div>
+      </div>
+      <div class="shard-table" id="sh2">
+        <div class="title">📋 订单表2</div>
+        <div class="rows">ID: 1,000,000 ~ 9,999,999</div>
+      </div>
+      <div class="shard-table" id="sh3">
+        <div class="title">📋 订单表3</div>
+        <div class="rows">ID: 10,000,000+</div>
+      </div>
+    </div>
+    <div class="anim-label">每条数据只去它该去的表 → 单表不会太大</div>
+  </div>
+</div>
+
+<!-- Tab 4: 伪代码 -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ═══ 分布透明性层级（由高到低）═══</span>
+<span class="cm">// 分片透明(最高): 用户只管操作全局表</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> orders  <span class="cm">-- 不知道数据被分成3片</span>
+
+<span class="cm">// ═══ 主从复制（binlog同步）═══</span>
+<span class="kw">Master</span> ──binlog──→ <span class="kw">Slave1</span>  <span class="cm">// 全同步：最安全，最慢</span>
+<span class="kw">Master</span> ──binlog──→ <span class="kw">Slave2</span>  <span class="cm">// 半同步：折中方案</span>
+<span class="kw">Master</span> ──binlog──→ <span class="kw">Slave3</span>  <span class="cm">// 异步复制：最快，可能丢数据</span>
+
+<span class="cm">// ═══ 读写分离 ═══</span>
+<span class="kw">write</span>(data) → <span class="fn">Master</span>       <span class="cm">// 写操作只走主库</span>
+<span class="kw">read</span>(key)  → <span class="fn">Slave1|Slave2</span>  <span class="cm">// 读操作分散到从库</span>
+
+<span class="cm">// ═══ 分表策略 ═══</span>
+<span class="cm">// 水平分表：按行切分（同列，不同行）</span>
+<span class="fn">split</span>(orders, <span class="st">"按ID范围"</span>) → table_1, table_2
+<span class="cm">// 垂直分表：按列切分（同行，不同列）</span>
+<span class="fn">split</span>(trade, <span class="st">"热列+冷列"</span>) → hot_table, cold_table
+
+<span class="cm">// ═══ 分库策略 ═══</span>
+<span class="fn">deploy</span>(<span class="st">"用户"</span>, DB_A)  <span class="cm">// 不同业务放不同实例</span>
+<span class="fn">deploy</span>(<span class="st">"商品"</span>, DB_B)
+<span class="fn">deploy</span>(<span class="st">"订单"</span>, DB_C)</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>分布式数据库将数据分布在<span class="hl">不同物理节点</span>上，
+  具有<span class="hl">共享性、自治性、可用性、分布性</span>四大特点。
+  透明性分三层——<span class="hl">分片透明</span>（用户不用关心数据怎么分片）、
+  <span class="hl">位置透明</span>（知道分片但不用知道存在哪）、
+  <span class="hl">局部数据模型透明</span>（知道位置但不用知道用了什么数据模型）。
+  优化技术包括主从复制(binlog同步)、读写分离、分表(水平/垂直)、分库。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🔄 主从复制(binlog同步)</span>
+  <span class="tag-item">📖 读写分离(主写从读)</span>
+  <span class="tag-item">📊 水平分表(按行)</span>
+  <span class="tag-item">📐 垂直分表(按列)</span>
+  <span class="tag-item">🏢 分库(业务隔离)</span>
+</div>
+
+<!-- 实例卡片 -->
+<div class="example-grid">
+  <div class="example-card">
+    <h5>🏆 分片透明</h5>
+    <p>用户只操作全局表，不知道数据被分成3片存在不同服务器上</p>
+  </div>
+  <div class="example-card">
+    <h5>📊 水平分表</h5>
+    <p>订单表按ID范围分成表1(1-999999)和表2(1000000-9999999)</p>
+  </div>
+  <div class="example-card">
+    <h5>📐 垂直分表</h5>
+    <p>交易表拆成热表(ID/状态/金额)和冷表(备注/物流信息)</p>
+  </div>
+  <div class="example-card">
+    <h5>🏢 分库</h5>
+    <p>电商网站把用户、商品、订单分别放到三台不同的数据库服务器</p>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>高可用性（单点故障不影响整体）</li>
+      <li>水平扩展能力强</li>
+      <li>就近访问提高性能</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>一致性保证困难</li>
+      <li>分布式事务复杂</li>
+      <li>运维成本高</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">分布式数据库</span>
+    <span class="keyword">分片透明</span>
+    <span class="keyword">位置透明</span>
+    <span class="keyword">局部数据模型透明</span>
+    <span class="keyword">主从复制</span>
+    <span class="keyword">读写分离</span>
+    <span class="keyword">分表</span>
+    <span class="keyword">分库</span>
+    <span class="keyword">binlog</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>NoSQL/Redis</strong> = 分布式数据库的缓存层，热点数据加速读取</li>
+    <li><strong>数据库优化</strong> = 分布透明性是数据库优化的"终极形态"之一</li>
+    <li><strong>微服务</strong> = 分库策略的微服务实现（每个服务一个数据库）</li>
+    <li><strong>vs CAP定理</strong>：分布式数据库在一致性(C)和可用性(A)间做权衡，分区容错(P)必选</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── 主从拓扑动画 ───
+function playTopology() {
+  const master = document.getElementById('m1');
+  const slaves = ['s1', 's2', 's3'];
+  // 1) master writes
+  master.classList.add('synced');
+  setTimeout(() => {
+    master.classList.remove('synced');
+    // 2) binlog syncs to slaves one by one
+    slaves.forEach((sid, i) => {
+      setTimeout(() => {
+        const el = document.getElementById(sid);
+        el.classList.add('highlight');
+        setTimeout(() => el.classList.remove('highlight'), 600);
+      }, i * 350);
+    });
+  }, 500);
+}
+
+// ─── 透明性层级动画 ───
+function playTransparency() {
+  const layers = ['tl1', 'tl2', 'tl3'];
+  // 从最高层到最低层依次亮起
+  layers.forEach((lid, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(lid);
+      el.classList.add('active-layer');
+      setTimeout(() => el.classList.remove('active-layer'), 900);
+    }, i * 600);
+  });
+}
+
+// ─── 分片演示动画 ───
+function playSharding() {
+  const shards = ['sh1', 'sh2', 'sh3'];
+  // 依次点亮每个分片
+  shards.forEach((sid, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(sid);
+      el.classList.add('active-shard');
+      setTimeout(() => el.classList.remove('active-shard'), 700);
+    }, i * 450);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playTopology, 500));
+</script>
+</body>
+</html>

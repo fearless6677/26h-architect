@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鸿蒙OS与GENESYS架构实践 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 嵌入式系统架构实践 › 鸿蒙OS与GENESYS架构实践</span></nav>
+<div class="ct">
+<div><span class="tag c">嵌入式系统架构实践</span><span class="tag e">高</span>
+<h1>鸿蒙OS与GENESYS架构实践</h1><p class="ol">鸿蒙OS采用微内核+分布式架构(4层4能力4特性)；GENESYS为跨领域通用嵌入式平台(3组服务6大特征三级集成)</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>鸿蒙OS：采用分布式设计理念，实现4种分布式能力(分布式软总线、分布式设备虚拟化、分布式数据管理、分布式任务调度)。层次式架构由下至上：内核层(微内核设计+内核抽象层KAL屏蔽多内核差异+驱动子系统HDF)→系统服务层(核心能力集合)→应用框架层(多语言用户程序框架+API)→应用层(系统应用+第三方应用)。4个技术特性：(1)分布式架构跨终端协同；(2)确定时延引擎+高性能IPC实现流畅；(3)微内核重塑安全；(4)一次开发多端部署。GENESYS：跨领域通用嵌入式架构平台，采用消息交换实现软硬件构件抽象提升，提供3组服务(领域无关/领域专用/应用专用)，6大特征(精确构件定位/开放性/三级集成/分层服务/确定核心/标准互联集成)。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">ES-19-05</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>鸿蒙微内核：安全性高，KAL屏蔽多内核差异（注意不是宏内核！）</li><li>鸿蒙4种分布式能力：软总线+设备虚拟化+数据管理+任务调度</li><li>鸿蒙4个技术特性：分布式架构/确定时延引擎/微内核安全/一次开发多端部署</li><li>GENESYS三级集成：芯片级集成→设备级集成→系统级集成</li><li>GENESYS 3组服务：领域无关(核心+选择)→领域专用→应用专用(含中间件)</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>鸿蒙OS架构是当前考试热点，历年真题已有考查</li><li>GENESYS的6大特征和3组服务是简答题/案例题考点</li><li>练习题已明确考查鸿蒙微内核vs宏内核的辨别（选B错误）</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>鸿蒙内核采用微内核而非宏内核（练习题明确考查此辨别点）</li><li>GENESYS架构复杂，三级集成实施难度较大</li><li>物联网OS尚无明确定义</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">鸿蒙OS</span><span class="k">微内核</span><span class="k">分布式架构</span><span class="k">层次式架构</span><span class="k">KAL内核抽象层</span><span class="k">HDF驱动框架</span><span class="k">4种分布式能力</span><span class="k">4个技术特性</span><span class="k">GENESYS</span><span class="k">三级集成</span><span class="k">3组服务</span><span class="k">6大特征</span><span class="k">消息交换</span><span class="k">一次开发多端部署</span><span class="k">确定时延引擎</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="KP1901.html">KP1901</a></li><li><a href="KP1902.html">KP1902</a></li><li><a href="KP1903.html">KP1903</a></li><li><a href="KP1904.html">KP1904</a></li></ul></div>
+</div></body></html>

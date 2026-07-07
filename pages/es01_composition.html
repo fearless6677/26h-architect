@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嵌入式系统的组成与特点 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+
+/* Top Navigation */
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+
+/* Container */
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+
+/* Page Header */
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Animation Area */
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 220px; position: relative; }
+
+/* Code Area */
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; }
+.code-area .fn { color: #c084fc; }
+.code-area .st { color: #86efac; }
+.code-area .cm { color: #64748b; }
+.code-area .ty { color: #38bdf8; }
+
+/* Explanation */
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; line-height: 1.9; }
+.explain strong { color: #1e40af; }
+.explain .hl { color: #dc2626; font-weight: 600; }
+.explain .num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #2563eb; color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; margin: 0 2px; }
+
+/* Tag List */
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 16px; font-size: 13px; color: #475569; transition: all 0.2s; }
+.tag-item:hover { background: #e0f2fe; border-color: #7dd3fc; }
+
+/* Pros & Cons */
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; }
+.cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+
+/* Exam Box */
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 10px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; transition: all 0.2s; }
+.exam-box .keyword:hover { background: #fde68a; transform: scale(1.05); }
+
+/* Related Section */
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #2563eb; text-decoration: none; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 6px 0; }
+
+/* Architecture Diagram */
+.arch-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 16px 0; }
+.arch-layer { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; transition: all 0.3s; cursor: default; position: relative; overflow: hidden; }
+.arch-layer:hover { transform: translateX(4px); }
+.arch-layer .layer-label { min-width: 72px; font-weight: 700; }
+.arch-layer .layer-desc { font-size: 13px; color: #64748b; font-weight: 400; }
+
+.layer-core { background: linear-gradient(90deg, #dbeafe, #bfdbfe); border: 2px solid #3b82f6; color: #1d4ed8; }
+.layer-hw { background: linear-gradient(90deg, #e0f2fe, #bae6fd); border: 2px solid #0ea5e9; color: #0369a1; }
+.layer-os { background: linear-gradient(90deg, #f0fdf4, #bbf7d0); border: 2px solid #22c55e; color: #15803d; }
+.layer-sw { background: linear-gradient(90deg, #fef9c3, #fef08a); border: 2px solid #eab308; color: #854d0e; }
+.layer-app { background: linear-gradient(90deg, #fce7f3, #fbcfe8); border: 2px solid #ec4899; color: #9d174d; }
+
+.layer-glow { animation: layerPulse 2s ease-in-out infinite; }
+@keyframes layerPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(59,130,246,0); }
+  50% { box-shadow: 0 0 16px rgba(59,130,246,0.3); }
+}
+
+/* Temperature Cards */
+.temp-cards { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+.temp-card { flex: 1; min-width: 120px; padding: 12px; border-radius: 8px; text-align: center; transition: all 0.3s; cursor: default; }
+.temp-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.temp-card .temp-icon { font-size: 24px; margin-bottom: 4px; }
+.temp-card .temp-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.temp-card .temp-range { font-size: 12px; color: #64748b; }
+.temp-civil { background: #f0fdf4; border: 1px solid #86efac; }
+.temp-industrial { background: #eff6ff; border: 1px solid #93c5fd; }
+.temp-military { background: #fef2f2; border: 1px solid #fca5a5; }
+
+/* Feature Pills */
+.feature-pills { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.pill { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; transition: all 0.3s; cursor: default; }
+.pill:hover { transform: scale(1.05); }
+.pill-blue { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+.pill-green { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.pill-orange { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
+.pill-purple { background: #f3e8ff; color: #7c3aed; border: 1px solid #c4b5fd; }
+
+/* Arrow connector */
+.arrow-down { text-align: center; color: #94a3b8; font-size: 18px; margin: 2px 0; }
+
+/* Play button */
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+.play-btn:hover { background: #1d4ed8; transform: scale(1.05); }
+
+/* Animated data flow */
+.data-flow { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; opacity: 0; transition: all 0.6s ease; }
+
+/* Section divider */
+.section-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 组成与特点</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hour-tag">🕐 第2小时</span>
+  <h1>嵌入式系统的组成与特点</h1>
+  <p class="one-liner">以特定应用为中心，集成可裁剪软硬件的专用计算机系统</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 组成动画</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'temp')">🌡️ 处理器分级</div>
+</div>
+
+<!-- Tab: Animation -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="arch-grid" id="archLayers">
+      <div class="arch-layer layer-app" id="layer5">
+        <span class="layer-label">📱 应用软件</span>
+        <span class="layer-desc">完成专用目标（如温控、报警、导航）</span>
+      </div>
+      <div class="arrow-down">⬆</div>
+      <div class="arch-layer layer-sw" id="layer4">
+        <span class="layer-label">📚 支撑软件</span>
+        <span class="layer-desc">公共服务库（以库方式运行在 OS 之上）</span>
+      </div>
+      <div class="arrow-down">⬆</div>
+      <div class="arch-layer layer-os" id="layer3">
+        <span class="layer-label">⚙️ 操作系统</span>
+        <span class="layer-desc">RTOS — 实时性 · 可裁剪性 · 安全性</span>
+      </div>
+      <div class="arrow-down">⬆</div>
+      <div class="arch-layer layer-hw" id="layer2">
+        <span class="layer-label">🔧 支撑硬件</span>
+        <span class="layer-desc">存储器 · 定时器 · 总线 · I/O 接口</span>
+      </div>
+      <div class="arrow-down">⬆</div>
+      <div class="arch-layer layer-core" id="layer1">
+        <span class="layer-label">🧠 处理器</span>
+        <span class="layer-desc">MPU / MCU / DSP / SoC — 核心计算单元</span>
+      </div>
+    </div>
+
+    <div class="feature-pills" style="margin-top: 16px;">
+      <span class="pill pill-blue">专用性强</span>
+      <span class="pill pill-green">低功耗</span>
+      <span class="pill pill-orange">资源受限</span>
+      <span class="pill pill-purple">代码固化ROM</span>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Code -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 嵌入式系统组成 —— 以特定应用为中心的专用计算机</span>
+<span class="ty">EmbeddedSystem</span> = {
+  <span class="fn">处理器</span>: <span class="st">MPU / MCU / DSP / SoC</span>,    <span class="cm">// 核心：分民用/工业/军用三档</span>
+  <span class="fn">支撑硬件</span>: [<span class="st">存储器</span>, <span class="st">定时器</span>, <span class="st">总线</span>],   <span class="cm">// 外围硬件支撑</span>
+  <span class="fn">操作系统</span>: <span class="st">RTOS</span>,                   <span class="cm">// 实时性、可裁剪、安全性</span>
+  <span class="fn">支撑软件</span>: <span class="st">公共服务库</span>,              <span class="cm">// 以库方式运行在 OS 之上</span>
+  <span class="fn">应用软件</span>: <span class="st">专用功能</span>                 <span class="cm">// 完成特定目标（如温控/导航）</span>
+}
+
+<span class="cm">// 核心特点</span>
+<span class="kw">特点</span> = {
+  <span class="fn">中心</span>: <span class="hl">以特定应用为中心</span>,
+  <span class="fn">硬件</span>: <span class="hl">可裁剪</span> + <span class="hl">低功耗</span> + 体积小,
+  <span class="fn">软件</span>: <span class="hl">代码固化ROM</span> + <span class="hl">资源受限</span>,
+  <span class="fn">本质</span>: <span class="hl">专用计算机系统</span>,
+  <span class="fn">工具</span>: 需要专门开发工具（交叉编译+仿真器）
+}</pre>
+</div>
+
+<!-- Tab: Temperature Grades -->
+<div id="temp" class="tab-content">
+  <div class="anim-area">
+    <div class="section-label">处理器温度等级</div>
+    <div class="temp-cards">
+      <div class="temp-card temp-civil">
+        <div class="temp-icon">🏠</div>
+        <div class="temp-name">民用级</div>
+        <div class="temp-range">0 ~ 70°C</div>
+      </div>
+      <div class="temp-card temp-industrial">
+        <div class="temp-icon">🏭</div>
+        <div class="temp-name">工业级</div>
+        <div class="temp-range">-40 ~ 85°C</div>
+      </div>
+      <div class="temp-card temp-military">
+        <div class="temp-icon">🎖️</div>
+        <div class="temp-name">军用级</div>
+        <div class="temp-range">-55 ~ 150°C</div>
+      </div>
+    </div>
+    <p class="explain" style="margin-top:12px;">
+      温度等级决定了处理器的<strong>可靠性</strong>和<strong>成本</strong>。
+      军用级 > 工业级 > 民用级（价格和可靠性依次递减）。
+    </p>
+  </div>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>嵌入式系统由 <span class="num">1</span><span class="num">2</span><span class="num">3</span><span class="num">4</span><span class="num">5</span> 五部分组成：
+  <br>① <strong>嵌入式处理器</strong> — 核心，分民用级(0~70°C)、工业级(-40~85°C)、军用级(-55~150°C)三档；
+  <br>② <strong>支撑硬件</strong> — 存储器、定时器、总线等；
+  <br>③ <strong>嵌入式操作系统</strong> — 具备<span class="hl">实时性</span>、<span class="hl">可裁剪性</span>和安全性；
+  <br>④ <strong>支撑软件</strong> — 以库方式运行在 OS 之上的公共服务；
+  <br>⑤ <strong>应用软件</strong> — 完成<span class="hl">专用目标</span>，是系统存在的意义。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏠 智能家居控制器：MCU+传感器+RTOS+APP</span>
+  <span class="tag-item">🚗 汽车ECU：工业级处理器+CAN总线+安全攸关软件</span>
+  <span class="tag-item">🏭 工业PLC：军用级处理器+多种I/O+实时OS</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>专用性强，资源高效利用</li>
+      <li>体积小、功耗低、性价比高</li>
+      <li>实时性好，响应迅速可靠</li>
+      <li>软硬一体，整体优化空间大</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 局限性</h4>
+    <ul>
+      <li>资源受限（内存/存储/算力有限）</li>
+      <li>需要专门开发工具（交叉编译+仿真器）</li>
+      <li>代码固化 ROM，升级维护困难</li>
+      <li>安全性要求高，开发门槛高</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">以特定应用为中心</span>
+    <span class="keyword">可裁剪</span>
+    <span class="keyword">低功耗</span>
+    <span class="keyword">资源受限</span>
+    <span class="keyword">代码固化ROM</span>
+    <span class="keyword">专用计算机系统</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="es02_classification.html">→ 嵌入式系统的分类（es02）</a> — 按处理器位数/实时性/应用领域的分类方法</li>
+    <li><a href="es03_architecture.html">→ 嵌入式体系结构（es03）</a> — 哈佛 vs 冯·诺依曼、存储器映射</li>
+    <li><a href="es08_watchdog.html">→ 看门狗定时器（es08）</a> — 嵌入式系统可靠性的关键硬件机制</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const layers = ['layer1','layer2','layer3','layer4','layer5'];
+  // Reset all
+  layers.forEach(id => document.getElementById(id).classList.remove('layer-glow'));
+  // Sequential glow from bottom (processor) to top (app)
+  layers.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('layer-glow');
+      setTimeout(() => el.classList.remove('layer-glow'), 1200);
+    }, i * 350);
+  });
+}
+
+// Auto play on load
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

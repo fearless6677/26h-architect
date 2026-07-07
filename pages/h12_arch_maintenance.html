@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件架构维护 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Maintenance framework animation */
+.maint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.maint-box { display: flex; flex-direction: column; align-items: center; padding: 14px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; cursor: default; }
+.maint-box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.maint-box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.maint-box.purple { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.maint-box.amber { background: #fffbeb; border: 2px solid #f59e0b; color: #92400e; }
+.maint-box .sub { font-size: 11px; font-weight: 400; color: #64748b; margin-top: 4px; }
+.maint-box.pop { transform: scale(1.06); box-shadow: 0 0 16px rgba(37,99,235,0.35); }
+.metric-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 16px 0 4px; }
+.metric-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 100px; transition: all 0.3s; }
+.metric-card .abbr { font-size: 18px; font-weight: 700; color: #2563eb; }
+.metric-card .name { font-size: 11px; color: #64748b; margin-top: 2px; }
+.metric-card.lit { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 12px rgba(59,130,246,0.3); }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.arrow-down { text-align: center; color: #94a3b8; font-size: 20px; margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 架构维护 › 知识管理/修改管理/版本管理/可维护性度量</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">架构维护</span>
+  <span class="exam-tag">⭐ 必考</span>
+  <h1>软件架构维护（知识管理/修改管理/版本管理/可维护性度量）</h1>
+  <p class="one-liner">架构维护包括知识管理(架构设计+设计决策)、修改管理(隔离区)、版本管理和可维护性6个度量指标</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="maint-grid">
+      <div class="maint-box blue" id="m1">知识管理<span class="sub">架构设计 + 设计决策</span></div>
+      <div class="maint-box green" id="m2">修改管理<span class="sub">隔离区域 → 影响最小</span></div>
+      <div class="maint-box purple" id="m3">版本管理<span class="sub">演化控制 + 使用 + 评价</span></div>
+      <div class="maint-box amber" id="m4">可维护性度量<span class="sub">6个量化指标</span></div>
+    </div>
+    <div class="arrow-down">⬇</div>
+    <div class="metric-row" id="metrics">
+      <div class="metric-card" id="mc1"><div class="abbr">CNN</div><div class="name">圈复杂度</div></div>
+      <div class="metric-card" id="mc2"><div class="abbr">FFC</div><div class="name">扇入扇出度</div></div>
+      <div class="metric-card" id="mc3"><div class="abbr">CBO</div><div class="name">模块间耦合度</div></div>
+      <div class="metric-card" id="mc4"><div class="abbr">RFC</div><div class="name">模块的响应</div></div>
+      <div class="metric-card" id="mc5"><div class="abbr">TCC</div><div class="name">紧内聚度</div></div>
+      <div class="metric-card" id="mc6"><div class="abbr">LCC</div><div class="name">松内聚度</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 架构维护 —— 四方面 + 六指标</span>
+
+<span class="kw">架构维护</span> {
+  <span class="fn">知识管理</span>:
+    架构知识 = <span class="st">架构设计</span> + <span class="st">设计决策</span>
+    <span class="cm">// 在架构文档中捕捉知识，防止关键知识"沉没"</span>
+
+  <span class="fn">修改管理</span>:
+    隔离区域 → <span class="st">影响最小化</span>
+    <span class="cm">// sandbox中测试变更后再上线</span>
+
+  <span class="fn">版本管理</span>:
+    <span class="st">演化控制</span> + 使用 + 评价
+    <span class="cm">// 为版本演化提供依据</span>
+}
+
+<span class="cm">// 可维护性度量 6 指标</span>
+<span class="kw">metrics</span> = {
+  <span class="fn">CNN</span>  → 圈复杂度     <span class="cm">// 越低越好</span>
+  <span class="fn">FFC</span>  → 扇入扇出度   <span class="cm">// 模块被调用/调用他者</span>
+  <span class="fn">CBO</span>  → 模块间耦合度 <span class="cm">// 越低越好</span>
+  <span class="fn">RFC</span>  → 模块的响应   <span class="cm">// 能触发的方法数</span>
+  <span class="fn">TCC</span>  → 紧内聚度     <span class="cm">// 越高越好</span>
+  <span class="fn">LCC</span>  → 松内聚度     <span class="cm">// 越高越好</span>
+}</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>架构维护四大方面 —— (1)<span class="hl">知识管理</span>：架构知识 = 架构设计 + 架构设计决策，在文档中捕捉，防止"沉没"；(2)<span class="hl">修改管理</span>：建立隔离区域，保障修改影响最小；(3)<span class="hl">版本管理</span>：为版本演化控制、使用和评价提供依据；(4)<span class="hl">可维护性度量</span>：6个量化指标(CNN/FFC/CBO/RFC/TCC/LCC)。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📄 记录设计决策 → 知识管理</span>
+  <span class="tag-item">🧪 sandbox测试变更 → 修改管理</span>
+  <span class="tag-item">📊 圈复杂度15→8 → 可维护性度量</span>
+  <span class="tag-item">🏷️ 版本演化控制 → 版本管理</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>全面覆盖维护各维度</li>
+      <li>6个量化指标便于度量</li>
+      <li>知识沉淀防止"沉没"</li>
+      <li>隔离区保障修改安全</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>知识管理容易被忽视</li>
+      <li>度量指标需持续跟踪</li>
+      <li>隔离区增加维护成本</li>
+      <li>版本管理流程复杂</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">架构知识</span>
+    <span class="keyword">设计决策</span>
+    <span class="keyword">沉没</span>
+    <span class="keyword">隔离区域</span>
+    <span class="keyword">版本管理</span>
+    <span class="keyword">CNN</span>
+    <span class="keyword">FFC</span>
+    <span class="keyword">CBO</span>
+    <span class="keyword">RFC</span>
+    <span class="keyword">TCC</span>
+    <span class="keyword">LCC</span>
+    <span class="keyword">圈复杂度</span>
+    <span class="keyword">扇入扇出</span>
+    <span class="keyword">耦合度</span>
+    <span class="keyword">内聚度</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>架构原则</strong> → 架构维护的理论基础</li>
+    <li><strong>架构演化与评价</strong> → 版本管理和可维护性度量的上游</li>
+    <li><strong>重构</strong> → 修改管理的具体实践手段</li>
+    <li><strong>技术债务</strong> → 知识管理缺失的典型后果</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  // Step 1: highlight the 4 maintenance aspects one by one
+  const boxes = ['m1','m2','m3','m4'];
+  boxes.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('pop');
+      setTimeout(() => el.classList.remove('pop'), 500);
+    }, i * 350);
+  });
+  // Step 2: light up metric cards
+  const cards = ['mc1','mc2','mc3','mc4','mc5','mc6'];
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('lit');
+      setTimeout(() => el.classList.remove('lit'), 700);
+    }, 1600 + i * 250);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

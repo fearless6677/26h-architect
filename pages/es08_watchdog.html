@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>看门狗电路（Watchdog防死锁机制） · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #fef3c7; color: #b45309; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 220px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Watchdog animation */
+.wd-flow { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+.wd-box { display: inline-flex; flex-direction: column; align-items: center; padding: 14px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.4s ease; min-width: 90px; }
+.wd-box.input { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.wd-box.reg { background: #faf5ff; border: 2px solid #a855f7; color: #7e22ce; }
+.wd-box.counter { background: #fff7ed; border: 2px solid #f97316; color: #c2410c; }
+.wd-box.bark { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; }
+.wd-box.mcu { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.wd-box.active { transform: scale(1.12); box-shadow: 0 0 18px rgba(37,99,235,0.45); }
+.wd-box.reset { animation: resetPulse 0.6s ease; }
+@keyframes resetPulse { 0%{transform:scale(1)} 30%{transform:scale(1.15);box-shadow:0 0 20px rgba(239,68,68,0.6)} 100%{transform:scale(1)} }
+.wd-arrow { font-size: 18px; color: #94a3b8; min-width: 28px; text-align: center; }
+.wd-arrow .flow-dot { display: inline-block; width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; animation: dotMove 1.2s ease-in-out infinite; }
+@keyframes dotMove { 0%{opacity:0;transform:translateX(-12px)} 50%{opacity:1} 100%{opacity:0;transform:translateX(12px)} }
+.wd-status { text-align: center; font-size: 13px; color: #64748b; margin-top: 12px; min-height: 40px; }
+.wd-status .status-text { display: inline-block; padding: 4px 16px; border-radius: 16px; font-weight: 600; transition: all 0.3s; }
+.wd-status .status-text.normal { background: #dcfce7; color: #15803d; }
+.wd-status .status-text.feed { background: #dbeafe; color: #1d4ed8; }
+.wd-status .status-text.timeout { background: #fef2f2; color: #b91c1c; animation: blink 0.4s ease 3; }
+@keyframes blink { 50%{opacity:0.3} }
+.counter-bar { width: 100%; max-width: 360px; height: 18px; background: #e2e8f0; border-radius: 9px; margin: 10px auto; overflow: hidden; position: relative; }
+.counter-bar .fill { height: 100%; background: linear-gradient(90deg, #ef4444, #f97316, #22c55e); border-radius: 9px; transition: width 0.3s ease; }
+.counter-bar .label { position: absolute; top: 0; left: 0; right: 0; text-align: center; font-size: 11px; line-height: 18px; color: #1e293b; font-weight: 600; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 嵌入式系统基础 › 看门狗电路</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">嵌入式系统基础</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <span class="hour-tag">🕐 第2小时</span>
+  <h1>看门狗电路（Watchdog防死锁机制）</h1>
+  <p class="one-liner">看门狗通过定期喂狗防止程序出错或死锁，超时未喂狗则自动复位MCU</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="wd-flow">
+      <div class="wd-box input" id="w1">🔌 输入端</div>
+      <span class="wd-arrow"><span class="flow-dot"></span></span>
+      <div class="wd-box reg" id="w2">📋 寄存器</div>
+      <span class="wd-arrow"><span class="flow-dot" style="animation-delay:.2s"></span></span>
+      <div class="wd-box counter" id="w3">⏱ 计数器</div>
+      <span class="wd-arrow"><span class="flow-dot" style="animation-delay:.4s"></span></span>
+      <div class="wd-box bark" id="w4">🔔 狗叫模块</div>
+      <span class="wd-arrow"><span class="flow-dot" style="animation-delay:.6s"></span></span>
+      <div class="wd-box mcu" id="w5">🔄 MCU复位</div>
+    </div>
+
+    <div class="counter-bar">
+      <div class="fill" id="counterFill" style="width:100%"></div>
+      <div class="label" id="counterLabel">计数器: MAX</div>
+    </div>
+
+    <div class="wd-status">
+      <span class="status-text normal" id="statusText">🐕 系统正常运行中…</span>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 看门狗工作流程</span>
+watchdog_timer = <span class="num">MAX_COUNT</span>;
+<span class="kw">while</span>(running) {
+    <span class="fn">do_normal_work</span>();                   <span class="cm">// 正常业务逻辑</span>
+    watchdog_timer = <span class="num">MAX_COUNT</span>;        <span class="cm">// 定期"喂狗" → 重置计数器</span>
+    <span class="kw">if</span> (watchdog_timer <= <span class="num">0</span>) {
+        bark_module.<span class="fn">trigger</span>();         <span class="cm">// 超时未喂狗 → 中断或复位MCU</span>
+    }
+}
+
+<span class="cm">// 关键：程序必须在规定时间内反复"喂狗"</span>
+<span class="cm">// 否则看门狗认为系统异常，触发复位恢复</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>看门狗(Watchdog)是嵌入式系统<span class="hl">必须具备的系统恢复机制</span>，防止程序出错或死锁。
+  组成：输入端 → 寄存器 → 计数器 → 狗叫模块。
+  寄存器进行基本设置，计数器计算超时时间，狗叫模块决定超时后发出<span class="hl">中断或复位</span>。
+  程序正常运行时MCU定期<span class="hl">'喂狗'</span>（重置计数器），若超时未喂狗则触发狗叫模块，一般是重启MCU，从而恢复系统正常运行。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏭 工业控制器：超时2秒，每500ms喂狗</span>
+  <span class="tag-item">🚗 汽车ECU：任务死锁后自动复位</span>
+  <span class="tag-item">📡 物联网设备：异常时自动重启恢复通信</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>自动恢复、无需人工干预</li>
+      <li>有效防止程序死锁</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>无法定位根本错误原因</li>
+      <li>频繁复位可能丢失数据</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">看门狗Watchdog</span>
+    <span class="keyword">喂狗</span>
+    <span class="keyword">系统恢复</span>
+    <span class="keyword">防止死锁</span>
+    <span class="keyword">计数器</span>
+    <span class="keyword">中断或复位MCU</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>嵌入式系统组成（es01）</strong> = 看门狗是嵌入式系统中不可或缺的安全模块</li>
+    <li><strong>总线（es07）</strong> = 看门狗通过总线与MCU通信，触发复位信号</li>
+    <li><strong>中断机制</strong> = 看门狗超时后可产生不可屏蔽中断（NMI）</li>
+    <li><strong>vs 异常处理</strong>：异常处理是"软件自救"，看门狗是"硬件兜底"，双重保障</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+let animTimer = null;
+function playAnimation() {
+  const boxes = ['w1','w2','w3','w4','w5'];
+  const fill = document.getElementById('counterFill');
+  const label = document.getElementById('counterLabel');
+  const status = document.getElementById('statusText');
+  let step = 0;
+
+  if (animTimer) { clearInterval(animTimer); animTimer = null; }
+
+  function resetBoxes() { boxes.forEach(id => document.getElementById(id).classList.remove('active','reset')); }
+
+  function runCycle() {
+    resetBoxes();
+    // Step 0: 输入端
+    status.className = 'status-text normal';
+    status.textContent = '🐕 系统正常运行中…';
+    fill.style.width = '100%';
+    label.textContent = '计数器: MAX';
+
+    // Step 1: 输入端激活
+    setTimeout(() => {
+      document.getElementById('w1').classList.add('active');
+    }, 200);
+
+    // Step 2: 寄存器设置
+    setTimeout(() => {
+      document.getElementById('w1').classList.remove('active');
+      document.getElementById('w2').classList.add('active');
+    }, 600);
+
+    // Step 3: 计数器开始递减
+    setTimeout(() => {
+      document.getElementById('w2').classList.remove('active');
+      document.getElementById('w3').classList.add('active');
+      status.className = 'status-text feed';
+      status.textContent = '🍖 喂狗！计数器重置';
+      fill.style.width = '100%';
+      label.textContent = '计数器: MAX';
+    }, 1000);
+
+    // Step 4: 计数器递减模拟
+    let count = 100;
+    const decreaseInterval = setInterval(() => {
+      count -= 5;
+      fill.style.width = count + '%';
+      label.textContent = '计数器: ' + count + '%';
+      if (count <= 30) {
+        fill.style.background = 'linear-gradient(90deg, #ef4444, #f97316)';
+      } else {
+        fill.style.background = 'linear-gradient(90deg, #ef4444, #f97316, #22c55e)';
+      }
+      if (count <= 0) {
+        clearInterval(decreaseInterval);
+        // 触发狗叫模块
+        document.getElementById('w3').classList.remove('active');
+        document.getElementById('w4').classList.add('active');
+        status.className = 'status-text timeout';
+        status.textContent = '⚠️ 超时！狗叫模块触发！';
+        setTimeout(() => {
+          document.getElementById('w4').classList.remove('active');
+          document.getElementById('w5').classList.add('active','reset');
+          status.className = 'status-text timeout';
+          status.textContent = '🔄 MCU正在复位…';
+          setTimeout(() => {
+            document.getElementById('w5').classList.remove('active','reset');
+            // 恢复正常
+            fill.style.width = '100%';
+            fill.style.background = 'linear-gradient(90deg, #ef4444, #f97316, #22c55e)';
+            label.textContent = '计数器: MAX';
+            status.className = 'status-text normal';
+            status.textContent = '✅ 系统恢复正常运行！';
+          }, 1000);
+        }, 600);
+      }
+    }, 60);
+  }
+
+  runCycle();
+  animTimer = setInterval(runCycle, 5500);
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

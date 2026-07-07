@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C/S与B/S架构风格 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 架构风格 › C/S与B/S架构风格</span></nav>
+<div class="ct">
+<div><span class="tag c">架构风格</span><span class="tag e">高频</span>
+<h1>C/S与B/S架构风格</h1><p class="ol">C/S与B/S是调用/返回风格的核心架构，三层B/S为浏览器→Web→数据库</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>调用/返回风格采用分而治之策略。C/S架构：二层为数据库服务器+客户应用；三层(瘦客户端)分为表示层、功能层、数据层。B/S是三层C/S的实现方式，三层为浏览器、Web服务器、数据库服务器。B/S相比C/S的不足：动态页面支持弱、扩展能力差、安全性难控、响应速度不足、数据交互性不强。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">// C/S与B/S对比
+CS_BS = {
+  二层CS: {
+    组成: "数据库服务器(后台) + 客户应用(前台) + 网络",
+    优点: "应用与服务器分布运行",
+    缺点: "开发成本高, 客户端复杂, 维护升级困难, 移植困难"
+  },
+  三层CS: {
+    组成: "表示层(GUI) + 功能层(业务逻辑) + 数据层(DBMS)",
+    别名: "瘦客户端模式"
+  },
+  BS: {
+    组成: "浏览器 + Web服务器 + 数据库服务器",
+    不足: ["动态页面支持弱", "扩展能力差", "安全性难控", "响应速度慢", "数据交互性不强"]
+  }
+}</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>二层C/S: 传统MIS系统，客户端直接访问数据库</li><li>三层C/S: ERP系统，客户端→应用服务器→数据库</li><li>B/S: 网上购物系统，浏览器→Web服务器→数据库</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>C/S: 应用与服务器分布运行</li><li>B/S: 客户端零安装, 跨平台</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>二层C/S: 开发成本高, 维护升级困难</li><li>B/S: 动态页面弱, 扩展差, 安全性难控, 响应慢</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">C/S</span><span class="k">B/S</span><span class="k">二层</span><span class="k">三层</span><span class="k">瘦客户端</span><span class="k">表示层</span><span class="k">功能层</span><span class="k">数据层</span><span class="k">B/S不足</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="arch_style_overview.html">arch_style_overview</a></li><li><a href="arch_style_data.html">arch_style_data</a></li></ul></div>
+</div></body></html>

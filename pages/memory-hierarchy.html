@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存储器层次结构 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+.flow-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 12px 0; flex-wrap: wrap; }
+.box { display: inline-flex; flex-direction: column; align-items: center; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; min-width: 80px; }
+.box.blue { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.box.green { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; }
+.box.processing { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.pipe { width: 36px; height: 4px; background: #cbd5e1; position: relative; overflow: hidden; border-radius: 2px; }
+.pipe .flow { position: absolute; top: 0; left: -20px; width: 20px; height: 4px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); animation: pipeFlow 1.5s linear infinite; }
+@keyframes pipeFlow { 0% { left: -20px; } 100% { left: 36px; } }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.layer-box { transition: all 0.3s; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 计算机硬件 › 存储器层次结构</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">计算机硬件</span>
+  <span class="exam-tag">⭐ 高频</span>
+  <h1>存储器层次结构</h1>
+  <p class="one-liner">计算机存储器分为寄存器、缓存、内存、外存等多个层次，越快越小越贵，越慢越大越便宜。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div class="layer-box" id="l0" style="width:80px;height:32px;background:#dc2626;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">寄存器</div>
+      <div class="layer-box" id="l1" style="width:140px;height:32px;background:#ea580c;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">L1 Cache</div>
+      <div class="layer-box" id="l2" style="width:200px;height:32px;background:#f59e0b;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">L2 Cache</div>
+      <div class="layer-box" id="l3" style="width:280px;height:32px;background:#22c55e;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">主存 DRAM</div>
+      <div class="layer-box" id="l4" style="width:360px;height:32px;background:#3b82f6;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">外存 磁盘</div>
+      <div style="display:flex;justify-content:space-between;width:380px;font-size:11px;color:#64748b;margin-top:4px">
+        <span>← 快/小/贵</span><span>慢/大/便宜 →</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 存储器层次结构（由快到慢、由小到大）</span>
+L0: CPU寄存器   <span class="cm">// 最快，最小，KB级</span>
+L1: 片上缓存    <span class="cm">// Cache（SRAM），很快，KB~MB级</span>
+L2: 片外缓存    <span class="cm">// 二级缓存，MB级</span>
+L3: 主存(内存)  <span class="cm">// DRAM，较慢，GB级</span>
+L4: 外存(磁盘)  <span class="cm">// 最慢，最大，TB级</span>
+<span class="cm">// 原则：越快越贵越小，越慢越大越便宜</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>计算机存储器分为寄存器、缓存、内存、外存等多个层次，越快越小越贵，越慢越大越便宜。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">CPU中的L1/L2 Cache使用SRAM，速度极快但容量仅几MB，用于缓存频繁访问的数据</span>
+  <span class="tag-item">电脑内存条使用DRAM（如DDR4/DDR5），容量16GB，断电数据丢失</span>
+  <span class="tag-item">硬盘（HDD/SSD）作为外存，容量可达TB级，用于长期保存操作系统和文件</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>利用局部性原理，用少量高速缓存模拟大容量存储器，性价比极高</li>
+      <li>层次化设计使系统整体性能接近最快存储器，容量接近最慢存储器</li>
+      <li>各级存储技术可以独立发展和替换，扩展性好</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>高速存储器（SRAM/Cache）成本高，容量不可能无限扩大</li>
+      <li>层次越多，缓存一致性、数据同步问题越复杂</li>
+      <li>外存速度远慢于CPU，I/O瓶颈长期存在</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">存储器层次</span>
+    <span class="keyword">SRAM</span>
+    <span class="keyword">DRAM</span>
+    <span class="keyword">Cache</span>
+    <span class="keyword">主存</span>
+    <span class="keyword">外存</span>
+    <span class="keyword">片上缓存</span>
+    <span class="keyword">访问速度递减</span>
+    <span class="keyword">容量递增</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+      <li><a href="./von-neumann-architecture.html" style="color:#2563eb;text-decoration:none">冯·诺依曼计算机结构</a></li>
+      <li>bus-and-interface</li>
+      <li>specialized-processors</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+
+    function playAnimation() {
+      ['l0','l1','l2','l3','l4'].forEach((id,i) => {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          el.style.transform = 'scale(1.08)';
+          el.style.boxShadow = '0 0 12px rgba(0,0,0,0.3)';
+          setTimeout(() => { el.style.transform = ''; el.style.boxShadow = ''; }, 500);
+        }, i * 300);
+      });
+    }
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>著作权归属与保护期 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .code-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.exam-box .weight { font-size: 13px; color: #b45309; margin-top: 8px; }
+
+/* Animation: copyright tree */
+.tree { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.tree-root { background: #2563eb; color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; text-align: center; }
+.tree-branch { display: flex; gap: 40px; margin-top: 0; position: relative; }
+.tree-branch::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 2px; height: 16px; background: #94a3b8; }
+.tree-split { display: flex; gap: 24px; margin-top: 16px; }
+.tree-node { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-align: center; border: 2px solid; min-width: 120px; transition: transform 0.3s, box-shadow 0.3s; cursor: default; position: relative; }
+.tree-node.personal { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+.tree-node.property { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+.tree-node.special { background: #fefce8; border-color: #eab308; color: #854d0e; }
+.tree-node.glow { transform: scale(1.08); box-shadow: 0 0 16px rgba(37,99,235,0.4); }
+.tree-sub { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.tree-sub-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 3px 10px; border-radius: 12px; font-size: 11px; color: #475569; }
+.tree-sub-item.highlight { background: #fef3c7; border-color: #f59e0b; color: #92400e; font-weight: 600; }
+.tree-sub-item.unlimited { background: #fce7f3; border-color: #ec4899; color: #9d174d; font-weight: 600; }
+.connector { width: 2px; height: 14px; background: #94a3b8; margin: 0 auto; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+.info-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-top: 12px; font-size: 13px; color: #475569; opacity: 0; transform: translateY(8px); transition: opacity 0.3s, transform 0.3s; }
+.info-card.visible { opacity: 1; transform: translateY(0); }
+.info-card .rule-label { font-weight: 700; color: #1e40af; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 知识产权 › 著作权归属与保护期</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">著作权法</span>
+  <span class="exam-tag">⭐ 约1-2分（高频考点）</span>
+  <span class="code-tag">📑 IP-02</span>
+  <h1>著作权归属与保护期</h1>
+  <p class="one-liner">著作权人身权中署名权、修改权、保护作品完整权保护期不受限制；职务作品与委托作品归属是高频考点</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 法条速查</div>
+</div>
+
+<!-- ==================== 动画 Tab ==================== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+    <div class="tree">
+      <div class="tree-root" id="root">著作权</div>
+      <div class="connector"></div>
+      <div class="tree-branch">
+        <div class="tree-split">
+          <!-- 人身权 -->
+          <div>
+            <div class="tree-node personal" id="n-personal">🛡️ 人身权</div>
+            <div class="tree-sub" id="sub-personal">
+              <span class="tree-sub-item unlimited" id="s1">发表权</span>
+              <span class="tree-sub-item unlimited" id="s2">署名权 ★</span>
+              <span class="tree-sub-item unlimited" id="s3">修改权 ★</span>
+              <span class="tree-sub-item unlimited" id="s4">保护作品完整权 ★</span>
+            </div>
+            <div class="info-card" id="card-personal">
+              <span class="rule-label">保护期：</span>署名权、修改权、保护作品完整权 → <strong style="color:#dc2626;">不受限制（永久）</strong><br>
+              <span class="rule-label">发表权：</span>与财产权同期 → 作者终生 + 死后50年
+            </div>
+          </div>
+          <!-- 财产权 -->
+          <div>
+            <div class="tree-node property" id="n-property">💰 财产权（17项）</div>
+            <div class="tree-sub" id="sub-property">
+              <span class="tree-sub-item" id="s5">复制权</span>
+              <span class="tree-sub-item" id="s6">发行权</span>
+              <span class="tree-sub-item" id="s7">出租权</span>
+              <span class="tree-sub-item" id="s8">展览权</span>
+              <span class="tree-sub-item" id="s9">表演权</span>
+              <span class="tree-sub-item" id="s10">信息网络传播权</span>
+              <span class="tree-sub-item" id="s11">…等共17项</span>
+            </div>
+            <div class="info-card" id="card-property">
+              <span class="rule-label">保护期：</span>作者终生 + 死后<span style="color:#dc2626;font-weight:600;">50年</span>（截止于作者死亡后第50年的12月31日）<br>
+              <span class="rule-label">法人作品：</span>首次发表后50年
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 归属规则 -->
+      <div style="margin-top:20px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center;">
+        <div class="tree-node special" id="n-work" style="min-width:160px;">🏢 职务作品</div>
+        <div class="tree-node special" id="n-commission" style="min-width:160px;">📜 委托作品</div>
+        <div class="tree-node special" id="n-fair" style="min-width:160px;">📖 合理使用</div>
+      </div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:4px; max-width:600px;">
+        <div class="info-card" id="card-work" style="flex:1; min-width:160px;">
+          <span class="rule-label">一般：</span>著作权归作者<br>
+          <span class="rule-label">特殊：</span>主要利用单位条件+单位承担责任 → 作者仅享<span style="color:#dc2626;font-weight:600;">署名权</span>，其余归单位
+        </div>
+        <div class="info-card" id="card-commission" style="flex:1; min-width:160px;">
+          <span class="rule-label">有合同：</span>按合同约定<br>
+          <span class="rule-label">无合同：</span>著作权归<span style="color:#dc2626;font-weight:600;">受托人</span>
+        </div>
+        <div class="info-card" id="card-fair" style="flex:1; min-width:160px;">
+          <span class="rule-label">第24条：</span>不经许可、不付报酬<br>
+          <span class="rule-label">须：</span>指明作者+出处<br>
+          <span class="rule-label">例：</span>个人学习、评论引用
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 法条速查 Tab ==================== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ═══ 著作权归属与保护期 · 法条速查 ═══</span>
+
+<span class="cm">// ── 一、人身权（4项）──────────────</span>
+<span class="kw">人身权</span> = { 发表权, 署名权, 修改权, 保护作品完整权 }
+
+<span class="cm">// ★ 高频考点</span>
+<span class="fn">保护期</span>(署名权)           → <span class="st">不受限制（永久）</span>
+<span class="fn">保护期</span>(修改权)           → <span class="st">不受限制（永久）</span>
+<span class="fn">保护期</span>(保护作品完整权)   → <span class="st">不受限制（永久）</span>
+<span class="fn">保护期</span>(发表权)           → <span class="num">与财产权相同</span>（终生+50年）
+
+<span class="cm">// ── 二、财产权（17项）─────────────</span>
+<span class="kw">财产权</span> = { 复制权, 发行权, 出租权, 展览权,
+          表演权, 放映权, 广播权, 信息网络传播权,
+          摄制权, 改编权, 翻译权, 汇编权, … }
+
+<span class="fn">保护期</span>(财产权) → 自然人: <span class="num">作者终生 + 死后50年</span>
+                 法人:   <span class="num">首次发表后50年</span>
+
+<span class="cm">// ── 三、职务作品 ──────────────────</span>
+<span class="kw">if</span> (主要利用单位物质技术条件 && 单位承担责任) {
+    <span class="cm">// 特殊职务作品（如软件、工程设计图）</span>
+    作者享有 → <span class="st">署名权</span>     <span class="cm">// 仅这一项！</span>
+    其他权利 → <span class="st">归单位</span>
+} <span class="kw">else</span> {
+    <span class="cm">// 一般职务作品</span>
+    著作权 → <span class="st">归作者</span>（单位有优先使用权）
+}
+
+<span class="cm">// ── 四、委托作品 ──────────────────</span>
+<span class="kw">if</span> (有合同约定) {
+    著作权 → <span class="st">按合同</span>
+} <span class="kw">else</span> {
+    著作权 → <span class="st">归受托人</span>  <span class="cm">// ★ 无合同 = 归受托方</span>
+}
+
+<span class="cm">// ── 五、合理使用（第24条）──────────</span>
+<span class="kw">合理使用</span> → 不经许可 + 不付报酬 + 须指明作者/出处
+<span class="cm">// 常见情形：个人学习、评论引用、新闻报道、课堂教学等</span></pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>著作权分<span class="hl">人身权</span>和<span class="hl">财产权</span>两大类。
+  人身权中<span class="hl">署名权、修改权、保护作品完整权</span>保护期不受限制（永久保护）。
+  财产权保护期为作者终生+死后50年。<br>
+  <strong>归属规则：</strong>职务作品特殊情况下作者仅保留署名权；委托作品<span class="hl">无合同约定归受托人</span>。
+  合理使用（第24条）允许不经许可、不付报酬使用已发表作品。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📝 署名权/修改权/完整权 → 永久保护</span>
+  <span class="tag-item">📜 委托开发无合同 → 归受托方</span>
+  <span class="tag-item">🏢 员工在职开发软件 → 职务作品归单位</span>
+  <span class="tag-item">📖 个人学习使用 → 合理使用</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 备考优势</h4>
+    <ul>
+      <li>考点明确，出题规律稳定</li>
+      <li>法条直接对应选择题</li>
+      <li>规则清晰，容易记忆对比</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 易混淆点</h4>
+    <ul>
+      <li>权利类型众多（17项财产权），容易混淆人身权和财产权</li>
+      <li>保护期规则因权利类型不同而不同</li>
+      <li>职务作品"一般"与"特殊"归属易混</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">著作权</span>
+    <span class="keyword">人身权</span>
+    <span class="keyword">财产权</span>
+    <span class="keyword">保护期</span>
+    <span class="keyword">职务作品</span>
+    <span class="keyword">委托作品</span>
+    <span class="keyword">合理使用</span>
+    <span class="keyword">署名权不受限制</span>
+  </div>
+  <p class="weight">📊 分值权重：约1-2分（高频考点）</p>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="kp_23_03.html">→ 专利权</a> — 与著作权同属知识产权，保护期规则不同</li>
+    <li><a href="kp_23_01.html">→ 商标权</a> — 知识产权三大支柱之一，续展规则不同</li>
+    <li><strong>对比记忆：</strong>著作权自动取得（无需登记） vs 专利权/商标权需申请审批</li>
+    <li><strong>软件保护条例：</strong>软件著作权自开发完成之日起产生，保护期25年（可续展）</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  var tabs = document.querySelectorAll('.tab');
+  var contents = document.querySelectorAll('.tab-content');
+  for (var i = 0; i < tabs.length; i++) { tabs[i].classList.remove('active'); }
+  for (var j = 0; j < contents.length; j++) { contents[j].classList.remove('active'); }
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+var animRunning = false;
+function playAnimation() {
+  if (animRunning) return;
+  animRunning = true;
+
+  var nodes = document.querySelectorAll('.tree-node');
+  var cards = document.querySelectorAll('.info-card');
+  var subs = document.querySelectorAll('.tree-sub-item');
+  for (var i = 0; i < nodes.length; i++) { nodes[i].classList.remove('glow'); }
+  for (var i = 0; i < cards.length; i++) { cards[i].classList.remove('visible'); }
+  for (var i = 0; i < subs.length; i++) { subs[i].classList.remove('highlight'); }
+
+  const steps = [
+    { delay: 0, run: function() { document.getElementById('root').style.transform = 'scale(1.05)'; }},
+    { delay: 400, run: function() {
+      document.getElementById('n-personal').classList.add('glow');
+      document.getElementById('s1').classList.add('highlight');
+    }},
+    { delay: 800, run: function() { document.getElementById('s2').classList.add('highlight'); }},
+    { delay: 1100, run: function() {
+      document.getElementById('s3').classList.add('highlight');
+      document.getElementById('card-personal').classList.add('visible');
+    }},
+    { delay: 1400, run: function() { document.getElementById('s4').classList.add('highlight'); }},
+    { delay: 1800, run: function() {
+      document.getElementById('n-personal').classList.remove('glow');
+      document.getElementById('n-property').classList.add('glow');
+      var items = document.querySelectorAll('#sub-property .tree-sub-item');
+      for (var i = 0; i < items.length; i++) { items[i].classList.add('highlight'); }
+    }},
+    { delay: 2200, run: function() {
+      document.getElementById('card-property').classList.add('visible');
+    }},
+    { delay: 2600, run: function() {
+      document.getElementById('n-property').classList.remove('glow');
+      document.getElementById('n-work').classList.add('glow');
+      document.getElementById('card-work').classList.add('visible');
+    }},
+    { delay: 3000, run: function() {
+      document.getElementById('n-work').classList.remove('glow');
+      document.getElementById('n-commission').classList.add('glow');
+      document.getElementById('card-commission').classList.add('visible');
+    }},
+    { delay: 3400, run: function() {
+      document.getElementById('n-commission').classList.remove('glow');
+      document.getElementById('n-fair').classList.add('glow');
+      document.getElementById('card-fair').classList.add('visible');
+    }},
+    { delay: 3800, run: function() {
+      document.getElementById('n-fair').classList.remove('glow');
+      animRunning = false;
+    }},
+  ];
+
+  for (var k = 0; k < steps.length; k++) {
+    setTimeout(steps[k].run, steps[k].delay);
+  }
+}
+
+window.addEventListener('load', function() { setTimeout(playAnimation, 500); });
+</script>
+</body>
+</html>

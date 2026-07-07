@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据库三级模式与两级映像 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 数据库体系结构 › 数据库三级模式与两级映像</span></nav>
+<div class="ct">
+<div><span class="tag c">数据库体系结构</span><span class="tag e">必考</span>
+<h1>数据库三级模式与两级映像</h1><p class="ol">数据库分三层抽象：用户看到的(外模式)、全局逻辑结构(概念模式)、物理存储细节(内模式)，两层翻译官(映像)让它们互不影响。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>数据库采用三级模式结构：外模式(用户看到的数据视图)、概念模式(全体数据的公共逻辑结构)、内模式(数据的物理存储方式)。两级映像保证了数据独立性：外模式/概念模式映像保证逻辑独立性(逻辑结构变，应用程序不变)；概念模式/内模式映像保证物理独立性(物理存储变，应用程序不变)。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">三级模式:
+ 外模式(用户视图) → 概念模式(全局逻辑) → 内模式(物理存储)
+两级映像:
+ 外模式/概念模式映像 → 逻辑独立性
+ 概念模式/内模式映像 → 物理独立性</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>逻辑独立性: 给员工表加一个字段，已有的查询程序不需要修改</li><li>物理独立性: 把数据从机械硬盘迁移到SSD，应用程序不需要修改</li><li>外模式示例: 学生看到的选课视图只包含课程名和成绩，隐藏了教师等信息</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>数据独立性高</li><li>安全性好(用户只能看到外模式)</li><li>简化用户与系统的交互</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>设计复杂度高</li><li>需要DBA专业管理</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">三级模式</span><span class="k">两级映像</span><span class="k">逻辑独立性</span><span class="k">物理独立性</span><span class="k">外模式</span><span class="k">概念模式</span><span class="k">内模式</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="db_basic_concepts.html">db_basic_concepts</a></li></ul></div>
+</div></body></html>

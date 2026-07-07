@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据库设计步骤与E-R模型 · 系统架构设计师</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#f8f9fa;color:#1a1a2e;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-bottom:1px solid #e2e8f0;padding:12px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.nav a{color:#2563eb;text-decoration:none;font-size:14px;font-weight:600}
+.nav .bc{color:#64748b;font-size:13px;margin-left:12px}
+.ct{max-width:900px;margin:0 auto;padding:80px 20px 40px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:12px;margin-right:8px}
+.tag.c{background:#dbeafe;color:#2563eb}.tag.e{background:#fef2f2;color:#dc2626}
+h1{font-size:26px;color:#1e293b;margin:8px 0}.ol{font-size:16px;color:#64748b}
+.s{margin:20px 0}.s h3{font-size:16px;color:#1e40af;margin-bottom:8px;padding-left:12px;border-left:3px solid #2563eb}
+pre.cd{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:20px;font-family:Consolas,monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre-wrap}
+.pc{display:flex;gap:16px;margin:16px 0;flex-wrap:wrap}
+.p,.n{flex:1;min-width:200px;padding:16px;border-radius:8px}
+.p{background:#f0fdf4;border:1px solid #86efac}.n{background:#fef2f2;border:1px solid #fca5a5}
+.p h4{color:#15803d;margin-bottom:8px}.n h4{color:#b91c1c;margin-bottom:8px}
+li{font-size:13px;color:#475569;margin:4px 0}
+.kw{display:flex;gap:8px;flex-wrap:wrap}
+.k{background:#fef3c7;border:1px solid #f59e0b;padding:4px 12px;border-radius:16px;font-size:12px;color:#92400e;font-weight:600}
+.rel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #7dd3fc;border-radius:8px;padding:16px;margin-top:20px}
+.rel h4{color:#0369a1;margin-bottom:8px}.rel a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="../index.html">📋 总目录</a><span class="bc">› 数据库设计 › 数据库设计步骤与E-R模型</span></nav>
+<div class="ct">
+<div><span class="tag c">数据库设计</span><span class="tag e">高频</span>
+<h1>数据库设计步骤与E-R模型</h1><p class="ol">数据库设计就像盖房子：先画草图(E-R图)、再出施工图(逻辑设计)、最后装修(物理设计)，一步步从抽象到具体。</p></div>
+<div class="s"><h3>📖 核心解释</h3><p>数据库设计分六步：需求分析(了解用户需求)→概念结构设计(画E-R图，用矩形表示实体、椭圆表示属性、菱形表示联系)→逻辑结构设计(将E-R图转换为关系模型)→物理设计(确定存储结构)→实施(建库加载数据)→运行维护。概念设计阶段的E-R图合并时需要解决属性冲突、命名冲突和结构冲突。商业智能(BI)包含数据仓库、OLAP和数据挖掘三部分。</p></div>
+<div class="s"><h3>💻 伪代码</h3><pre class="cd">设计步骤:
+1. 需求分析 → 2. 概念设计(E-R图) → 3. 逻辑设计(转关系模型)
+→ 4. 物理设计 → 5. 实施 → 6. 运行维护
+
+E-R图三要素:
+ 实体(矩形) -- 属性(椭圆) -- 联系(菱形)</pre></div>
+<div class="s"><h3>📌 实际例子</h3><ul><li>E-R图: 学生(矩形)—选课(菱形)—课程(矩形)，属性用椭圆连接</li><li>OLTP vs OLAP: OLTP处理日常事务(如超市收银)，OLAP做分析决策(如销售趋势分析)</li><li>数据仓库特征: 面向主题、集成的、非易失的、时变的</li><li>E-R图合并冲突: 不同部门对'员工编号'的命名不一致→命名冲突</li></ul></div>
+<div class="pc"><div class="p"><h4>✅ 优点</h4><ul><li>规范化设计流程</li><li>减少后期修改成本</li><li>E-R图直观易理解</li></ul></div><div class="n"><h4>❌ 缺点</h4><ul><li>设计周期长</li><li>需求变更时调整困难</li></ul></div></div>
+<div class="s"><h3>📝 考试关键词</h3><div class="kw"><span class="k">E-R图</span><span class="k">实体</span><span class="k">属性</span><span class="k">联系</span><span class="k">概念设计</span><span class="k">逻辑设计</span><span class="k">物理设计</span><span class="k">数据仓库</span><span class="k">OLTP</span><span class="k">OLAP</span><span class="k">数据挖掘</span><span class="k">商业智能BI</span></div></div>
+<div class="rel"><h4>🔗 关联知识</h4><ul><li><a href="functional_dependency_normalization.html">functional_dependency_normalization</a></li><li><a href="data_warehouse.html">data_warehouse</a></li></ul></div>
+</div></body></html>

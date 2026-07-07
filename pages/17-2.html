@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云原生分布式事务模式 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header .hour-tag { display: inline-block; background: #f0fdf4; color: #15803d; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 15px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 200px; position: relative; overflow: hidden; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .num { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #2563eb; text-decoration: none; font-weight: 600; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.exam-box .meta { font-size: 12px; color: #92400e; margin-top: 8px; }
+
+/* ===== Animation Styles ===== */
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 10; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+.mode-selector { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.mode-btn { padding: 6px 14px; border: 2px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 600; color: #64748b; transition: all 0.3s; }
+.mode-btn.active { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+.mode-btn:hover { border-color: #93c5fd; }
+
+.scenario { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0; flex-wrap: wrap; min-height: 120px; }
+.node { display: inline-flex; flex-direction: column; align-items: center; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.4s; min-width: 70px; }
+.node.service { background: #eff6ff; border: 2px solid #3b82f6; color: #1d4ed8; }
+.node.success { background: #f0fdf4; border: 2px solid #22c55e; color: #15803d; box-shadow: 0 0 12px rgba(34,197,94,0.3); }
+.node.fail { background: #fef2f2; border: 2px solid #ef4444; color: #b91c1c; box-shadow: 0 0 12px rgba(239,68,68,0.3); }
+.node.rollback { background: #fefce8; border: 2px solid #eab308; color: #854d0e; box-shadow: 0 0 12px rgba(234,179,8,0.3); }
+.node.coordinator { background: #f5f3ff; border: 2px solid #8b5cf6; color: #6d28d9; }
+.node .sub { font-size: 10px; font-weight: 400; color: #94a3b8; margin-top: 2px; }
+.arrow { font-size: 16px; color: #cbd5e1; transition: color 0.3s; }
+.arrow.active { color: #3b82f6; }
+
+.mode-info { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-top: 12px; font-size: 13px; color: #475569; }
+.mode-info .mode-title { font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+
+.step-label { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 8px; min-height: 18px; transition: all 0.3s; }
+.step-label.active { color: #2563eb; font-weight: 600; }
+
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+.pulse { animation: pulse 0.6s ease; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 云原生架构内涵 › 云原生分布式事务模式</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">云原生架构内涵</span>
+  <span class="exam-tag">⭐ 2~4分（单选）+ 案例题</span>
+  <span class="hour-tag">📖 第17小时 17.1节</span>
+  <h1>云原生分布式事务模式</h1>
+  <p class="one-liner">五种模式：XA（2PC强一致性能差）、BASE（最终一致性）、TCC（Try-Confirm-Cancel业务侵入强）、SAGA（补偿事务回滚）、SEATA AT（自动回滚无代码）</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="mode-selector">
+      <div class="mode-btn active" onclick="selectMode('xa')">XA / 2PC</div>
+      <div class="mode-btn" onclick="selectMode('base')">BASE</div>
+      <div class="mode-btn" onclick="selectMode('tcc')">TCC</div>
+      <div class="mode-btn" onclick="selectMode('saga')">SAGA</div>
+      <div class="mode-btn" onclick="selectMode('at')">SEATA AT</div>
+    </div>
+
+    <div class="scenario" id="scenario">
+      <!-- dynamically filled -->
+    </div>
+    <div class="step-label" id="stepLabel">点击上方模式切换，或按 ▶ 播放动画</div>
+  </div>
+
+  <div class="mode-info" id="modeInfo">
+    <div class="mode-title">XA模式（两阶段提交 2PC）</div>
+    协调者先询问所有参与者是否可以提交（Prepare），再统一发Commit/Rollback指令。强一致性，但需<span style="color:#dc2626;font-weight:600">两次网络交互</span>，性能差。适用于银行转账等对一致性要求极高的场景。
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// ===== 1. XA / 2PC —— 两阶段提交 =====</span>
+<span class="cm">// Phase 1: Prepare（询问）</span>
+<span class="fn">coordinator</span>.<span class="fn">ask</span>([服务A, 服务B, 服务C])  <span class="cm">// "你们能提交吗？"</span>
+<span class="cm">// Phase 2: Commit / Rollback（执行）</span>
+<span class="kw">if</span> all_ok  → <span class="fn">coordinator</span>.<span class="fn">commit</span>(all)
+<span class="kw">else</span>       → <span class="fn">coordinator</span>.<span class="fn">rollback</span>(all)
+
+<span class="cm">// ===== 2. BASE —— 最终一致性 =====</span>
+服务A.<span class="fn">do</span>()  <span class="cm">// 立刻返回，不等别的服务</span>
+<span class="fn">async</span> { 消息队列通知 服务B → 服务B最终完成 }  <span class="cm">// 短暂不一致，最终一致</span>
+
+<span class="cm">// ===== 3. TCC —— Try-Confirm-Cancel =====</span>
+<span class="fn">Try</span>()     <span class="cm">// 预留资源（冻结库存）</span>
+<span class="fn">Confirm</span>() <span class="cm">// 确认提交（扣减库存）</span>
+<span class="fn">Cancel</span>()  <span class="cm">// 取消回滚（释放冻结）</span>
+
+<span class="cm">// ===== 4. SAGA —— 补偿事务 =====</span>
+T1 → T2 → T3 <span class="cm">// 正向事务链</span>
+<span class="kw">if</span> T3 失败 → <span class="fn">C2</span>() → <span class="fn">C1</span>()  <span class="cm">// 反向补偿链（倒序回滚）</span>
+
+<span class="cm">// ===== 5. SEATA AT —— 自动回滚 =====</span>
+<span class="cm">// 一阶段：业务SQL + 框架自动记录前后快照</span>
+<span class="cm">// 二阶段：成功→异步删除快照；失败→框架自动用快照回滚</span>
+<span class="fn">@GlobalTransactional</span>  <span class="cm">// 加一个注解就够了！零代码侵入</span>
+<span class="fn">doBusiness</span>()</pre>
+</div>
+
+<div class="explain">
+  <strong>核心：</strong>业务需要访问多个微服务，带来<span class="hl">分布式事务问题</span>。
+  没有银弹——不同场景选不同模式：强一致选XA/2PC，高并发选BASE，长事务选SAGA，
+  想零侵入选<span class="hl">SEATA AT</span>。
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">🏦 XA → 银行转账（强一致）</span>
+  <span class="tag-item">🛒 BASE → 电商订单（高并发）</span>
+  <span class="tag-item">✈️ SAGA → 旅行预订（机票+酒店+租车）</span>
+  <span class="tag-item">⚡ SEATA AT → 通用业务（零侵入）</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>不同场景可选择不同模式，灵活度高</li>
+      <li>SEATA AT模式无代码侵入，开发零工作量</li>
+      <li>XA提供强一致性保障</li>
+      <li>BASE可支撑高并发场景</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺点</h4>
+    <ul>
+      <li>XA性能差（两次网络交互）</li>
+      <li>TCC和SAGA开发维护成本高</li>
+      <li>BASE通用性有限（只能接受最终一致性）</li>
+      <li>SEATA AT存在使用场景限制</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">分布式事务</span>
+    <span class="keyword">XA模式</span>
+    <span class="keyword">2PC</span>
+    <span class="keyword">BASE</span>
+    <span class="keyword">TCC</span>
+    <span class="keyword">SAGA</span>
+    <span class="keyword">SEATA</span>
+    <span class="keyword">AT模式</span>
+    <span class="keyword">CAP</span>
+  </div>
+  <div class="meta">📌 考试权重：2~4分（单选）+ 案例题 &nbsp;|&nbsp; 📖 第17小时 17.1节</div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="17-1.html">← 17-1 云原生架构内涵（概览）</a></li>
+    <li><a href="17-3.html">→ 17-3 后续知识</a></li>
+    <li><strong>CAP定理</strong> = 分布式事务的理论基础（C/A/P三选二）</li>
+    <li><strong>微服务架构</strong> = 分布式事务产生的根本原因</li>
+    <li><strong>消息队列</strong> = BASE/最终一致性的核心基础设施</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== Mode Data =====
+const modes = {
+  xa: {
+    title: 'XA模式（两阶段提交 2PC）',
+    desc: '协调者先询问所有参与者是否可以提交（Prepare），再统一发Commit/Rollback指令。强一致性，但需<span style="color:#dc2626;font-weight:600">两次网络交互</span>，性能差。适用于银行转账等对一致性要求极高的场景。',
+    steps: [
+      { nodes: ['coordinator', 'arrow', 'A', 'arrow', 'B', 'arrow', 'C'], label: '1️⃣ Prepare阶段：协调者询问所有参与者', states: { coordinator:'coordinator', A:'service pulse', B:'service pulse', C:'service pulse' } },
+      { nodes: ['coordinator', 'arrow', 'A', 'arrow', 'B', 'arrow', 'C'], label: '2️⃣ 各参与者返回 OK / Not OK', states: { coordinator:'coordinator', A:'success', B:'success', C:'success' } },
+      { nodes: ['coordinator', 'arrow', 'A', 'arrow', 'B', 'arrow', 'C'], label: '3️⃣ Commit阶段：全部OK → 协调者发Commit指令', states: { coordinator:'success', A:'success', B:'success', C:'success' } },
+    ]
+  },
+  base: {
+    title: 'BASE模式（基本可用 + 最终一致性）',
+    desc: '在可用性和一致性冲突时，接受<span style="color:#dc2626;font-weight:600">基本可用（BA）</span>和<span style="color:#dc2626;font-weight:600">最终一致性（E）</span>，优先性能。通过消息队列异步同步，短暂不一致但高并发。适用于电商订单等场景。',
+    steps: [
+      { nodes: ['A', 'arrow', 'mq', 'arrow', 'B'], label: '1️⃣ 服务A立即提交，写入消息队列', states: { A:'success pulse', mq:'service', B:'service' } },
+      { nodes: ['A', 'arrow', 'mq', 'arrow', 'B'], label: '2️⃣ 消息在队列中，暂时不一致', states: { A:'success', mq:'service pulse', B:'service' } },
+      { nodes: ['A', 'arrow', 'mq', 'arrow', 'B'], label: '3️⃣ 服务B消费消息，最终达到一致', states: { A:'success', mq:'success', B:'success pulse' } },
+    ]
+  },
+  tcc: {
+    title: 'TCC模式（Try-Confirm-Cancel）',
+    desc: '三阶段业务补偿：Try预留资源、Confirm确认提交、Cancel取消回滚。事务隔离性可控、高效，但<span style="color:#dc2626;font-weight:600">对业务侵入性强</span>，需编写三套逻辑。',
+    steps: [
+      { nodes: ['A', 'arrow', 'B', 'arrow', 'C'], label: '1️⃣ Try：各服务预留资源（冻结库存/冻结金额）', states: { A:'service pulse', B:'service pulse', C:'service pulse' } },
+      { nodes: ['A', 'arrow', 'B', 'arrow', 'C'], label: '2️⃣ Confirm：全部Try成功 → 确认提交（扣减库存/扣款）', states: { A:'success pulse', B:'success pulse', C:'success pulse' } },
+      { nodes: ['A', 'arrow', 'B', 'arrow', 'C'], label: '❌ 若任一失败 → Cancel：释放预留资源（回滚冻结）', states: { A:'rollback', B:'rollback', C:'rollback' } },
+    ]
+  },
+  saga: {
+    title: 'SAGA模式（补偿事务链）',
+    desc: '每个正向事务对应一个补偿事务，执行失败则<span style="color:#dc2626;font-weight:600">反向执行补偿回滚</span>。适用于长事务流程如旅行预订（机票+酒店+租车），但开发维护成本高。',
+    steps: [
+      { nodes: ['T1', 'arrow', 'T2', 'arrow', 'T3'], label: '1️⃣ 正向执行：T1→T2→T3（如：订机票→订酒店→订租车）', states: { T1:'success', T2:'success', T3:'service pulse' } },
+      { nodes: ['T1', 'arrow', 'T2', 'arrow', 'T3'], label: '❌ T3失败！启动补偿链', states: { T1:'success', T2:'success', T3:'fail pulse' } },
+      { nodes: ['C2', 'arrow', 'C1'], label: '2️⃣ 反向补偿：C2（取消酒店）→ C1（取消机票）', states: { C2:'rollback pulse', C1:'rollback pulse' } },
+    ]
+  },
+  at: {
+    title: 'SEATA AT模式（自动回滚，零代码）',
+    desc: '将二阶段委托给底层框架。一阶段直接执行业务SQL并自动记录前后快照，二阶段成功则异步删除快照，失败则<span style="color:#dc2626;font-weight:600">自动用快照回滚</span>。<span style="color:#15803d;font-weight:600">高性能、无代码工作量</span>，但有使用场景限制。',
+    steps: [
+      { nodes: ['app', 'arrow', 'seata'], label: '1️⃣ 一阶段：执行SQL + 框架自动记录数据快照', states: { app:'service pulse', seata:'coordinator pulse' } },
+      { nodes: ['app', 'arrow', 'seata'], label: '2️⃣ 全局校验通过 → 异步删除快照（提交成功）', states: { app:'success', seata:'success pulse' } },
+      { nodes: ['app', 'arrow', 'seata'], label: '✅ @GlobalTransactional 一个注解搞定！零代码侵入', states: { app:'success pulse', seata:'success pulse' } },
+    ]
+  }
+};
+
+let currentMode = 'xa';
+let stepIdx = 0;
+let playing = false;
+
+function selectMode(mode) {
+  currentMode = mode;
+  stepIdx = 0;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.mode-btn[onclick*="'${mode}'"]`).classList.add('active');
+  renderMode(mode);
+}
+
+function renderMode(mode) {
+  const data = modes[mode];
+  document.getElementById('modeInfo').innerHTML = `<div class="mode-title">${data.title}</div>${data.desc}`;
+  renderStep(data, 0);
+}
+
+function renderStep(data, idx) {
+  const step = data.steps[idx];
+  const sc = document.getElementById('scenario');
+  sc.innerHTML = '';
+  step.nodes.forEach(n => {
+    if (n === 'arrow') {
+      const a = document.createElement('span');
+      a.className = 'arrow active';
+      a.textContent = '→';
+      sc.appendChild(a);
+    } else {
+      const d = document.createElement('div');
+      const cls = step.states[n] || 'service';
+      d.className = 'node ' + cls;
+      d.innerHTML = n.toUpperCase() === n ? `<span>${n}</span>` : `<span>${n}</span><span class="sub">微服务</span>`;
+      sc.appendChild(d);
+    }
+  });
+  const label = document.getElementById('stepLabel');
+  label.textContent = step.label;
+  label.className = 'step-label active';
+}
+
+function playAnimation() {
+  if (playing) return;
+  playing = true;
+  const data = modes[currentMode];
+  let i = 0;
+  function next() {
+    if (i >= data.steps.length) { playing = false; return; }
+    renderStep(data, i);
+    i++;
+    setTimeout(next, 1200);
+  }
+  next();
+}
+
+// Init
+renderMode('xa');
+window.addEventListener('load', () => setTimeout(playAnimation, 600));
+</script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信息物理系统（CPS）概念与架构 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; transition: all 0.2s; user-select: none; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; overflow: hidden; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; } .code-area .nr { color: #fbbf24; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section a { color: #2563eb; text-decoration: none; }
+.related-section a:hover { text-decoration: underline; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; z-index: 2; transition: background 0.2s; }
+.play-btn:hover { background: #1d4ed8; }
+
+/* === Loop animation === */
+.loop-wrap { display: flex; align-items: center; justify-content: center; gap: 0; margin: 16px 0 8px; }
+.loop-ring { position: relative; width: 320px; height: 320px; flex-shrink: 0; }
+.loop-node { position: absolute; display: flex; align-items: center; justify-content: center; width: 100px; height: 100px; border-radius: 50%; font-size: 13px; font-weight: 700; text-align: center; transition: all 0.35s ease; cursor: default; }
+.loop-node.top    { top: 0;   left: 110px; background: #eff6ff; border: 3px solid #3b82f6; color: #1d4ed8; }
+.loop-node.right  { top: 110px; right: 0;  background: #f0fdf4; border: 3px solid #22c55e; color: #15803d; }
+.loop-node.bottom { bottom: 0; left: 110px; background: #fef3c7; border: 3px solid #f59e0b; color: #92400e; }
+.loop-node.left   { top: 110px; left: 0;   background: #fce7f3; border: 3px solid #ec4899; color: #9d174d; }
+.loop-node.active { transform: scale(1.12); box-shadow: 0 0 20px rgba(37,99,235,0.35); z-index: 2; }
+.loop-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #dbeafe, #ede9fe); border: 2px dashed #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #475569; text-align: center; line-height: 1.4; }
+/* arrows between loop nodes */
+.loop-arrow { position: absolute; font-size: 20px; color: #94a3b8; transition: color 0.3s; }
+.loop-arrow.a1 { top: 38px; right: 28px; }
+.loop-arrow.a2 { bottom: 38px; right: 28px; }
+.loop-arrow.a3 { bottom: 38px; left: 28px; }
+.loop-arrow.a4 { top: 38px; left: 28px; }
+.loop-arrow.active { color: #3b82f6; }
+
+/* === Four-elements bar === */
+.four-el { display: flex; gap: 10px; margin: 18px 0 0; flex-wrap: wrap; justify-content: center; }
+.el-card { background: #fff; border-radius: 8px; padding: 12px 16px; text-align: center; min-width: 120px; border: 2px solid #e2e8f0; transition: all 0.3s; flex: 1; max-width: 180px; }
+.el-card:hover { border-color: #3b82f6; transform: translateY(-3px); box-shadow: 0 4px 12px rgba(37,99,235,0.12); }
+.el-card .el-icon { font-size: 22px; margin-bottom: 4px; }
+.el-card .el-label { font-size: 13px; font-weight: 700; color: #1e293b; }
+.el-card .el-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* === Three-layer stack === */
+.layer-stack { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 0; align-items: center; }
+.layer-bar { height: 38px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; transition: all 0.4s; position: relative; }
+.layer-bar.sos  { width: 60%; background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+.layer-bar.sys  { width: 78%; background: linear-gradient(90deg, #3b82f6, #6366f1); }
+.layer-bar.unit { width: 96%; background: linear-gradient(90deg, #0ea5e9, #3b82f6); }
+.layer-bar.active-layer { transform: scaleX(1.04); box-shadow: 0 0 16px rgba(99,102,241,0.4); }
+.layer-bar .layer-tag { position: absolute; right: 12px; font-size: 11px; font-weight: 400; opacity: 0.85; }
+
+/* === Responsive === */
+@media (max-width: 640px) {
+  .loop-wrap { flex-direction: column; }
+  .loop-ring { width: 280px; height: 280px; }
+  .loop-node { width: 84px; height: 84px; font-size: 12px; }
+  .loop-node.top    { left: 98px; }
+  .loop-node.bottom { left: 98px; }
+  .loop-center { width: 76px; height: 76px; font-size: 11px; }
+  .four-el { flex-direction: column; align-items: center; }
+  .el-card { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 信息物理系统 › CPS概念与架构</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">信息物理系统</span>
+  <span class="exam-tag">⭐ 必考</span>
+  <h1>信息物理系统（CPS）概念与架构</h1>
+  <p class="one-liner">信息物理系统（CPS）是物理空间与信息空间基于数据自动流动的闭环赋能体系，四大核心技术要素为"一硬一软一网一平台"。</p>
+</div>
+
+<!-- ====== Tabs ====== -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+  <div class="tab" onclick="switchTab(this,'arch')">🏗️ 三层架构</div>
+</div>
+
+<!-- ====== Tab: 动画演示 ====== -->
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playLoop()">▶ 播放闭环</button>
+
+    <div class="loop-wrap">
+      <div class="loop-ring">
+        <!-- 4 nodes around a ring -->
+        <div class="loop-node top"    id="ln1">状态感知</div>
+        <div class="loop-node right"  id="ln2">实时分析</div>
+        <div class="loop-node bottom" id="ln3">科学决策</div>
+        <div class="loop-node left"   id="ln4">精准执行</div>
+        <!-- arrows -->
+        <span class="loop-arrow a1" id="la1">➤</span>
+        <span class="loop-arrow a2" id="la2">➤</span>
+        <span class="loop-arrow a3" id="la3">➤</span>
+        <span class="loop-arrow a4" id="la4">➤</span>
+        <!-- center -->
+        <div class="loop-center">数据<br>自动流动</div>
+      </div>
+    </div>
+
+    <!-- 四大技术要素 -->
+    <div class="four-el">
+      <div class="el-card" id="ec1">
+        <div class="el-icon">🔧</div>
+        <div class="el-label">一硬</div>
+        <div class="el-desc">感知和自动控制</div>
+      </div>
+      <div class="el-card" id="ec2">
+        <div class="el-icon">💻</div>
+        <div class="el-label">一软</div>
+        <div class="el-desc">工业软件</div>
+      </div>
+      <div class="el-card" id="ec3">
+        <div class="el-icon">🌐</div>
+        <div class="el-label">一网</div>
+        <div class="el-desc">工业网络</div>
+      </div>
+      <div class="el-card" id="ec4">
+        <div class="el-icon">☁️</div>
+        <div class="el-label">一平台</div>
+        <div class="el-desc">工业云和智能服务平台</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Tab: 伪代码 ====== -->
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// CPS四大核心技术要素</span>
+<span class="kw">CPS核心技术</span> = {
+  <span class="st">"一硬"</span>    : <span class="st">"感知和自动控制（硬件支撑）"</span>,
+  <span class="st">"一软"</span>    : <span class="st">"工业软件（CPS核心）"</span>,
+  <span class="st">"一网"</span>    : <span class="st">"工业网络（网络载体）"</span>,
+  <span class="st">"一平台"</span>  : <span class="st">"工业云和智能服务平台（支撑上层解决方案）"</span>
+}
+
+<span class="cm">// CPS体系结构三层</span>
+<span class="kw">CPS架构</span> = [<span class="fn">"单元级"</span>, <span class="fn">"系统级"</span>, <span class="fn">"SOS级"</span>]
+
+<span class="cm">// CPS闭环赋能体系 —— 数据自动流动</span>
+<span class="kw">while</span> (系统运行) {
+  <span class="fn">状态感知</span>()   <span class="cm">// 一硬 → 传感器采集物理世界数据</span>
+    ↓
+  <span class="fn">实时分析</span>()   <span class="cm">// 一软 + 一平台 → 建模/分析/仿真</span>
+    ↓
+  <span class="fn">科学决策</span>()   <span class="cm">// 一平台 → 优化方案/调度策略</span>
+    ↓
+  <span class="fn">精准执行</span>()   <span class="cm">// 一硬 → 控制器作用于物理世界</span>
+}
+
+<span class="cm">// CPS建设路径（由底向上）</span>
+<span class="kw">建设路径</span> = [
+  <span class="nr">①</span> <span class="fn">"CPS体系设计"</span>,
+  <span class="nr">②</span> <span class="fn">"单元级CPS建设"</span>,   <span class="cm">// 单个设备/产线智能化</span>
+  <span class="nr">③</span> <span class="fn">"系统级CPS建设"</span>,   <span class="cm">// 跨系统协同</span>
+  <span class="nr">④</span> <span class="fn">"SOS级CPS建设"</span>    <span class="cm">// 体系级/生态级互联互通</span>
+]</pre>
+</div>
+
+<!-- ====== Tab: 三层架构 ====== -->
+<div id="arch" class="tab-content">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playLayers()">▶ 逐层点亮</button>
+    <p style="text-align:center;font-size:13px;color:#64748b;margin-bottom:12px;">CPS体系结构（由底向上建设）</p>
+    <div class="layer-stack">
+      <div class="layer-bar sos"  id="lb3">SOS级<span class="layer-tag">体系互联 · 生态协同</span></div>
+      <div class="layer-bar sys"  id="lb2">系统级<span class="layer-tag">跨系统协同 · 生产管控</span></div>
+      <div class="layer-bar unit" id="lb1">单元级<span class="layer-tag">单设备智能化 · 感知与控制</span></div>
+    </div>
+
+    <div class="four-el" style="margin-top:24px;">
+      <div class="el-card">
+        <div class="el-icon">📡</div>
+        <div class="el-label">感知层</div>
+        <div class="el-desc">传感器、执行器、控制器</div>
+      </div>
+      <div class="el-card">
+        <div class="el-icon">🔄</div>
+        <div class="el-label">网络层</div>
+        <div class="el-desc">工业以太网、5G、TSN</div>
+      </div>
+      <div class="el-card">
+        <div class="el-icon">🧠</div>
+        <div class="el-label">平台层</div>
+        <div class="el-desc">工业云、数据中台、AI引擎</div>
+      </div>
+      <div class="el-card">
+        <div class="el-icon">📊</div>
+        <div class="el-label">应用层</div>
+        <div class="el-desc">MES、ERP、SCADA、PLM</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Explain ====== -->
+<div class="explain">
+  <strong>本质：</strong>构建一套信息空间与物理空间之间基于<span class="hl">数据自动流动</span>的
+  <span class="hl">状态感知→实时分析→科学决策→精准执行</span>的闭环赋能体系。
+  <br><br>
+  CPS是控制系统、嵌入式系统的<span class="hl">扩展与延伸</span>，通过集成感知、计算、通信、控制等信息技术和自动控制技术，
+  构建物理空间与信息空间中<span class="hl">人、机、物、环境、信息</span>等要素相互映射、适时交互、高效协同的复杂系统。
+</div>
+
+<!-- ====== Examples ====== -->
+<div class="tag-list">
+  <span class="tag-item">🎨 智能设计：产品及工艺设计、生产线/工厂设计</span>
+  <span class="tag-item">🏭 智能生产：设备管理、生产管理、柔性制造</span>
+  <span class="tag-item">🛠️ 智能服务：健康管理、智能维护、远程诊断、协同优化</span>
+  <span class="tag-item">🤖 智能应用：无人装备、产业链互动、价值链共赢</span>
+</div>
+
+<!-- ====== Pros / Cons ====== -->
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优势</h4>
+    <ul>
+      <li>实现资源配置<strong>按需响应、快速迭代、动态优化</strong></li>
+      <li>解决生产制造和应用服务中的<strong>复杂性和不确定性</strong>问题</li>
+      <li>提高资源配置效率，实现<strong>资源优化</strong></li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 挑战</h4>
+    <ul>
+      <li>系统集成复杂度高，异构协议互联互通难度大</li>
+      <li>实时性要求严格，对网络延迟和可靠性极为敏感</li>
+      <li>安全威胁面大，物理空间与信息空间风险相互传导</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ====== Exam box ====== -->
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">CPS</span>
+    <span class="keyword">信息物理系统</span>
+    <span class="keyword">一硬一软一网一平台</span>
+    <span class="keyword">单元级/系统级/SOS级</span>
+    <span class="keyword">闭环赋能体系</span>
+    <span class="keyword">感知和自动控制</span>
+    <span class="keyword">工业软件</span>
+    <span class="keyword">工业网络</span>
+    <span class="keyword">工业云和智能服务平台</span>
+  </div>
+</div>
+
+<!-- ====== Related ====== -->
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><strong>边缘计算</strong> = CPS在单元级的计算下沉，降低延迟、保障实时性</li>
+    <li><strong>数字孪生体</strong> = CPS中物理空间与信息空间的"相互映射"核心实现</li>
+    <li><strong>工业物联网（IIoT）</strong> = CPS"一网"的落地载体，设备互联的数据通道</li>
+    <li><strong>云计算</strong> = CPS"一平台"的基础设施，支撑工业云和智能服务</li>
+    <li><a href="edge-computing.html">→ 边缘计算</a> &nbsp;|&nbsp; <a href="digital-twin.html">→ 数字孪生体</a> &nbsp;|&nbsp; <span style="color:#94a3b8;font-size:12px">[industrial-iot]</span> &nbsp;|&nbsp; <span style="color:#94a3b8;font-size:12px">[cloud-computing]</span></li>
+  </ul>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* === Tab switching === */
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* === Loop animation === */
+let loopTimer = null;
+function playLoop() {
+  if (loopTimer) { clearInterval(loopTimer); loopTimer = null; }
+  const nodes = ['ln1','ln2','ln3','ln4'];
+  const arrows = ['la1','la2','la3','la4'];
+  const cards  = ['ec1','ec2','ec3','ec4'];
+  let step = 0;
+
+  function tick() {
+    // reset
+    nodes.forEach(n => document.getElementById(n).classList.remove('active'));
+    arrows.forEach(a => document.getElementById(a).classList.remove('active'));
+    cards.forEach(c => document.getElementById(c).style.borderColor = '#e2e8f0');
+
+    const idx = step % 4;
+    document.getElementById(nodes[idx]).classList.add('active');
+    document.getElementById(arrows[idx]).classList.add('active');
+    document.getElementById(cards[idx]).style.borderColor = '#3b82f6';
+    step++;
+  }
+  tick();
+  loopTimer = setInterval(tick, 900);
+  // auto-stop after 2 rounds
+  setTimeout(() => { if (loopTimer) { clearInterval(loopTimer); loopTimer = null; } }, 900 * 8 + 500);
+}
+
+/* === Layer animation === */
+let layerTimer = null;
+function playLayers() {
+  if (layerTimer) { clearInterval(layerTimer); layerTimer = null; }
+  const bars = ['lb1','lb2','lb3'];
+  let step = 0;
+  function tick() {
+    bars.forEach(b => document.getElementById(b).classList.remove('active-layer'));
+    if (step < 3) {
+      document.getElementById(bars[step]).classList.add('active-layer');
+    }
+    step++;
+    if (step >= 4) { clearInterval(layerTimer); layerTimer = null; }
+  }
+  tick();
+  layerTimer = setInterval(tick, 800);
+}
+
+/* === Auto-play on load === */
+window.addEventListener('load', () => setTimeout(playLoop, 600));
+</script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Software Architectural Structures 软件架构结构三大分类 · 系统架构设计师</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.8; }
+.top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.97); border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.top-nav a { color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; }
+.top-nav .breadcrumb { color: #64748b; font-size: 13px; }
+.container { max-width: 900px; margin: 0 auto; padding: 80px 20px 40px; }
+.page-header { margin-bottom: 32px; }
+.page-header .category-tag { display: inline-block; background: #dbeafe; color: #2563eb; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-bottom: 8px; }
+.page-header .exam-tag { display: inline-block; background: #fef2f2; color: #dc2626; font-size: 12px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; }
+.page-header h1 { font-size: 28px; color: #1e293b; margin-bottom: 8px; }
+.page-header .one-liner { font-size: 16px; color: #64748b; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+.tab { padding: 8px 16px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; margin-bottom: -2px; border-radius: 6px 6px 0 0; }
+.tab:hover { color: #1e40af; background: #f1f5f9; }
+.tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; background: #eff6ff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.anim-area { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 20px; min-height: 160px; position: relative; }
+.code-area { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 20px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.9; overflow-x: auto; margin-bottom: 20px; white-space: pre; }
+.code-area .kw { color: #f472b6; } .code-area .fn { color: #c084fc; } .code-area .st { color: #86efac; } .code-area .cm { color: #64748b; }
+.explain { font-size: 14px; color: #475569; margin-bottom: 16px; }
+.explain strong { color: #1e40af; } .explain .hl { color: #dc2626; font-weight: 600; }
+.tag-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tag-item { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #475569; }
+.pros-cons { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.pros, .cons { flex: 1; min-width: 200px; padding: 16px; border-radius: 8px; }
+.pros { background: #f0fdf4; border: 1px solid #86efac; }
+.cons { background: #fef2f2; border: 1px solid #fca5a5; }
+.pros h4 { color: #15803d; margin-bottom: 8px; } .cons h4 { color: #b91c1c; margin-bottom: 8px; }
+.pros li, .cons li { font-size: 13px; color: #475569; margin: 4px 0; }
+.related-section { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.related-section h4 { color: #0369a1; margin-bottom: 12px; }
+.related-section li { color: #475569; font-size: 13px; margin: 4px 0; }
+.exam-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; margin-top: 20px; }
+.exam-box h4 { color: #b45309; margin-bottom: 8px; }
+.exam-box .keyword { display: inline-block; background: #fef3c7; border: 1px solid #f59e0b; padding: 4px 12px; border-radius: 16px; font-size: 12px; color: #92400e; font-weight: 600; margin: 4px 4px 4px 0; }
+
+/* Three-column card structure */
+.structure-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 16px 0; }
+@media (max-width: 680px) { .structure-grid { grid-template-columns: 1fr; } }
+.struct-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; }
+.struct-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.struct-card.highlight { transform: scale(1.05); box-shadow: 0 8px 24px rgba(37,99,235,0.25); z-index: 2; }
+.struct-card .card-icon { font-size: 32px; margin-bottom: 8px; }
+.struct-card h3 { font-size: 15px; margin-bottom: 4px; }
+.struct-card .en-name { font-size: 11px; color: #94a3b8; margin-bottom: 8px; }
+.struct-card .card-desc { font-size: 12px; color: #64748b; line-height: 1.6; }
+.struct-card .card-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 8px; margin-top: 8px; font-weight: 600; }
+.struct-card.module { border-color: #3b82f6; }
+.struct-card.module .card-tag { background: #dbeafe; color: #1d4ed8; }
+.struct-card.cc { border-color: #8b5cf6; }
+.struct-card.cc .card-tag { background: #ede9fe; color: #6d28d9; }
+.struct-card.alloc { border-color: #10b981; }
+.struct-card.alloc .card-tag { background: #d1fae5; color: #065f46; }
+
+/* Animated arrows connecting cards */
+.connector-row { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 12px 0; font-size: 12px; color: #94a3b8; }
+.connector-row .arrow { display: inline-block; animation: pulseArrow 1.5s ease-in-out infinite; }
+@keyframes pulseArrow { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+.play-btn { position: absolute; top: 8px; right: 8px; background: #2563eb; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+.core-box { background: linear-gradient(135deg, #eff6ff, #f0f9ff); border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.core-box h4 { color: #1e40af; margin-bottom: 8px; }
+.core-box p { font-size: 14px; color: #334155; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../index.html">📋 总目录</a>
+  <span class="breadcrumb">› 软件架构结构 › 三大分类</span>
+</nav>
+
+<div class="container">
+
+<div class="page-header">
+  <span class="category-tag">软件架构结构分类（练习题）</span>
+  <span class="exam-tag">⭐ 1-2分</span>
+  <h1>Software Architectural Structures 软件架构结构三大分类</h1>
+  <p class="one-liner">软件架构结构三大类：模块结构（代码/数据单元）、构件与连接器结构（运行时行为和交互）、分配结构（系统与非软件结构的关联）。</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(this,'anim')">🎬 动画演示</div>
+  <div class="tab" onclick="switchTab(this,'code')">💻 伪代码</div>
+</div>
+
+<div id="anim" class="tab-content active">
+  <div class="anim-area">
+    <button class="play-btn" onclick="playAnimation()">▶ 播放</button>
+
+    <div class="structure-grid">
+      <div class="struct-card module" id="card1">
+        <div class="card-icon">📦</div>
+        <h3>模块结构</h3>
+        <div class="en-name">Module Structures</div>
+        <div class="card-desc">将决策体现为需要构建或采购的<span class="hl">代码或数据单元</span></div>
+        <span class="card-tag">静态 · 代码</span>
+      </div>
+      <div class="struct-card cc" id="card2">
+        <div class="card-icon">🔌</div>
+        <h3>构件与连接器结构</h3>
+        <div class="en-name">Component &amp; Connector Structures</div>
+        <div class="card-desc">将决策体现为系统如何结构化为一组<span class="hl">具有运行时行为和交互</span>的元素</div>
+        <span class="card-tag">动态 · 运行时</span>
+      </div>
+      <div class="struct-card alloc" id="card3">
+        <div class="card-icon">🖥️</div>
+        <h3>分配结构</h3>
+        <div class="en-name">Allocation Structures</div>
+        <div class="card-desc">将决策体现为系统如何关联到环境中的<span class="hl">非软件结构</span>（CPU、网络、团队等）</div>
+        <span class="card-tag">部署 · 环境</span>
+      </div>
+    </div>
+
+    <div class="connector-row">
+      <span>模块(静态代码)</span>
+      <span class="arrow">→</span>
+      <span>构件与连接器(运行时交互)</span>
+      <span class="arrow">→</span>
+      <span>分配(部署到硬件/团队)</span>
+    </div>
+  </div>
+</div>
+
+<div id="code" class="tab-content">
+  <pre class="code-area"><span class="cm">// 软件架构结构三大分类 —— 不同维度看系统</span>
+
+<span class="cm">// ① Module Structures — 静态代码层面</span>
+<span class="kw">class</span> <span class="fn">ModuleStructure</span> {
+    modules = [<span class="st">"AuthModule"</span>, <span class="st">"PaymentModule"</span>, <span class="st">"DataAccessLayer"</span>]
+    <span class="cm">// 决策：哪些代码/数据单元需要构建或采购？</span>
+    <span class="cm">// 关键词：静态结构、代码组织、依赖关系</span>
+}
+
+<span class="cm">// ② Component and Connector Structures — 动态运行时层面</span>
+<span class="kw">class</span> <span class="fn">CCStructure</span> {
+    components = [<span class="st">"WebServer"</span>, <span class="st">"Database"</span>, <span class="st">"MessageQueue"</span>]
+    connectors = [<span class="st">"HTTP"</span>, <span class="st">"TCP"</span>, <span class="st">"RPC"</span>]
+    <span class="cm">// 决策：系统如何结构化为一组有运行时行为和交互的元素？</span>
+    <span class="cm">// 关键词：运行时行为、交互、数据流</span>
+}
+
+<span class="cm">// ③ Allocation Structures — 部署与环境层面</span>
+<span class="kw">class</span> <span class="fn">AllocationStructure</span> {
+    mapping = {
+        <span class="st">"WebServer"</span>   → <span class="st">"CPU-A, 192.168.1.10"</span>,
+        <span class="st">"Database"</span>    → <span class="st">"File-System / SSD"</span>,
+        <span class="st">"AuthModule"</span>  → <span class="st">"Team-Alpha (开发团队)"</span>
+    }
+    <span class="cm">// 决策：系统如何关联到非软件结构？</span>
+    <span class="cm">// 关键词：CPU、文件系统、网络、开发团队</span>
+}
+
+<span class="cm">// 系统架构 = 功能→软硬件构件的映射 + 软件→硬件映射 + 人机交互</span></pre>
+</div>
+
+<div class="core-box">
+  <h4>💡 核心理解</h4>
+  <p>系统架构是<strong>功能到软硬件构件的映射</strong>、<strong>软件架构到硬件架构的映射</strong>，以及<strong>人机交互</strong>的关注。三类结构分别从<strong>静态代码</strong>、<strong>动态运行时</strong>、<strong>部署环境</strong>三个维度看同一个系统。</p>
+</div>
+
+<div class="explain">
+  <strong>记忆口诀：</strong><span class="hl">模块=代码、构件=运行时、分配=环境</span>。
+  三类结构是不同维度看同一个系统——静态怎么拆代码？运行时怎么交互？部署到哪台机器/哪个团队？
+</div>
+
+<div class="tag-list">
+  <span class="tag-item">📦 Module → 代码或数据单元</span>
+  <span class="tag-item">🔌 C&C → 运行时行为和交互</span>
+  <span class="tag-item">🖥️ Allocation → 非软件结构（CPU/网络/团队）</span>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 优点</h4>
+    <ul>
+      <li>分类清晰，三类对应不同维度</li>
+      <li>练习题有详细解析，复习效率高</li>
+      <li>覆盖静态/动态/环境全方位视角</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 难点</h4>
+    <ul>
+      <li>三类结构的英文名称长且容易混淆</li>
+      <li>需要准确区分每类结构的含义</li>
+      <li>Component和Module概念易混</li>
+    </ul>
+  </div>
+</div>
+
+<div class="exam-box">
+  <h4>📝 考试关键词</h4>
+  <div>
+    <span class="keyword">module structures</span>
+    <span class="keyword">component and connector structures</span>
+    <span class="keyword">allocation structures</span>
+    <span class="keyword">system architecture</span>
+    <span class="keyword">functionality mapping</span>
+    <span class="keyword">human interaction</span>
+  </div>
+</div>
+
+<div class="related-section">
+  <h4>🔗 关联知识</h4>
+  <ul>
+    <li><a href="h25-kp01.html" style="color:#2563eb;text-decoration:none;">h25-kp01</a> — 软件架构基础概念</li>
+    <li><a href="h25-kp02.html" style="color:#2563eb;text-decoration:none;">h25-kp02</a> — 架构风格相关</li>
+    <li><span style="color:#94a3b8;font-size:12px">[h03-arch-style]</span> — 架构风格详解</li>
+    <li><strong>辨析</strong>：Module结构看"代码怎么拆"，C&C结构看"运行时怎么通信"，Allocation结构看"部署到哪台机器/哪个人负责"</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function playAnimation() {
+  const cards = ['card1', 'card2', 'card3'];
+  cards.forEach((id, i) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 800);
+    }, i * 600);
+  });
+}
+
+window.addEventListener('load', () => setTimeout(playAnimation, 500));
+</script>
+</body>
+</html>
